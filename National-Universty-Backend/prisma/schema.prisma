@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+provider = "prisma-client-js"
+}
+datasource db {
+provider = "mysql"
+url      = env("DATABASE_URL")
+}
+
+enum Role {
+admin
+auditor
+}
+
+enum FeeType {
+NEW_YEAR
+SUPPLEMENTARY
+LAB
+STUDENT_SERVICES
+OTHER
+}
+
+enum PaymentMethod {
+CASH
+TRANSFER
+CHEQUE
+}
+
+model User {
+id           String   @id @default(cuid())
+username     String   @unique @db.VarChar(50)
+email        String   @unique @db.VarChar(100)
+role         Role
+passwordHash String   @map("password_hash") @db.VarChar(255)
+lastLoginAt     DateTime    @default(now())
+createdAt    DateTime @default(now()) @map("created_at")
+updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+// Relations
+createdPayments Payment[]
+createdExpenses Expense[]
+@@map("users")
+}
+
+
+model Payment {
+id             String   @id @default(uuid())
+studentId      String
+studentName    String
+feeType        FeeType
+amount         Decimal  @db.Decimal(15, 2)
+receiptNumber  String   @unique
+paymentMethod  PaymentMethod
+paymentDate    DateTime
+notes          String?
+createdBy      User     @relation(fields: [createdById], references: [id])
+createdById    String
+createdAt      DateTime @default(now())
+updatedAt      DateTime @updatedAt
+}
+
+
+model Expense {
+id          String   @id @default(cuid()) 
+amount      Decimal  @db.Decimal(15, 2)
+description String   @db.Text
+category    String   @db.VarChar(100)
+vendor      String?  @db.VarChar(255)
+receiptUrl  String?  @map("receipt_url") @db.VarChar(500)
+date        DateTime @db.Date
+createdBy   String?  @map("created_by") 
+createdAt   DateTime @default(now()) @map("created_at")
+updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+// Relations
+creator User? @relation(fields: [createdBy], references: [id])
+@@map("expenses")
+}
+
+
