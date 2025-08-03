@@ -69,7 +69,7 @@ router.post(
  * Update payment by ID
  * Access: admin only
  */
-router.put(
+router.patch(
   "/:id",
   allowedTo("admin"),
   updatePaymentValidator,

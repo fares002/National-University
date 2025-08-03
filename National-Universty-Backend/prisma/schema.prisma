@@ -16,9 +16,10 @@ auditor
 enum FeeType {
 NEW_YEAR
 SUPPLEMENTARY
-LAB
+TRAINING
 STUDENT_SERVICES
 OTHER
+EXAM
 }
 
 enum PaymentMethod {
@@ -57,6 +58,7 @@ createdBy      User     @relation(fields: [createdById], references: [id])
 createdById    String
 createdAt      DateTime @default(now())
 updatedAt      DateTime @updatedAt
+@@map("payments")
 }
 
 

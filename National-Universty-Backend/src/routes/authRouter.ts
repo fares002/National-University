@@ -16,6 +16,7 @@ authRouter.route("/login").post(loginValidator, validate, login);
 authRouter.route("/signup").post(registerValidator, validate, register);
 
 authRouter.route("/logout").post(logout);
+
 authRouter.route("/me").get(verifyToken ,getCurrentUser);
 
 export default authRouter;

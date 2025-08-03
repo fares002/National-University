@@ -29,6 +29,7 @@ const getAllUsers = asyncWrapper(
         username: true,
         email: true,
         role: true,
+        lastLoginAt:true,
         createdAt: true,
         updatedAt: true,
         // Password excluded for security
@@ -212,6 +213,8 @@ const updateUser = asyncWrapper(
     });
   }
 );
+
+
 
 /**
  * Delete user

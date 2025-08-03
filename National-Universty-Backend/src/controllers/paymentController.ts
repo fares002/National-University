@@ -8,7 +8,7 @@ import { httpStatusText } from "../utils/httpStatusText";
 interface CreatePaymentBody {
   studentId: string;
   studentName: string;
-  feeType: "NEW_YEAR" | "SUPPLEMENTARY" | "LAB" | "STUDENT_SERVICES" | "OTHER";
+  feeType: "NEW_YEAR" | "SUPPLEMENTARY" | "TRAINING" | "STUDENT_SERVICES" | "OTHER" | "EXAM";
   amount: string;
   receiptNumber: string;
   paymentMethod: "CASH" | "TRANSFER" | "CHEQUE";
@@ -19,7 +19,7 @@ interface CreatePaymentBody {
 interface UpdatePaymentBody {
   studentId?: string;
   studentName?: string;
-  feeType?: "NEW_YEAR" | "SUPPLEMENTARY" | "LAB" | "STUDENT_SERVICES" | "OTHER";
+  feeType?: "NEW_YEAR" | "SUPPLEMENTARY" | "TRAINING" | "STUDENT_SERVICES" | "OTHER" | "EXAM";
   amount?: string;
   receiptNumber?: string;
   paymentMethod?: "CASH" | "TRANSFER" | "CHEQUE";

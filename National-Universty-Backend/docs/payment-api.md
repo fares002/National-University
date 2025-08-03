@@ -89,7 +89,7 @@ GET /api/v1/payments/123e4567-e89b-12d3-a456-426614174000
 
 ### 4. Update Payment
 
-**PUT** `/api/v1/payments/:id`
+**PATCH** `/api/v1/payments/:id`
 
 **Access:** Admin only
 

@@ -50,9 +50,16 @@ const createPaymentValidator = [
   body("feeType")
     .notEmpty()
     .withMessage("Fee type is required")
-    .isIn(["NEW_YEAR", "SUPPLEMENTARY", "LAB", "STUDENT_SERVICES", "OTHER"])
+    .isIn([
+      "NEW_YEAR",
+      "SUPPLEMENTARY",
+      "TRAINING",
+      "STUDENT_SERVICES",
+      "OTHER",
+      "EXAM",
+    ])
     .withMessage(
-      "Fee type must be one of: NEW_YEAR, SUPPLEMENTARY, LAB, STUDENT_SERVICES, OTHER"
+      "Fee type must be one of: NEW_YEAR, SUPPLEMENTARY, TRAINING, STUDENT_SERVICES, OTHER, EXAM"
     ),
 
   body("amount")
@@ -129,9 +136,16 @@ const updatePaymentValidator = [
 
   body("feeType")
     .optional()
-    .isIn(["NEW_YEAR", "SUPPLEMENTARY", "LAB", "STUDENT_SERVICES", "OTHER"])
+    .isIn([
+      "NEW_YEAR",
+      "SUPPLEMENTARY",
+      "TRAINING",
+      "STUDENT_SERVICES",
+      "OTHER",
+      "EXAM",
+    ])
     .withMessage(
-      "Fee type must be one of: NEW_YEAR, SUPPLEMENTARY, LAB, STUDENT_SERVICES, OTHER"
+      "Fee type must be one of: NEW_YEAR, SUPPLEMENTARY, TRAINING, STUDENT_SERVICES, OTHER, EXAM"
     ),
 
   body("amount")
@@ -208,9 +222,16 @@ const paginationValidator = [
 
   query("feeType")
     .optional()
-    .isIn(["NEW_YEAR", "SUPPLEMENTARY", "LAB", "STUDENT_SERVICES", "OTHER"])
+    .isIn([
+      "NEW_YEAR",
+      "SUPPLEMENTARY",
+      "TRAINING",
+      "STUDENT_SERVICES",
+      "OTHER",
+      "EXAM",
+    ])
     .withMessage(
-      "Fee type must be one of: NEW_YEAR, SUPPLEMENTARY, LAB, STUDENT_SERVICES, OTHER"
+      "Fee type must be one of: NEW_YEAR, SUPPLEMENTARY, TRAINING, STUDENT_SERVICES, OTHER, EXAM"
     ),
 
   query("paymentMethod")
