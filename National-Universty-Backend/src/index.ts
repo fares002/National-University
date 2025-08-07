@@ -47,8 +47,6 @@ app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/expenses", expenseRoutes);
 app.use("/api/v1/reports", reportRoutes);
 
-
-
 app.use((req: Request, res: Response) => {
   return res.status(404).json({
     status: "fail",
@@ -57,8 +55,6 @@ app.use((req: Request, res: Response) => {
     },
   });
 });
-
-
 
 //global error handler
 app.use((error: any, req: Request, res: Response, next: NextFunction) => {
@@ -81,8 +77,6 @@ app.use((error: any, req: Request, res: Response, next: NextFunction) => {
     });
   }
 });
-
-
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

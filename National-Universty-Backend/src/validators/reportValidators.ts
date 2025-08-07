@@ -13,19 +13,19 @@ const dateValidator = [
       const date = new Date(value);
       const today = new Date();
       today.setHours(23, 59, 59, 999);
-      
+
       if (date > today) {
         throw new Error("Date cannot be in the future");
       }
-      
+
       // Check if date is not too far in the past (e.g., not more than 5 years ago)
       const fiveYearsAgo = new Date();
       fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
-      
+
       if (date < fiveYearsAgo) {
         throw new Error("Date cannot be more than 5 years in the past");
       }
-      
+
       return true;
     }),
 ];
@@ -37,7 +37,7 @@ const monthlyReportValidator = [
     .withMessage("Year is required")
     .isInt({ min: 2020, max: new Date().getFullYear() })
     .withMessage(`Year must be between 2020 and ${new Date().getFullYear()}`),
-    
+
   param("month")
     .notEmpty()
     .withMessage("Month is required")
@@ -54,8 +54,4 @@ const yearlyReportValidator = [
     .withMessage(`Year must be between 2020 and ${new Date().getFullYear()}`),
 ];
 
-export {
-  dateValidator,
-  monthlyReportValidator,
-  yearlyReportValidator,
-};
+export { dateValidator, monthlyReportValidator, yearlyReportValidator };
