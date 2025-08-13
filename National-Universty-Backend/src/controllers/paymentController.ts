@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "../utils/prisma";
 import asyncWrapper from "../middlewares/asyncWrapper";
+import redis from "../utils/redis";
 import AppError from "../utils/AppError";
 import { httpStatusText } from "../utils/httpStatusText";
 
@@ -8,7 +9,13 @@ import { httpStatusText } from "../utils/httpStatusText";
 interface CreatePaymentBody {
   studentId: string;
   studentName: string;
-  feeType: "NEW_YEAR" | "SUPPLEMENTARY" | "TRAINING" | "STUDENT_SERVICES" | "OTHER" | "EXAM";
+  feeType:
+    | "NEW_YEAR"
+    | "SUPPLEMENTARY"
+    | "TRAINING"
+    | "STUDENT_SERVICES"
+    | "OTHER"
+    | "EXAM";
   amount: string;
   receiptNumber: string;
   paymentMethod: "CASH" | "TRANSFER" | "CHEQUE";
@@ -19,7 +26,13 @@ interface CreatePaymentBody {
 interface UpdatePaymentBody {
   studentId?: string;
   studentName?: string;
-  feeType?: "NEW_YEAR" | "SUPPLEMENTARY" | "TRAINING" | "STUDENT_SERVICES" | "OTHER" | "EXAM";
+  feeType?:
+    | "NEW_YEAR"
+    | "SUPPLEMENTARY"
+    | "TRAINING"
+    | "STUDENT_SERVICES"
+    | "OTHER"
+    | "EXAM";
   amount?: string;
   receiptNumber?: string;
   paymentMethod?: "CASH" | "TRANSFER" | "CHEQUE";
@@ -45,14 +58,45 @@ const getAllPayments = asyncWrapper(
     const startDate = req.query.startDate as string;
     const endDate = req.query.endDate as string;
 
+    // Create unique cache key based on all parameters
+    const cacheKey = `payments:all:page:${page}:limit:${limit}:search:${
+      search || ""
+    }:feeType:${feeType || ""}:paymentMethod:${paymentMethod || ""}:startDate:${
+      startDate || ""
+    }:endDate:${endDate || ""}`;
+
+    // Try to get data from cache first
+    try {
+      console.log("🔍 Checking cache for payments...");
+      const cachedData = await redis.get(cacheKey);
+
+      if (cachedData) {
+        console.log("🚀 CACHE HIT! Returning cached payments data");
+        const parsedData = JSON.parse(cachedData);
+
+        return res.status(200).json({
+          ...parsedData,
+          data: {
+            ...parsedData.data,
+            cached: true, // Flag to indicate data came from cache
+          },
+        });
+      }
+
+      console.log("📂 CACHE MISS! Fetching payments data from database");
+    } catch (cacheError) {
+      console.warn("⚠️ Cache read error:", (cacheError as Error).message);
+      // Continue without cache if error occurs
+    }
+
     // Build where clause
     const where: any = {};
 
     if (search) {
       where.OR = [
-        { studentId: { contains: search, mode: "insensitive" } },
-        { studentName: { contains: search, mode: "insensitive" } },
-        { receiptNumber: { contains: search, mode: "insensitive" } },
+        { studentId: { contains: search } },
+        { studentName: { contains: search } },
+        { receiptNumber: { contains: search } },
       ];
     }
 
@@ -73,6 +117,9 @@ const getAllPayments = asyncWrapper(
         where.paymentDate.lte = new Date(endDate);
       }
     }
+
+    // Record start time for performance monitoring
+    const queryStartTime = Date.now();
 
     // Get payments with pagination
     const [payments, totalCount] = await Promise.all([
@@ -107,9 +154,13 @@ const getAllPayments = asyncWrapper(
       prisma.payment.count({ where }),
     ]);
 
+    // Calculate query execution time
+    const queryTime = Date.now() - queryStartTime;
+    console.log(`📊 Database query completed in ${queryTime}ms`);
+
     const totalPages = Math.ceil(totalCount / limit);
 
-    return res.status(200).json({
+    const result = {
       status: httpStatusText.SUCCESS,
       data: {
         payments,
@@ -122,7 +173,18 @@ const getAllPayments = asyncWrapper(
           hasPrevPage: page > 1,
         },
       },
-    });
+    };
+
+    // Cache the result for 5 minutes (300 seconds)
+    try {
+      await redis.setex(cacheKey, 300, JSON.stringify(result));
+      console.log("✅ Payments data cached successfully with key:", cacheKey);
+    } catch (cacheError) {
+      console.warn("⚠️ Cache write error:", (cacheError as Error).message);
+      // Continue without cache if error occurs
+    }
+
+    return res.status(200).json(result);
   }
 );
 
@@ -240,6 +302,24 @@ const createPayment = asyncWrapper(
       },
     });
 
+    // Invalidate all payment caches since data has changed
+    try {
+      const pattern = "payments:*";
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(...keys);
+        console.log(
+          `🧹 Cache invalidated: ${keys.length} payment cache keys deleted`
+        );
+      }
+    } catch (cacheError) {
+      console.warn(
+        "⚠️ Cache invalidation error:",
+        (cacheError as Error).message
+      );
+      // Continue even if cache invalidation fails
+    }
+
     return res.status(201).json({
       status: httpStatusText.SUCCESS,
       data: {
@@ -356,6 +436,24 @@ const updatePayment = asyncWrapper(
       },
     });
 
+    // Invalidate all payment caches since data has changed
+    try {
+      const pattern = "payments:*";
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(...keys);
+        console.log(
+          `🧹 Cache invalidated: ${keys.length} payment cache keys deleted`
+        );
+      }
+    } catch (cacheError) {
+      console.warn(
+        "⚠️ Cache invalidation error:",
+        (cacheError as Error).message
+      );
+      // Continue even if cache invalidation fails
+    }
+
     return res.status(200).json({
       status: httpStatusText.SUCCESS,
       data: {
@@ -387,6 +485,24 @@ const deletePayment = asyncWrapper(
     await prisma.payment.delete({
       where: { id },
     });
+
+    // Invalidate all payment caches since data has changed
+    try {
+      const pattern = "payments:*";
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(...keys);
+        console.log(
+          `🧹 Cache invalidated: ${keys.length} payment cache keys deleted`
+        );
+      }
+    } catch (cacheError) {
+      console.warn(
+        "⚠️ Cache invalidation error:",
+        (cacheError as Error).message
+      );
+      // Continue even if cache invalidation fails
+    }
 
     return res.status(200).json({
       status: httpStatusText.SUCCESS,

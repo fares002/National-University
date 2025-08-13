@@ -40,6 +40,16 @@ updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
 // Relations
 createdPayments Payment[]
 createdExpenses Expense[]
+
+
+//main indexs
+@@index([role])                 
+@@index([lastLoginAt])           
+@@index([createdAt])
+
+//compined indexes
+@@index([role, lastLoginAt])   
+@@index([role, createdAt])   
 @@map("users")
 }
 
@@ -58,6 +68,23 @@ createdBy      User     @relation(fields: [createdById], references: [id])
 createdById    String
 createdAt      DateTime @default(now())
 updatedAt      DateTime @updatedAt
+
+// Main indexies
+@@index([paymentDate])
+@@index([feeType])
+@@index([paymentMethod])
+@@index([createdById])    
+
+//compined indexes
+@@index([paymentDate, feeType])
+@@index([paymentDate, paymentMethod])
+@@index([createdById, paymentDate])
+
+
+//Rare indexes
+@@index([studentId])
+@@index([receiptNumber])
+
 @@map("payments")
 }
 
@@ -70,11 +97,22 @@ category    String   @db.VarChar(100)
 vendor      String?  @db.VarChar(255)
 receiptUrl  String?  @map("receipt_url") @db.VarChar(500)
 date        DateTime @db.Date
-createdBy   String?  @map("created_by") 
+createdBy   String  @map("created_by") 
 createdAt   DateTime @default(now()) @map("created_at")
 updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 // Relations
-creator User? @relation(fields: [createdBy], references: [id])
+creator User @relation(fields: [createdBy], references: [id])
+
+//Main indexes
+@@index([date])
+@@index([category])
+@@index([vendor])
+@@index([createdBy]) 
+
+//compaind indexes
+@@index([date, category])
+@@index([date, vendor])
+@@index([createdBy, date])
 @@map("expenses")
 }
 

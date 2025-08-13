@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "../utils/prisma";
 import asyncWrapper from "../middlewares/asyncWrapper";
+import redis from "../utils/redis";
 import AppError from "../utils/AppError";
 import { httpStatusText } from "../utils/httpStatusText";
 import { generatePDF, ReportData } from "../utils/pdfGenerator";
@@ -22,6 +23,7 @@ interface DailyReportData {
   };
   netIncome: number;
 }
+
 
 interface MonthlyReportData {
   year: number;
@@ -58,6 +60,7 @@ interface MonthlyReportData {
     };
   };
 }
+
 
 /**
  * Get daily financial report
@@ -204,6 +207,7 @@ const getDailyReport = asyncWrapper(
     }
   }
 );
+
 
 /**
  * Get monthly financial report
@@ -702,6 +706,33 @@ const getDashboardReport = asyncWrapper(
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
 
+    // Create unique cache key based on current date (day precision)
+    const cacheKey = `dashboard:report:${currentYear}:${currentMonth}:${now.getDate()}`;
+
+    // Try to get data from cache first
+    try {
+      console.log("🔍 Checking cache for dashboard report...");
+      const cachedData = await redis.get(cacheKey);
+
+      if (cachedData) {
+        console.log("🚀 CACHE HIT! Returning cached dashboard data");
+        const parsedData = JSON.parse(cachedData);
+
+        return res.status(200).json({
+          ...parsedData,
+          data: {
+            ...parsedData.data,
+            cached: true, // Flag to indicate data came from cache
+          },
+        });
+      }
+
+      console.log("📂 CACHE MISS! Fetching dashboard data from database");
+    } catch (cacheError) {
+      console.warn("⚠️ Cache read error:", (cacheError as Error).message);
+      // Continue without cache if error occurs
+    }
+
     // Current month date range
     const startOfCurrentMonth = new Date(currentYear, currentMonth, 1);
     const endOfCurrentMonth = new Date(
@@ -1014,19 +1045,34 @@ const getDashboardReport = asyncWrapper(
         },
       };
 
-      return res.status(200).json({
+      const result = {
         status: httpStatusText.SUCCESS,
         data: {
           message: "Dashboard report retrieved successfully",
           dashboard: dashboardData,
         },
-      });
+      };
+
+      // Cache the result for 10 minutes (600 seconds) since dashboard data changes frequently
+      try {
+        await redis.setex(cacheKey, 600, JSON.stringify(result));
+        console.log(
+          "✅ Dashboard data cached successfully with key:",
+          cacheKey
+        );
+      } catch (cacheError) {
+        console.warn("⚠️ Cache write error:", (cacheError as Error).message);
+        // Continue without cache if error occurs
+      }
+
+      return res.status(200).json(result);
     } catch (error) {
       console.error("Dashboard report error:", error);
       return next(new AppError("Failed to generate dashboard report", 500));
     }
   }
 );
+
 
 /**
  * Get financial summary (current month, quarter, year overview)
@@ -1159,6 +1205,7 @@ const getFinancialSummary = asyncWrapper(
   }
 );
 
+
 /**
  * Download daily report as PDF
  * Authorization: admin and auditor roles
@@ -1266,6 +1313,7 @@ const downloadDailyReportPDF = asyncWrapper(
     }
   }
 );
+
 
 /**
  * Download monthly report as PDF
@@ -1409,6 +1457,7 @@ const downloadMonthlyReportPDF = asyncWrapper(
     }
   }
 );
+
 
 /**
  * Download yearly report as PDF
@@ -1567,6 +1616,7 @@ const downloadYearlyReportPDF = asyncWrapper(
     }
   }
 );
+
 
 export {
   getDailyReport,
