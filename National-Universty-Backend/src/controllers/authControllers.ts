@@ -84,6 +84,7 @@ const register = asyncWrapper(
   }
 );
 
+
 const login = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, password }: LoginBody = req.body;
@@ -138,6 +139,7 @@ const login = asyncWrapper(
     });
   }
 );
+
 
 const logout = asyncWrapper(async (req: Request, res: Response) => {
   const isProd = process.env.NODE_ENV === "production";
