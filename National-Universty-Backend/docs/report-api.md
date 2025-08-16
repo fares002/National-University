@@ -286,14 +286,165 @@ All endpoints require authentication via JWT token.
 
 ---
 
+## 📈 **5. Dashboard Report**
+
+### **GET** `/api/v1/reports/dashboard`
+
+**Description:** Get comprehensive dashboard overview with current month metrics, comparisons, recent activity, and daily breakdown. This endpoint provides the most important financial KPIs for the dashboard view.
+
+**URL Parameters:** None
+
+**Query Parameters:** None
+
+**Features:**
+
+- **Smart Caching**: Results cached for 10 minutes for better performance
+- **Current Month Focus**: Detailed current month financial data
+- **Comparison Analytics**: Month-over-month percentage changes
+- **Recent Activity**: Latest payment and expense records
+- **Daily Breakdown**: Day-by-day breakdown of current month
+- **Today's Metrics**: Real-time today's transaction counts
+
+**Success Response (200):**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "message": "Dashboard report retrieved successfully",
+    "dashboard": {
+      "overview": {
+        "currentMonth": {
+          "payments": {
+            "total": 450500.75,
+            "count": 125
+          },
+          "expenses": {
+            "total": 125000.5,
+            "count": 45
+          },
+          "netProfit": 325500.25,
+          "totalTransactions": 170
+        },
+        "previousMonth": {
+          "payments": {
+            "total": 380000.0,
+            "count": 110
+          },
+          "expenses": {
+            "total": 110000.0,
+            "count": 40
+          },
+          "netProfit": 270000.0
+        },
+        "comparison": {
+          "paymentChange": 18.55,
+          "expenseChange": 13.64,
+          "paymentTrend": "increase",
+          "expenseTrend": "increase"
+        }
+      },
+      "recentActivity": {
+        "lastPayment": {
+          "id": "cm123xyz789",
+          "amount": 2500.0,
+          "studentName": "أحمد محمد علي",
+          "feeType": "NEW_YEAR",
+          "paymentMethod": "CASH",
+          "paymentDate": "2025-08-16T10:30:00.000Z",
+          "receiptNumber": "RCP-2025-001234",
+          "timeSince": 1
+        },
+        "lastExpense": {
+          "id": "exp456abc",
+          "amount": 1500.0,
+          "category": "Office Supplies",
+          "vendor": "ABC Office Store",
+          "description": "Monthly office supplies purchase",
+          "date": "2025-08-15T14:20:00.000Z",
+          "timeSince": 2
+        }
+      },
+      "todayMetrics": {
+        "totalTransactions": 8,
+        "paymentsCount": 5,
+        "expensesCount": 3
+      },
+      "dailyBreakdown": [
+        {
+          "date": "2025-08-01",
+          "payments": {
+            "total": 12500.0,
+            "count": 5
+          },
+          "expenses": {
+            "total": 3200.0,
+            "count": 2
+          },
+          "netIncome": 9300.0,
+          "totalTransactions": 7
+        },
+        {
+          "date": "2025-08-02",
+          "payments": {
+            "total": 18000.0,
+            "count": 8
+          },
+          "expenses": {
+            "total": 5500.0,
+            "count": 3
+          },
+          "netIncome": 12500.0,
+          "totalTransactions": 11
+        }
+      ],
+      "metadata": {
+        "currentMonth": "August 2025",
+        "previousMonth": "July 2025",
+        "generatedAt": "2025-08-17T10:30:45.123Z",
+        "daysInCurrentMonth": 16
+      }
+    },
+    "cached": false
+  }
+}
+```
+
+**Cache Response (200):**
+
+When data is served from cache, the response includes `"cached": true` in the data object.
+
+**Dashboard Data Fields:**
+
+| Field                        | Description                                |
+| ---------------------------- | ------------------------------------------ |
+| `overview.currentMonth`      | Complete current month financial summary   |
+| `overview.previousMonth`     | Previous month data for comparison         |
+| `overview.comparison`        | Percentage changes and trend directions    |
+| `recentActivity.lastPayment` | Most recent payment record with days since |
+| `recentActivity.lastExpense` | Most recent expense record with days since |
+| `todayMetrics`               | Today's transaction counts                 |
+| `dailyBreakdown`             | Day-by-day breakdown for current month     |
+| `metadata`                   | Report generation info and periods         |
+
+**Performance:**
+
+- **First Request**: ~800ms (database queries)
+- **Cached Request**: ~50ms (from Redis)
+- **Cache Duration**: 10 minutes
+- **Auto-refresh**: Cache invalidates daily
+
+---
+
 ## 🎯 **Report Endpoints Summary**
 
-| Method | Endpoint                | Description               | Typical Response Time |
-| ------ | ----------------------- | ------------------------- | --------------------- |
-| `GET`  | `/daily/:date`          | Daily financial report    | ~200ms                |
-| `GET`  | `/monthly/:year/:month` | Monthly financial report  | ~500ms                |
-| `GET`  | `/yearly/:year`         | Yearly financial report   | ~1s                   |
-| `GET`  | `/summary`              | Current financial summary | ~300ms                |
+| Method | Endpoint                | Description               | Typical Response Time | Cache |
+| ------ | ----------------------- | ------------------------- | --------------------- | ----- |
+| `GET`  | `/daily/:date`          | Daily financial report    | ~200ms                | ❌    |
+| `GET`  | `/monthly/:year/:month` | Monthly financial report  | ~500ms                | ❌    |
+| `GET`  | `/yearly/:year`         | Yearly financial report   | ~1s                   | ❌    |
+| `GET`  | `/summary`              | Current financial summary | ~300ms                | ❌    |
+| `GET`  | `/dashboard`            | Dashboard overview        | ~800ms / ~50ms        | ✅    |
 
 ---
 
@@ -352,9 +503,25 @@ GET http://localhost:3000/api/v1/reports/summary
 Cookie: token=YOUR_JWT_TOKEN
 ```
 
+### **5. Dashboard Report**
+
+```
+GET http://localhost:3000/api/v1/reports/dashboard
+Cookie: token=YOUR_JWT_TOKEN
+```
+
 ---
 
 ## 💡 **Business Intelligence Insights**
+
+### **Dashboard Report Helps With:**
+
+- **Real-time Overview**: Current month performance at a glance
+- **Trend Analysis**: Month-over-month comparison and growth tracking
+- **Quick Decision Making**: Key metrics for management decisions
+- **Daily Monitoring**: Day-by-day performance tracking
+- **Recent Activity**: Latest financial transactions visibility
+- **Performance KPIs**: Essential financial health indicators
 
 ### **Daily Reports Help With:**
 

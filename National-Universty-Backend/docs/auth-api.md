@@ -32,7 +32,7 @@ All authentication endpoints are prefixed with `/api/v1/auth`
 - **username**: Required, 3-50 characters, alphanumeric and underscores only
 - **email**: Required, valid email format, max 100 characters, unique
 - **password**: Required, 8-128 characters, must contain uppercase, lowercase, and number
-- **role**: Required, one of: `admin`, `auditor`, `accountant`, `finance_employee`
+- **role**: Required, one of: `admin`, `auditor`
 
 **Success Response (201):**
 

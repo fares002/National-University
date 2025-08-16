@@ -39,6 +39,85 @@ All endpoints require authentication via JWT token. The token should be provided
 GET /api/v1/payments?page=1&limit=20&feeType=NEW_YEAR&search=john
 ```
 
+**Success Response (200):**
+
+```json
+{
+  "status": "success",
+  "data": {
+    "payments": [
+      {
+        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "studentId": "STU123456",
+        "studentName": "أحمد محمد علي",
+        "feeType": "NEW_YEAR",
+        "amount": 2500.0,
+        "receiptNumber": "RCP-2025-001234",
+        "paymentMethod": "CASH",
+        "paymentDate": "2025-08-16T10:30:00.000Z",
+        "notes": "Payment for academic year 2025",
+        "createdBy": {
+          "id": "user-123",
+          "username": "admin",
+          "email": "admin@university.edu"
+        },
+        "createdAt": "2025-08-16T10:30:00.000Z",
+        "updatedAt": "2025-08-16T10:30:00.000Z"
+      },
+      {
+        "id": "456e7890-e89b-12d3-a456-426614174001",
+        "studentId": "STU789012",
+        "studentName": "فاطمة أحمد محمد",
+        "feeType": "SUPPLEMENTARY",
+        "amount": 1200.0,
+        "receiptNumber": "RCP-2025-001235",
+        "paymentMethod": "TRANSFER",
+        "paymentDate": "2025-08-15T14:20:00.000Z",
+        "notes": "Supplementary exam fees",
+        "createdBy": {
+          "id": "user-456",
+          "username": "cashier01",
+          "email": "cashier@university.edu"
+        },
+        "createdAt": "2025-08-15T14:20:00.000Z",
+        "updatedAt": "2025-08-15T14:20:00.000Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "totalCount": 157,
+      "totalPages": 16,
+      "hasNextPage": true,
+      "hasPrevPage": false
+    },
+    "cached": false
+  }
+}
+```
+
+**Cache Response (200):**
+
+When data is served from cache (within 5 minutes), the response includes `"cached": true` in the data object:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "payments": [...],
+    "pagination": {...},
+    "cached": true
+  }
+}
+```
+
+**Performance:**
+
+- **First Request**: ~200-500ms (database query)
+- **Cached Request**: ~20-50ms (from Redis)
+- **Cache Duration**: 5 minutes
+- **Auto-refresh**: Cache refreshes on new requests after expiry
+
 ### 2. Get Payment by ID
 
 **GET** `/api/v1/payments/:id`
