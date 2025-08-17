@@ -366,7 +366,7 @@ export function Payments() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="البحث بالاسم أو الرقم الجامعي أو رقم الإيصال..."
+                  placeholder={t("searchPlaceholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -375,16 +375,20 @@ export function Payments() {
 
               <Select value={feeTypeFilter} onValueChange={setFeeTypeFilter}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="نوع الرسوم" />
+                  <SelectValue placeholder={t("feeTypePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">جميع الأنواع</SelectItem>
-                  <SelectItem value="NEW_YEAR">سنة جديدة</SelectItem>
-                  <SelectItem value="SUPPLEMENTARY">ملحق</SelectItem>
-                  <SelectItem value="LAB">مختبر</SelectItem>
-                  <SelectItem value="STUDENT_SERVICES">خدمات طلابية</SelectItem>
-                  <SelectItem value="EXAM">امتحان</SelectItem>
-                  <SelectItem value="OTHER">أخرى</SelectItem>
+                  <SelectItem value="all">{t("allTypes")}</SelectItem>
+                  <SelectItem value="NEW_YEAR">{t("newYear")}</SelectItem>
+                  <SelectItem value="SUPPLEMENTARY">
+                    {t("supplementary")}
+                  </SelectItem>
+                  <SelectItem value="LAB">{t("laboratory")}</SelectItem>
+                  <SelectItem value="STUDENT_SERVICES">
+                    {t("studentServices")}
+                  </SelectItem>
+                  <SelectItem value="EXAM">{t("examination")}</SelectItem>
+                  <SelectItem value="OTHER">{t("otherFees")}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -393,19 +397,19 @@ export function Payments() {
                 onValueChange={setPaymentMethodFilter}
               >
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="طريقة الدفع" />
+                  <SelectValue placeholder={t("paymentMethodPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">جميع الطرق</SelectItem>
-                  <SelectItem value="CASH">نقداً</SelectItem>
-                  <SelectItem value="TRANSFER">تحويل</SelectItem>
-                  <SelectItem value="CHEQUE">شيك</SelectItem>
+                  <SelectItem value="all">{t("allMethods")}</SelectItem>
+                  <SelectItem value="CASH">{t("cash")}</SelectItem>
+                  <SelectItem value="TRANSFER">{t("transfer")}</SelectItem>
+                  <SelectItem value="CHEQUE">{t("check")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Button variant="outline">
                 <Filter className="mr-2 h-4 w-4" />
-                تصفية متقدمة
+                {t("advancedFilterBtn")}
               </Button>
             </div>
           </div>
@@ -428,7 +432,10 @@ export function Payments() {
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-sm">
-              {pagination.page} of {pagination.totalPages}
+              {t("pageOf", {
+                current: pagination.page,
+                total: pagination.totalPages,
+              })}
             </span>
             <Button
               variant="outline"

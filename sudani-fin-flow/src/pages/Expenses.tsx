@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Plus,
@@ -9,6 +9,9 @@ import {
   Calendar,
   Building,
   Eye,
+  Loader2,
+  RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +24,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -29,133 +31,211 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import expenseService, {
+  Expense,
+  ExpenseStatistics,
+  ExpenseFilters,
+  ExpenseCategory,
+} from "@/services/expenseService";
+import { useDebounce } from "@/hooks/useDebounce";
+import {
+  ExpenseForm,
+  ExpenseSubmissionData,
+} from "@/components/forms/ExpenseForm";
 
-// Mock data for expenses
-const mockExpenses = [
+// Expense categories that match the API categories, labels are localized via i18n
+const expenseCategories: { value: ExpenseCategory; label: string }[] = [
+  { value: "Fixed Assets", label: "categories.fixedAssets" },
+  { value: "Part-time Professors", label: "categories.partTimeProfessors" },
   {
-    id: "1",
-    description: "شراء قرطاسية ومواد مكتبية للمكاتب الإدارية",
-    amount: 45000,
-    category: "officeSupplies",
-    vendor: "مكتبة النيل للقرطاسية",
-    invoiceNumber: "INV-2024-001",
-    date: "2024-01-15",
-    paymentMethod: "نقداً",
-    employee: "أحمد محمد الإداري",
+    value: "Study Materials & Administration Leaves",
+    label: "categories.studyMaterialsAdminLeaves",
   },
+  { value: "Salaries", label: "categories.salaries" },
+  { value: "Student Fees Refund", label: "categories.studentFeesRefund" },
+  { value: "Advances", label: "categories.advances" },
+  { value: "Bonuses", label: "categories.bonuses" },
   {
-    id: "2",
-    description: "فاتورة كهرباء شهر ديسمبر 2023",
-    amount: 125000,
-    category: "generalAndAdminExpenses",
-    vendor: "الشركة السودانية للكهرباء",
-    invoiceNumber: "ELEC-2023-12",
-    date: "2024-01-14",
-    paymentMethod: "تحويل بنكي",
-    employee: "فاطمة أحمد المحاسبة",
+    value: "General & Administrative Expenses",
+    label: "categories.generalAdminExpenses",
   },
-  {
-    id: "3",
-    description: "صيانة أجهزة الحاسوب في قاعة الحاسوب الرئيسية",
-    amount: 85000,
-    category: "generalAndAdminExpenses",
-    vendor: "شركة الخرطوم للحاسوب",
-    invoiceNumber: "COMP-2024-003",
-    date: "2024-01-13",
-    paymentMethod: "شيك",
-    employee: "محمد علي المالية",
-  },
-  {
-    id: "4",
-    description: "راتب موظف النظافة شهر يناير",
-    amount: 75000,
-    category: "salaries",
-    vendor: "مباشر - راتب",
-    invoiceNumber: "SAL-2024-001",
-    date: "2024-01-12",
-    paymentMethod: "نقداً",
-    employee: "سارة حسن المراجعة",
-  },
+  { value: "Library Supplies", label: "categories.librarySupplies" },
+  { value: "Lab Consumables", label: "categories.labConsumables" },
+  { value: "Student Training", label: "categories.studentTraining" },
+  { value: "Saudi-Egyptian Company", label: "categories.saudiEgyptianCompany" },
 ];
 
-const expenseCategories = [
-  "fixedAssets",
-  "cooperatingProfessors",
-  "studyAndAdminRents",
-  "salaries",
-  "studentFeeRefunds",
-  "advances",
-  "bonuses",
-  "generalAndAdminExpenses",
-  "officeSupplies",
-  "labConsumables",
-  "studentTraining",
-  "saudiEgyptianCompany",
-];
-
-const paymentMethods = ["نقداً", "تحويل بنكي", "شيك"];
+// Map API category values to translation keys
+const categoryKeyMap: Record<ExpenseCategory, string> = {
+  "Fixed Assets": "categories.fixedAssets",
+  "Part-time Professors": "categories.partTimeProfessors",
+  "Study Materials & Administration Leaves":
+    "categories.studyMaterialsAdminLeaves",
+  Salaries: "categories.salaries",
+  "Student Fees Refund": "categories.studentFeesRefund",
+  Advances: "categories.advances",
+  Bonuses: "categories.bonuses",
+  "General & Administrative Expenses": "categories.generalAdminExpenses",
+  "Library Supplies": "categories.librarySupplies",
+  "Lab Consumables": "categories.labConsumables",
+  "Student Training": "categories.studentTraining",
+  "Saudi-Egyptian Company": "categories.saudiEgyptianCompany",
+};
 
 export function Expenses() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [expenses] = useState(mockExpenses);
+
+  // State management
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [statistics, setStatistics] = useState<ExpenseStatistics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  // Check if user can edit (admin only for now, since API only has admin/auditor)
+  // Debounce search query to avoid excessive API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
+  // Check if user can edit (admin only)
   const canEdit = user?.role === "admin";
 
-  const filteredExpenses = expenses.filter((expense) => {
-    const matchesSearch =
-      expense.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      expense.vendor.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      !selectedCategory || expense.category === selectedCategory;
+  // Fetch expenses from API
+  const fetchExpenses = async (showRefreshIndicator = false) => {
+    try {
+      if (showRefreshIndicator) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
 
-    return matchesSearch && matchesCategory;
-  });
+      const filters: ExpenseFilters = {
+        page: currentPage,
+        limit: 10,
+      };
 
-  const totalExpenses = filteredExpenses.reduce(
-    (sum, expense) => sum + expense.amount,
-    0
-  );
+      if (debouncedSearchQuery.trim()) {
+        filters.search = debouncedSearchQuery.trim();
+      }
 
-  const handleAddExpense = () => {
-    toast({
-      title: "تم إضافة المصروف",
-      description: "تم تسجيل المصروف بنجاح",
-    });
-    setIsAddDialogOpen(false);
+      if (selectedCategory && selectedCategory !== "all") {
+        filters.category = selectedCategory;
+      }
+
+      const response = await expenseService.getAllExpenses(filters);
+
+      setExpenses(response.data.expenses);
+      setStatistics(response.data.statistics);
+      setTotalPages(response.data.pagination.totalPages);
+
+      console.log("✅ Expenses loaded successfully:", {
+        count: response.data.expenses.length,
+        statistics: response.data.statistics,
+        cached: response.data.cached,
+      });
+    } catch (error) {
+      console.error("❌ Error loading expenses:", error);
+      toast({
+        title: t("error"),
+        description: t("loading"),
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("ar-SD").format(amount);
+  // Load expenses on component mount and when filters change
+  useEffect(() => {
+    fetchExpenses();
+  }, [currentPage, debouncedSearchQuery, selectedCategory]);
+
+  // Handle refresh
+  const handleRefresh = () => {
+    fetchExpenses(true);
+  };
+
+  // Handle add expense
+  const handleAddExpense = async (formData: ExpenseSubmissionData) => {
+    try {
+      console.log("🔄 Creating expense:", formData);
+
+      const response = await expenseService.createExpense(formData);
+
+      console.log("✅ Expense created successfully:", response);
+
+      toast({
+        title: t("success"),
+        description: t("saveExpenseBtn"),
+      });
+
+      setIsAddDialogOpen(false);
+      fetchExpenses(true); // Refresh the expenses list
+    } catch (error) {
+      console.error("❌ Error adding expense:", error);
+      toast({
+        title: t("error"),
+        description: t("saveExpenseBtn"),
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatCurrency = (amount: number | string) => {
+    const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+    return new Intl.NumberFormat("ar-SD").format(numAmount);
   };
 
   const getCategoryColor = (category: string) => {
-    const colors = {
-      fixedAssets: "bg-green-100 text-green-800",
-      cooperatingProfessors: "bg-blue-100 text-blue-800",
-      studyAndAdminRents: "bg-orange-100 text-orange-800",
-      salaries: "bg-purple-100 text-purple-800",
-      studentFeeRefunds: "bg-yellow-100 text-yellow-800",
-      advances: "bg-indigo-100 text-indigo-800",
-      bonuses: "bg-pink-100 text-pink-800",
-      generalAndAdminExpenses: "bg-red-100 text-red-800",
-      officeSupplies: "bg-cyan-100 text-cyan-800",
-      labConsumables: "bg-teal-100 text-teal-800",
-      studentTraining: "bg-lime-100 text-lime-800",
-      saudiEgyptianCompany: "bg-amber-100 text-amber-800",
+    const colors: Record<string, string> = {
+      "Fixed Assets": "bg-green-100 text-green-800",
+      "Part-time Professors": "bg-blue-100 text-blue-800",
+      "Study Materials & Administration Leaves":
+        "bg-orange-100 text-orange-800",
+      Salaries: "bg-purple-100 text-purple-800",
+      "Student Fees Refund": "bg-yellow-100 text-yellow-800",
+      Advances: "bg-indigo-100 text-indigo-800",
+      Bonuses: "bg-pink-100 text-pink-800",
+      "General & Administrative Expenses": "bg-red-100 text-red-800",
+      "Library Supplies": "bg-cyan-100 text-cyan-800",
+      "Lab Consumables": "bg-teal-100 text-teal-800",
+      "Student Training": "bg-lime-100 text-lime-800",
+      "Saudi-Egyptian Company": "bg-amber-100 text-amber-800",
     };
-    return (
-      colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800"
-    );
+    return colors[category] || "bg-gray-100 text-gray-800";
   };
+
+  const getCategoryLabel = (category: string) => {
+    const key = categoryKeyMap[category as ExpenseCategory];
+    return key ? t(key) : category;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("ar", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">{t("loading")}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -166,10 +246,13 @@ export function Expenses() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  إجمالي المصروفات اليوم
+                  {t("todayExpensesTotal")}
                 </p>
                 <p className="text-2xl font-bold text-destructive">
-                  {formatCurrency(totalExpenses)} ج.س
+                  {statistics?.daily.totalAmount
+                    ? formatCurrency(statistics.daily.totalAmount)
+                    : "0"}{" "}
+                  {t("sdg")}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-destructive" />
@@ -182,10 +265,10 @@ export function Expenses() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  عدد المصروفات
+                  {t("expensesCount")}
                 </p>
                 <p className="text-2xl font-bold text-foreground">
-                  {filteredExpenses.length}
+                  {statistics?.daily.operationsCount || 0}
                 </p>
               </div>
               <Receipt className="h-8 w-8 text-primary" />
@@ -198,13 +281,11 @@ export function Expenses() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
-                  متوسط المصروف
+                  {t("averageExpense")}
                 </p>
                 <p className="text-2xl font-bold text-foreground">
-                  {filteredExpenses.length > 0
-                    ? formatCurrency(
-                        Math.round(totalExpenses / filteredExpenses.length)
-                      )
+                  {statistics?.monthly.averageDailyExpenditure
+                    ? formatCurrency(statistics.monthly.averageDailyExpenditure)
                     : "0"}{" "}
                   ج.س
                 </p>
@@ -221,7 +302,7 @@ export function Expenses() {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="البحث في المصروفات..."
+              placeholder={t("search")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -231,17 +312,30 @@ export function Expenses() {
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-48">
               <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="فلترة حسب التصنيف" />
+              <SelectValue placeholder={t("filter")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">جميع التصنيفات</SelectItem>
+              <SelectItem value="all">{t("allCategories")}</SelectItem>
               {expenseCategories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {t(category)}
+                <SelectItem key={category.value} value={category.value}>
+                  {t(category.label)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+            />
+            {t("refresh")}
+          </Button>
         </div>
 
         {canEdit && (
@@ -249,88 +343,17 @@ export function Expenses() {
             <DialogTrigger asChild>
               <Button className="bg-gradient-primary hover:opacity-90">
                 <Plus className="h-4 w-4 mr-2" />
-                إضافة مصروف
+                {t("addExpense")}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>إضافة مصروف جديد</DialogTitle>
+                <DialogTitle>{t("addExpense")}</DialogTitle>
               </DialogHeader>
-              <form
-                className="space-y-4"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleAddExpense();
-                }}
-              >
-                <div>
-                  <Label htmlFor="description">وصف المصروف</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="أدخل وصف تفصيلي للمصروف..."
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="category">التصنيف</Label>
-                  <Select required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر تصنيف المصروف" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {expenseCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {t(category)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="amount">المبلغ (ج.س)</Label>
-                  <Input id="amount" type="number" placeholder="0" required />
-                </div>
-
-                <div>
-                  <Label htmlFor="vendor">المورد</Label>
-                  <Input
-                    id="vendor"
-                    placeholder="اسم المورد أو الجهة"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="paymentMethod">طريقة الدفع</Label>
-                  <Select required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر طريقة الدفع" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {paymentMethods.map((method) => (
-                        <SelectItem key={method} value={method}>
-                          {method}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex gap-2 pt-4">
-                  <Button type="submit" className="flex-1">
-                    حفظ المصروف
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsAddDialogOpen(false)}
-                  >
-                    إلغاء
-                  </Button>
-                </div>
-              </form>
+              <ExpenseForm
+                onSubmit={handleAddExpense}
+                onCancel={() => setIsAddDialogOpen(false)}
+              />
             </DialogContent>
           </Dialog>
         )}
@@ -338,22 +361,54 @@ export function Expenses() {
         {!canEdit && (
           <Badge variant="outline" className="text-muted-foreground">
             <Eye className="mr-1 h-3 w-3" />
-            عرض فقط
+            {t("viewOnly")}
           </Badge>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            {t("pageOf", { current: currentPage, total: totalPages })}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              {t("previous")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              {t("next")}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Expenses List */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5 text-primary" />
-            سجل المصروفات
+            {t("expenseRecords")}
+            {statistics && (
+              <Badge variant="outline" className="ml-auto">
+                {statistics.daily.operationsCount}
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredExpenses.map((expense) => (
+            {expenses.map((expense) => (
               <div
                 key={expense.id}
                 className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border"
@@ -364,35 +419,46 @@ export function Expenses() {
                       {expense.description}
                     </h3>
                     <Badge className={getCategoryColor(expense.category)}>
-                      {t(expense.category)}
+                      {getCategoryLabel(expense.category)}
                     </Badge>
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Building className="h-3 w-3" />
-                      {expense.vendor}
+                      {expense.vendor || t("noData")}
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {expense.date}
+                      {formatDate(expense.date)}
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    رقم الفاتورة: {expense.invoiceNumber} •{" "}
-                    {expense.paymentMethod} • {expense.employee}
-                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                    {expense.receiptUrl && (
+                      <a
+                        href={expense.receiptUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-primary hover:underline"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        {t("viewReceipt")}
+                      </a>
+                    )}
+                    <span>•</span>
+                    <span>{expense.creator.username}</span>
+                  </div>
                 </div>
                 <div className="text-left">
                   <p className="text-lg font-bold text-destructive">
-                    -{formatCurrency(expense.amount)} ج.س
+                    -{formatCurrency(expense.amount)} {t("sdg")}
                   </p>
                 </div>
               </div>
             ))}
 
-            {filteredExpenses.length === 0 && (
+            {expenses.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
-                لا توجد مصروفات مطابقة لمعايير البحث
+                {t("noData")}
               </div>
             )}
           </div>

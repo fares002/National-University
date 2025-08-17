@@ -76,9 +76,9 @@ export function Settings() {
   const getRoleLabel = (role: string) => {
     switch (role) {
       case "admin":
-        return "مدير";
+        return t("role.admin");
       case "auditor":
-        return "مراجع";
+        return t("role.auditor");
       default:
         return role;
     }
@@ -104,8 +104,8 @@ export function Settings() {
   const handleRoleChange = (userId: string, newRole: string) => {
     if (!isAdmin) {
       toast({
-        title: "غير مسموح",
-        description: "ليس لديك صلاحية لتغيير الأدوار",
+        title: t("notAllowed"),
+        description: t("noPermissionChangeRoles"),
         variant: "destructive",
       });
       return;
@@ -114,16 +114,16 @@ export function Settings() {
     setUsers(users.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
 
     toast({
-      title: "تم التحديث",
-      description: "تم تغيير دور المستخدم بنجاح",
+      title: t("updated"),
+      description: t("roleUpdated"),
     });
   };
 
   const handleStatusChange = (userId: string, newStatus: string) => {
     if (!isAdmin) {
       toast({
-        title: "غير مسموح",
-        description: "ليس لديك صلاحية لتغيير حالة المستخدم",
+        title: t("notAllowed"),
+        description: t("noPermissionChangeStatus"),
         variant: "destructive",
       });
       return;
@@ -134,8 +134,8 @@ export function Settings() {
     );
 
     toast({
-      title: "تم التحديث",
-      description: "تم تغيير حالة المستخدم بنجاح",
+      title: t("updated"),
+      description: t("statusUpdated"),
     });
   };
 
@@ -145,14 +145,10 @@ export function Settings() {
         <div className="text-center py-12">
           <Shield className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
           <h2 className="text-2xl font-bold text-foreground mb-2">
-            الوصول محدود
+            {t("accessRestricted")}
           </h2>
-          <p className="text-muted-foreground">
-            ليس لديك صلاحية للوصول إلى إعدادات النظام
-          </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            يمكن للمدير المالي فقط الوصول لهذه الصفحة
-          </p>
+          <p className="text-muted-foreground">{t("noPermissionSettings")}</p>
+          <p className="text-sm text-muted-foreground mt-2">{t("adminOnly")}</p>
         </div>
       </div>
     );
@@ -161,18 +157,20 @@ export function Settings() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">إعدادات النظام</h1>
+        <h1 className="text-3xl font-bold text-foreground">
+          {t("systemSettings")}
+        </h1>
         <Badge className="bg-primary text-primary-foreground">
           <Shield className="h-3 w-3 mr-1" />
-          صلاحيات المدير
+          {t("adminPrivileges")}
         </Badge>
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="users">إدارة المستخدمين</TabsTrigger>
-          <TabsTrigger value="permissions">الصلاحيات</TabsTrigger>
-          <TabsTrigger value="system">إعدادات النظام</TabsTrigger>
+          <TabsTrigger value="users">{t("usersManagement")}</TabsTrigger>
+          <TabsTrigger value="permissions">{t("permissionsTab")}</TabsTrigger>
+          <TabsTrigger value="system">{t("systemTab")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-6">
@@ -180,7 +178,7 @@ export function Settings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                قائمة المستخدمين
+                {t("usersList")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -202,7 +200,7 @@ export function Settings() {
                           {user.email}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          آخر دخول: {user.lastLogin}
+                          {t("lastLogin")}: {user.lastLogin}
                         </p>
                       </div>
                     </div>
@@ -216,7 +214,9 @@ export function Settings() {
                         <Badge
                           className={`${getStatusBadgeColor(user.status)} mt-1`}
                         >
-                          {user.status === "active" ? "نشط" : "غير نشط"}
+                          {user.status === "active"
+                            ? t("active")
+                            : t("inactive")}
                         </Badge>
                       </div>
 
@@ -231,8 +231,12 @@ export function Settings() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="admin">مدير</SelectItem>
-                            <SelectItem value="auditor">مراجع</SelectItem>
+                            <SelectItem value="admin">
+                              {t("role.admin")}
+                            </SelectItem>
+                            <SelectItem value="auditor">
+                              {t("role.auditor")}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
 
@@ -246,8 +250,12 @@ export function Settings() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="active">نشط</SelectItem>
-                            <SelectItem value="inactive">غير نشط</SelectItem>
+                            <SelectItem value="active">
+                              {t("active")}
+                            </SelectItem>
+                            <SelectItem value="inactive">
+                              {t("inactive")}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -262,63 +270,63 @@ export function Settings() {
         <TabsContent value="permissions" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>مصفوفة الصلاحيات</CardTitle>
+              <CardTitle>{t("permissionsTab")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-5 gap-4 p-4 bg-muted/50 rounded-lg font-medium">
-                  <div>الصفحة/الوظيفة</div>
-                  <div className="text-center">المدير المالي</div>
-                  <div className="text-center">المحاسب</div>
-                  <div className="text-center">موظف المالية</div>
-                  <div className="text-center">المراجع</div>
+                  <div>{t("reports")}</div>
+                  <div className="text-center">{t("role.admin")}</div>
+                  <div className="text-center">{t("accountant")}</div>
+                  <div className="text-center">{t("financeOfficer")}</div>
+                  <div className="text-center">{t("role.auditor")}</div>
                 </div>
 
                 {[
                   {
-                    page: "لوحة التحكم",
+                    page: t("dashboard"),
                     admin: "✅",
                     accountant: "✅",
                     finance: "✅",
                     auditor: "✅",
                   },
                   {
-                    page: "المدفوعات - عرض",
+                    page: `${t("payments")} - ${t("view")}`,
                     admin: "✅",
                     accountant: "✅",
                     finance: "✅",
                     auditor: "✅",
                   },
                   {
-                    page: "المدفوعات - تعديل",
+                    page: `${t("payments")} - ${t("edit")}`,
                     admin: "✅",
                     accountant: "✅",
                     finance: "❌",
                     auditor: "❌",
                   },
                   {
-                    page: "المصروفات - عرض",
+                    page: `${t("expenses")} - ${t("view")}`,
                     admin: "✅",
                     accountant: "✅",
                     finance: "✅",
                     auditor: "✅",
                   },
                   {
-                    page: "المصروفات - تعديل",
+                    page: `${t("expenses")} - ${t("edit")}`,
                     admin: "✅",
                     accountant: "✅",
                     finance: "❌",
                     auditor: "❌",
                   },
                   {
-                    page: "التقارير",
+                    page: t("reports"),
                     admin: "✅",
                     accountant: "✅",
                     finance: "✅",
                     auditor: "✅",
                   },
                   {
-                    page: "إدارة المستخدمين",
+                    page: t("usersManagement"),
                     admin: "✅",
                     accountant: "❌",
                     finance: "❌",
@@ -344,20 +352,20 @@ export function Settings() {
         <TabsContent value="system" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>إعدادات عامة</CardTitle>
+              <CardTitle>{t("systemSettings")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="university-name">اسم الجامعة</Label>
+                  <Label htmlFor="university-name">{t("universityName")}</Label>
                   <Input
                     id="university-name"
-                    defaultValue="الجامعة الوطنية السودانية"
+                    defaultValue="National University of Sudan"
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="system-version">إصدار النظام</Label>
+                  <Label htmlFor="system-version">{t("systemVersion")}</Label>
                   <Input
                     id="system-version"
                     defaultValue="1.0.0"
@@ -369,7 +377,7 @@ export function Settings() {
 
               <div className="pt-4 border-t">
                 <Button className="bg-gradient-primary hover:opacity-90">
-                  حفظ الإعدادات
+                  {t("saveSettings")}
                 </Button>
               </div>
             </CardContent>

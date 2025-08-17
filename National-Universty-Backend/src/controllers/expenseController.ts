@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "../utils/prisma";
 import asyncWrapper from "../middlewares/asyncWrapper";
-import redis from "../utils/redis";
+import redis, {
+  invalidateDashboardCache,
+  invalidateExpenseCache,
+} from "../utils/redis";
 import AppError from "../utils/AppError";
 import { httpStatusText } from "../utils/httpStatusText";
 
@@ -183,11 +186,95 @@ const getAllExpenses = asyncWrapper(
       const hasNextPage = page < totalPages;
       const hasPrevPage = page > 1;
 
+      // 📊 Calculate additional statistics
+      console.log(`📊 Calculating expense statistics...`);
+
+      // Get today's date range
+      const today = new Date();
+      const startOfToday = new Date(today);
+      startOfToday.setHours(0, 0, 0, 0);
+      const endOfToday = new Date(today);
+      endOfToday.setHours(23, 59, 59, 999);
+
+      // Get current month's date range
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(
+        today.getFullYear(),
+        today.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+        999
+      );
+
+      // Calculate daily expenses (today)
+      const dailyExpensesQuery = await prisma.expense.aggregate({
+        where: {
+          date: {
+            gte: startOfToday,
+            lte: endOfToday,
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+        _count: {
+          id: true,
+        },
+      });
+
+      // Calculate monthly expenses for average calculation
+      const monthlyExpensesQuery = await prisma.expense.aggregate({
+        where: {
+          date: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+        _count: {
+          id: true,
+        },
+      });
+
+      // Calculate number of days in current month
+      const daysInMonth = endOfMonth.getDate();
+
+      // Calculate average daily expenditure for current month
+      const totalMonthlyAmount = monthlyExpensesQuery._sum.amount || 0;
+      const averageDailyExpenditure = Number(totalMonthlyAmount) / daysInMonth;
+
+      // Create statistics object
+      const statistics = {
+        daily: {
+          totalAmount: Number(dailyExpensesQuery._sum.amount || 0),
+          operationsCount: dailyExpensesQuery._count.id || 0,
+          date: today.toISOString().split("T")[0], // Today's date in YYYY-MM-DD format
+        },
+        monthly: {
+          totalAmount: Number(totalMonthlyAmount),
+          operationsCount: monthlyExpensesQuery._count.id || 0,
+          averageDailyExpenditure: Number(averageDailyExpenditure.toFixed(2)),
+          month: `${today.getFullYear()}-${String(
+            today.getMonth() + 1
+          ).padStart(2, "0")}`,
+          daysInMonth,
+        },
+      };
+
+      console.log(
+        `📊 Statistics calculated: Daily: ${statistics.daily.operationsCount} ops, Monthly avg: ${statistics.monthly.averageDailyExpenditure}`
+      );
+
       const result = {
         status: httpStatusText.SUCCESS,
         data: {
           message: "Expenses retrieved successfully",
           expenses,
+          statistics, // Add statistics to the response
           pagination: {
             currentPage: page,
             totalPages,
@@ -215,6 +302,7 @@ const getAllExpenses = asyncWrapper(
     }
   }
 );
+
 /**
  * Get expense by ID
  * Authorization: admin and auditor roles
@@ -300,6 +388,19 @@ const createExpense = asyncWrapper(
     } catch (cacheError) {
       console.warn(
         "⚠️ Cache invalidation error:",
+        (cacheError as Error).message
+      );
+      // Continue even if cache invalidation fails
+    }
+
+    // Invalidate dashboard cache to ensure real-time updates
+    try {
+      await invalidateDashboardCache();
+      await invalidateExpenseCache();
+      console.log("🧹 Dashboard and expense caches invalidated successfully");
+    } catch (cacheError) {
+      console.warn(
+        "⚠️ Dashboard cache invalidation error:",
         (cacheError as Error).message
       );
       // Continue even if cache invalidation fails

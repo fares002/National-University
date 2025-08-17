@@ -87,6 +87,50 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Arabic translation mappings
+  const feeTypeMap: Record<string, string> = {
+    NEW_YEAR: "رسوم سنة جديدة",
+    SUPPLEMENTARY: "رسوم ملحق",
+    TRAINING: "رسوم تدريب",
+    STUDENT_SERVICES: "رسوم خدمات طلابية",
+    OTHER: "أخرى",
+    EXAM: "رسوم امتحان",
+  };
+
+  const categoryMapping: Record<string, string> = {
+    "Fixed Assets": "الأصول الثابتة",
+    "Part-time Professors": "الأساتذة المتعاونون",
+    "Study Materials & Administration Leaves": "مواد دراسية وإجازات إدارية",
+    Salaries: "الرواتب",
+    "Student Fees Refund": "رد رسوم الطلاب",
+    Advances: "السلف",
+    Bonuses: "المكافآت",
+    "General & Administrative Expenses": "المصروفات العامة والإدارية",
+    "Library Supplies": "مستلزمات المكتبة",
+    "Lab Consumables": "مستهلكات المعامل",
+    "Student Training": "تدريب طلاب",
+    "Saudi-Egyptian Company": "الشركة السعودية المصرية",
+  };
+
+  const paymentMethodMap: Record<string, string> = {
+    CASH: "نقداً",
+    TRANSFER: "تحويل",
+    CHEQUE: "شيك",
+  };
+
+  // Helper functions to get Arabic translations
+  const getFeeTypeInArabic = (feeType: string) => {
+    return feeTypeMap[feeType] || feeType;
+  };
+
+  const getCategoryInArabic = (category: string) => {
+    return categoryMapping[category] || category;
+  };
+
+  const getPaymentMethodInArabic = (paymentMethod: string) => {
+    return paymentMethodMap[paymentMethod] || paymentMethod;
+  };
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -217,8 +261,13 @@ export function Dashboard() {
                       {dashboardData.recentActivity.lastPayment.studentName}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {dashboardData.recentActivity.lastPayment.feeType} •{" "}
-                      {dashboardData.recentActivity.lastPayment.paymentMethod}
+                      {getFeeTypeInArabic(
+                        dashboardData.recentActivity.lastPayment.feeType
+                      )}{" "}
+                      •{" "}
+                      {getPaymentMethodInArabic(
+                        dashboardData.recentActivity.lastPayment.paymentMethod
+                      )}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {new Date(
@@ -265,8 +314,10 @@ export function Dashboard() {
                       {dashboardData.recentActivity.lastExpense.description}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {dashboardData.recentActivity.lastExpense.category} •{" "}
-                      {dashboardData.recentActivity.lastExpense.vendor}
+                      {getCategoryInArabic(
+                        dashboardData.recentActivity.lastExpense.category
+                      )}{" "}
+                      • {dashboardData.recentActivity.lastExpense.vendor}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {new Date(

@@ -18,7 +18,57 @@ All endpoints require authentication via JWT token.
 
 **Access:** Admin, Auditor
 
-**Description:** Retrieves a paginated list of all expenses with advanced filtering capabilities.
+**Description:** Retrieves a paginated list of all expenses with advanced filtering capabilities and expense analytics.
+
+**Features:**
+
+- Advanced filtering by date range, amount range, category, vendor, and text search
+- Pagination support for large datasets
+- Redis caching for improved performance (5-minute cache)
+- Real-time expense statistics including daily and monthly analytics
+- Performance monitoring with query execution time logging
+
+**Query Parameters:**
+
+- `page` (integer, optional): Page number (default: 1)
+- `limit` (integer, optional): Items per page (default: 10, max: 100)
+- `search` (string, optional): Search in description, category, and vendor
+- `category` (string, optional): Filter by expense category
+- `vendor` (string, optional): Filter by vendor name
+- `startDate` (string, optional): Filter from date (ISO 8601 format)
+- `endDate` (string, optional): Filter to date (ISO 8601 format)
+- `minAmount` (decimal, optional): Minimum expense amount
+- `maxAmount` (decimal, optional): Maximum expense amount
+
+**Response Data Structure:**
+
+The response includes three main sections:
+
+1. **expenses**: Array of expense records with full details
+2. **statistics**: Real-time expense analytics (see details below)
+3. **pagination**: Pagination metadata
+4. **cached**: Boolean flag indicating if data was served from cache
+
+**Statistics Object:**
+
+The `statistics` object provides real-time expense analytics:
+
+```json
+{
+  "daily": {
+    "totalAmount": 15750.5, // Total expenses for today
+    "operationsCount": 8, // Number of expense records for today
+    "date": "2025-08-17" // Current date (YYYY-MM-DD)
+  },
+  "monthly": {
+    "totalAmount": 125000.75, // Total expenses for current month
+    "operationsCount": 45, // Number of expense records for current month
+    "averageDailyExpenditure": 4032.28, // Average daily spending in current month
+    "month": "2025-08", // Current month (YYYY-MM)
+    "daysInMonth": 31 // Number of days in current month
+  }
+}
+```
 
 **Query Parameters:**
 
@@ -58,6 +108,20 @@ All endpoints require authentication via JWT token.
         }
       }
     ],
+    "statistics": {
+      "daily": {
+        "totalAmount": 15750.5,
+        "operationsCount": 8,
+        "date": "2025-08-17"
+      },
+      "monthly": {
+        "totalAmount": 125000.75,
+        "operationsCount": 45,
+        "averageDailyExpenditure": 4032.28,
+        "month": "2025-08",
+        "daysInMonth": 31
+      }
+    },
     "pagination": {
       "currentPage": 1,
       "totalPages": 5,
@@ -65,7 +129,8 @@ All endpoints require authentication via JWT token.
       "hasNextPage": true,
       "hasPrevPage": false,
       "limit": 10
-    }
+    },
+    "cached": false
   }
 }
 ```
@@ -427,12 +492,19 @@ All endpoints require authentication via JWT token.
 
 ## Examples
 
-### Get All Expenses with Filters
+### Get All Expenses with Filters and Statistics
 
 ```bash
 curl -X GET "http://localhost:3000/api/v1/expenses?search=office&category=supplies&minAmount=100&maxAmount=2000&startDate=2025-01-01&endDate=2025-12-31&page=1&limit=10" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
+
+**Response includes:**
+
+- Filtered expense records
+- Real-time daily and monthly statistics
+- Pagination metadata
+- Cache status indicator
 
 ### Create New Expense
 
@@ -478,24 +550,88 @@ curl -X DELETE http://localhost:3000/api/v1/expenses/cm123456789 \
 
 ---
 
-## Common Expense Categories
+## Expense Categories
 
-Suggested categories for consistent data entry:
+The system supports the following predefined expense categories:
 
-- Office Supplies
-- Equipment
-- Utilities
-- Maintenance
-- Travel
-- Training
-- Software Licenses
-- Telecommunications
-- Rent
-- Insurance
-- Marketing
-- Legal Services
-- Consulting
-- Miscellaneous
+- Fixed Assets
+- Part-time Professors
+- Study Materials & Administration Leaves
+- Salaries
+- Student Fees Refund
+- Advances
+- Bonuses
+- General & Administrative Expenses
+- Library Supplies
+- Lab Consumables
+- Student Training
+- Saudi-Egyptian Company
+
+**Note:** These categories are enforced at the API level to ensure data consistency and proper expense tracking across the university system.
+
+---
+
+## Performance Features
+
+### Redis Caching
+
+The expense API implements intelligent caching to improve performance:
+
+- **Cache Duration:** 5 minutes (300 seconds)
+- **Cache Key Strategy:** Unique keys based on all query parameters
+- **Cache Indicators:** Response includes `cached: true/false` flag
+- **Cache Miss Fallback:** Automatic database query if cache is unavailable
+- **Performance Logging:** Query execution times are logged for monitoring
+
+### Statistics Calculation
+
+Real-time expense statistics are calculated with each request:
+
+- **Daily Statistics:** Aggregated data for the current day (00:00:00 to 23:59:59)
+- **Monthly Statistics:** Aggregated data for the current month
+- **Performance Optimized:** Uses Prisma aggregation queries for efficiency
+- **Calculated Fields:** Average daily expenditure based on current month data
+
+### Query Optimization
+
+- **Efficient Filtering:** Database-level filtering reduces data transfer
+- **Selective Includes:** Only necessary related data is fetched
+- **Pagination:** Prevents large dataset performance issues
+- **Indexed Queries:** Optimized for common filtering scenarios
+
+---
+
+## Recent Enhancements
+
+### Version 2.0 Features (August 2025)
+
+**Enhanced Analytics:**
+
+- Real-time daily expense statistics
+- Monthly expense aggregations with averages
+- Operation count tracking
+- Performance-optimized calculations
+
+**Improved Caching:**
+
+- Redis-based intelligent caching system
+- Parameter-specific cache keys
+- Automatic cache invalidation
+- Performance monitoring and logging
+
+**Advanced Filtering:**
+
+- Multi-field text search capabilities
+- Date range filtering with precision
+- Amount range filtering
+- Category and vendor-specific queries
+
+**Performance Optimizations:**
+
+- Database query time monitoring
+- Efficient aggregation queries
+- Selective data loading
+- Optimized pagination
 
 ---
 

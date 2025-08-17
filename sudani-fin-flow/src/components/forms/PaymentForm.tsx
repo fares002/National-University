@@ -5,6 +5,7 @@ import * as z from "zod";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,41 +35,48 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-const paymentSchema = z.object({
-  studentId: z.string().min(1, "الرقم الجامعي مطلوب"),
-  studentName: z
-    .string()
-    .min(2, "اسم الطالب مطلوب")
-    .max(100, "اسم الطالب طويل جداً"),
-  feeType: z.enum(
-    ["NEW_YEAR", "SUPPLEMENTARY", "LAB", "STUDENT_SERVICES", "OTHER", "EXAM"],
-    {
-      required_error: "نوع الرسوم مطلوب",
-    }
-  ),
-  amount: z
-    .string()
-    .min(1, "المبلغ مطلوب")
-    .refine(
-      (val) => !isNaN(Number(val)) && Number(val) > 0,
-      "المبلغ يجب أن يكون رقماً موجباً"
-    )
-    .refine((val) => Number(val) <= 999999.99, "المبلغ كبير جداً"),
-  paymentMethod: z.enum(["CASH", "TRANSFER", "CHEQUE"], {
-    required_error: "طريقة الدفع مطلوبة",
-  }),
-  paymentDate: z
-    .date({
-      required_error: "تاريخ الدفع مطلوب",
-    })
-    .refine(
-      (date) => date <= new Date(),
-      "لا يمكن أن يكون التاريخ في المستقبل"
+const buildPaymentSchema = (t: (k: string) => string) =>
+  z.object({
+    studentId: z.string().min(1, t("validation.studentIdRequired")),
+    studentName: z
+      .string()
+      .min(2, t("validation.studentNameRequired"))
+      .max(100, t("validation.studentNameMax")),
+    feeType: z.enum(
+      ["NEW_YEAR", "SUPPLEMENTARY", "LAB", "STUDENT_SERVICES", "OTHER", "EXAM"],
+      {
+        required_error: t("validation.feeTypeRequired"),
+      }
     ),
-  notes: z.string().max(500, "الملاحظات طويلة جداً").optional(),
-});
+    amount: z
+      .string()
+      .min(1, t("validation.amountRequired"))
+      .refine(
+        (val) => !isNaN(Number(val)) && Number(val) > 0,
+        t("validation.amountPositive")
+      )
+      .refine((val) => Number(val) <= 999999.99, t("validation.amountMax")),
+    paymentMethod: z.enum(["CASH", "TRANSFER", "CHEQUE"], {
+      required_error: t("validation.paymentMethodRequired"),
+    }),
+    paymentDate: z
+      .date({
+        required_error: t("validation.paymentDateRequired"),
+      })
+      .refine((date) => {
+        const today = new Date();
+        const selectedDate = new Date(date);
 
-type PaymentFormData = z.infer<typeof paymentSchema>;
+        // Set both dates to start of day for comparison
+        today.setHours(23, 59, 59, 999); // End of today
+        selectedDate.setHours(0, 0, 0, 0); // Start of selected date
+
+        return selectedDate <= today;
+      }, t("validation.paymentDateFuture")),
+    notes: z.string().max(500, t("validation.notesMax")).optional(),
+  });
+
+type PaymentFormData = z.infer<ReturnType<typeof buildPaymentSchema>>;
 
 // Extended type that includes the auto-generated receipt number
 export type PaymentSubmissionData = PaymentFormData & {
@@ -83,6 +91,7 @@ interface PaymentFormProps {
 export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useTranslation();
 
   // Generate receipt number
   const generateReceiptNumber = () => {
@@ -93,7 +102,7 @@ export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
   };
 
   const form = useForm<PaymentFormData>({
-    resolver: zodResolver(paymentSchema),
+    resolver: zodResolver(buildPaymentSchema(t)),
     defaultValues: {
       studentId: "",
       studentName: "",
@@ -119,14 +128,14 @@ export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
 
       await onSubmit(dataWithReceiptNumber);
       toast({
-        title: "تم تسجيل الدفعة بنجاح",
-        description: "تم إضافة الدفعة الجديدة إلى النظام",
+        title: t("paymentSuccessTitle"),
+        description: t("addNewPayment"),
       });
       form.reset();
     } catch (error) {
       toast({
-        title: "خطأ في تسجيل الدفعة",
-        description: "حدث خطأ أثناء تسجيل الدفعة، يرجى المحاولة مرة أخرى",
+        title: t("paymentErrorTitle"),
+        description: t("paymentErrorDescription"),
         variant: "destructive",
       });
     } finally {
@@ -144,9 +153,9 @@ export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
             name="studentId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>الرقم الجامعي</FormLabel>
+                <FormLabel>{t("studentId")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="أدخل الرقم الجامعي" {...field} />
+                  <Input placeholder={t("enterStudentId")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -159,9 +168,9 @@ export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
             name="studentName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>اسم الطالب</FormLabel>
+                <FormLabel>{t("studentName")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="أدخل اسم الطالب" {...field} />
+                  <Input placeholder={t("enterStudentName")} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -174,25 +183,29 @@ export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
             name="feeType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>نوع الرسوم</FormLabel>
+                <FormLabel>{t("feeType")}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="اختر نوع الرسوم" />
+                      <SelectValue placeholder={t("chooseFeeType")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="NEW_YEAR">رسوم سنة جديدة</SelectItem>
-                    <SelectItem value="SUPPLEMENTARY">رسوم ملحق</SelectItem>
-                    <SelectItem value="LAB">رسوم مختبر</SelectItem>
-                    <SelectItem value="STUDENT_SERVICES">
-                      رسوم خدمات طلابية
+                    <SelectItem value="NEW_YEAR">
+                      {t("feeTypeNewYear")}
                     </SelectItem>
-                    <SelectItem value="EXAM">رسوم امتحانات</SelectItem>
-                    <SelectItem value="OTHER">رسوم أخرى</SelectItem>
+                    <SelectItem value="SUPPLEMENTARY">
+                      {t("feeTypeSupplementary")}
+                    </SelectItem>
+                    <SelectItem value="LAB">{t("laboratory")}</SelectItem>
+                    <SelectItem value="STUDENT_SERVICES">
+                      {t("feeTypeStudentServices")}
+                    </SelectItem>
+                    <SelectItem value="EXAM">{t("feeTypeExam")}</SelectItem>
+                    <SelectItem value="OTHER">{t("feeTypeOther")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -206,12 +219,14 @@ export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>المبلغ (ج.س)</FormLabel>
+                <FormLabel>
+                  {t("amount")} ({t("sdg")})
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     step="0.01"
-                    placeholder="أدخل المبلغ"
+                    placeholder={t("amountPlaceholder")}
                     {...field}
                   />
                 </FormControl>
@@ -226,20 +241,26 @@ export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
             name="paymentMethod"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>طريقة الدفع</FormLabel>
+                <FormLabel>{t("paymentMethod")}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="اختر طريقة الدفع" />
+                      <SelectValue placeholder={t("choosePaymentMethod")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="CASH">نقداً</SelectItem>
-                    <SelectItem value="TRANSFER">تحويل بنكي</SelectItem>
-                    <SelectItem value="CHEQUE">شيك</SelectItem>
+                    <SelectItem value="CASH">
+                      {t("paymentMethodCash")}
+                    </SelectItem>
+                    <SelectItem value="TRANSFER">
+                      {t("paymentMethodTransfer")}
+                    </SelectItem>
+                    <SelectItem value="CHEQUE">
+                      {t("paymentMethodCheque")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -253,7 +274,7 @@ export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
             name="paymentDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>تاريخ الدفع</FormLabel>
+                <FormLabel>{t("paymentDateLabel")}</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -267,7 +288,7 @@ export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
                         {field.value ? (
                           format(field.value, "PPP", { locale: ar })
                         ) : (
-                          <span>اختر التاريخ</span>
+                          <span>{t("chooseDate")}</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -297,10 +318,10 @@ export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>ملاحظات (اختياري)</FormLabel>
+              <FormLabel>{t("notesOptional")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="أدخل أي ملاحظات إضافية"
+                  placeholder={t("notesOptional")}
                   className="resize-none"
                   {...field}
                 />
@@ -313,14 +334,14 @@ export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
         {/* Actions */}
         <div className="flex justify-end gap-4 pt-4 border-t">
           <Button type="button" variant="outline" onClick={onCancel}>
-            إلغاء
+            {t("cancelBtn")}
           </Button>
           <Button
             type="submit"
             disabled={isSubmitting}
             className="bg-gradient-primary hover:opacity-90"
           >
-            {isSubmitting ? "جاري التسجيل..." : "تسجيل الدفعة"}
+            {isSubmitting ? t("registering") : t("registerPaymentBtn")}
           </Button>
         </div>
       </form>

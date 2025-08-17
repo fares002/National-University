@@ -15,7 +15,11 @@ const port = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:8080",
+      "http://localhost:8081",
+    ],
     credentials: true,
   })
 );

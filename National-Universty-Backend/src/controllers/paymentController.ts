@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "../utils/prisma";
 import asyncWrapper from "../middlewares/asyncWrapper";
-import redis from "../utils/redis";
+import redis, {
+  invalidateDashboardCache,
+  invalidatePaymentCache,
+} from "../utils/redis";
 import AppError from "../utils/AppError";
 import { httpStatusText } from "../utils/httpStatusText";
 
@@ -315,6 +318,19 @@ const createPayment = asyncWrapper(
     } catch (cacheError) {
       console.warn(
         "⚠️ Cache invalidation error:",
+        (cacheError as Error).message
+      );
+      // Continue even if cache invalidation fails
+    }
+
+    // Invalidate dashboard cache to ensure real-time updates
+    try {
+      await invalidateDashboardCache();
+      await invalidatePaymentCache();
+      console.log("🧹 Dashboard and payment caches invalidated successfully");
+    } catch (cacheError) {
+      console.warn(
+        "⚠️ Dashboard cache invalidation error:",
         (cacheError as Error).message
       );
       // Continue even if cache invalidation fails
