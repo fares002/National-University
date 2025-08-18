@@ -13,6 +13,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Loading from "@/components/common/Loading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -220,14 +221,7 @@ export function Payments() {
   );
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading payments...</span>
-        </div>
-      </div>
-    );
+    return <Loading labelKey="loadingPayments" />;
   }
 
   if (error) {

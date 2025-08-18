@@ -9,8 +9,8 @@ import {
   Receipt,
   ArrowUpRight,
   ArrowDownRight,
-  Loader2,
 } from "lucide-react";
+import Loading from "@/components/common/Loading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { reportsService, DashboardData } from "@/services/reportsService";
@@ -100,12 +100,15 @@ export function Dashboard() {
   const categoryMapping: Record<string, string> = {
     "Fixed Assets": "الأصول الثابتة",
     "Part-time Professors": "الأساتذة المتعاونون",
+    // Support legacy '&' and new 'and' values
     "Study Materials & Administration Leaves": "مواد دراسية وإجازات إدارية",
+    "Study Materials and Administration Leaves": "مواد دراسية وإجازات إدارية",
     Salaries: "الرواتب",
     "Student Fees Refund": "رد رسوم الطلاب",
     Advances: "السلف",
     Bonuses: "المكافآت",
     "General & Administrative Expenses": "المصروفات العامة والإدارية",
+    "General and Administrative Expenses": "المصروفات العامة والإدارية",
     "Library Supplies": "مستلزمات المكتبة",
     "Lab Consumables": "مستهلكات المعامل",
     "Student Training": "تدريب طلاب",
@@ -150,14 +153,7 @@ export function Dashboard() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading dashboard...</span>
-        </div>
-      </div>
-    );
+    return <Loading labelKey="loadingDashboard" />;
   }
 
   if (error || !dashboardData) {

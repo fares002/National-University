@@ -31,7 +31,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { ExpenseCategory } from "@/services/expenseService";
 
@@ -40,7 +39,7 @@ const expenseCategories: { value: ExpenseCategory; label: string }[] = [
   { value: "Fixed Assets", label: "categories.fixedAssets" },
   { value: "Part-time Professors", label: "categories.partTimeProfessors" },
   {
-    value: "Study Materials & Administration Leaves",
+    value: "Study Materials and Administration Leaves",
     label: "categories.studyMaterialsAdminLeaves",
   },
   { value: "Salaries", label: "categories.salaries" },
@@ -48,7 +47,7 @@ const expenseCategories: { value: ExpenseCategory; label: string }[] = [
   { value: "Advances", label: "categories.advances" },
   { value: "Bonuses", label: "categories.bonuses" },
   {
-    value: "General & Administrative Expenses",
+    value: "General and Administrative Expenses",
     label: "categories.generalAdminExpenses",
   },
   { value: "Library Supplies", label: "categories.librarySupplies" },
@@ -67,12 +66,12 @@ const buildExpenseSchema = (t: (k: string) => string) =>
       [
         "Fixed Assets",
         "Part-time Professors",
-        "Study Materials & Administration Leaves",
+        "Study Materials and Administration Leaves",
         "Salaries",
         "Student Fees Refund",
         "Advances",
         "Bonuses",
-        "General & Administrative Expenses",
+        "General and Administrative Expenses",
         "Library Supplies",
         "Lab Consumables",
         "Student Training",
@@ -148,7 +147,6 @@ interface ExpenseFormProps {
 }
 
 export function ExpenseForm({ onSubmit, onCancel }: ExpenseFormProps) {
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
 
@@ -178,17 +176,9 @@ export function ExpenseForm({ onSubmit, onCancel }: ExpenseFormProps) {
       };
 
       await onSubmit(submissionData);
-      toast({
-        title: t("success"),
-        description: t("saveExpenseBtn"),
-      });
       form.reset();
     } catch (error) {
-      toast({
-        title: t("error"),
-        description: t("saveExpenseBtn"),
-        variant: "destructive",
-      });
+      // Parent handles error notifications
     } finally {
       setIsSubmitting(false);
     }

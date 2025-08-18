@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FileText,
@@ -13,6 +13,7 @@ import {
   Filter,
   Search,
   PrinterIcon,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,71 +56,22 @@ import {
   Area,
   AreaChart,
 } from "recharts";
+import Loading from "@/components/common/Loading";
+import { reportsService } from "@/services/reportsService";
+import { analyticsService } from "@/services/analyticsService";
+import { toast } from "@/components/ui/use-toast";
 
-// Mock data for reports
-const mockReports = [
-  {
-    id: "1",
-    name: "financialDaily",
-    type: "daily",
-    date: "2024-01-15",
-    totalIncome: 450000,
-    totalExpenses: 125000,
-    netProfit: 325000,
-    transactions: 28,
-  },
-  {
-    id: "2",
-    name: "financialWeekly",
-    type: "weekly",
-    date: "2024-01-08 - 2024-01-14",
-    totalIncome: 2850000,
-    totalExpenses: 875000,
-    netProfit: 1975000,
-    transactions: 156,
-  },
-  {
-    id: "3",
-    name: "financialMonthly",
-    type: "monthly",
-    date: "2023-12",
-    totalIncome: 12500000,
-    totalExpenses: 4200000,
-    netProfit: 8300000,
-    transactions: 678,
-  },
-];
+// Removed mock reports; we'll fetch live daily/monthly/yearly reports
 
-const incomeByCategory = [
-  { category: "feeTypeNewYear", amount: 8500000, percentage: 68 },
-  { category: "feeTypeSupplementary", amount: 2200000, percentage: 18 },
-  { category: "laboratory", amount: 1100000, percentage: 9 },
-  { category: "feeTypeStudentServices", amount: 700000, percentage: 5 },
-];
-
-const expenseByCategory = [
-  { category: "operationalExpenses", amount: 1800000, percentage: 43 },
-  { category: "administrativeExpenses", amount: 1250000, percentage: 30 },
-  { category: "utilities", amount: 750000, percentage: 18 },
-  { category: "externalServices", amount: 400000, percentage: 9 },
-];
+// Will be loaded from API
+// const incomeByCategory ... moved to state
+// const expenseByCategory ... moved to state
 
 // Chart data
-const monthlyData = [
-  { month: "january", income: 12500000, expenses: 4200000, profit: 8300000 },
-  { month: "february", income: 11800000, expenses: 3950000, profit: 7850000 },
-  { month: "march", income: 13200000, expenses: 4600000, profit: 8600000 },
-  { month: "april", income: 14100000, expenses: 4800000, profit: 9300000 },
-  { month: "may", income: 12900000, expenses: 4300000, profit: 8600000 },
-  { month: "june", income: 13800000, expenses: 4700000, profit: 9100000 },
-];
+// Will be loaded from API
+// const monthlyData ... moved to state
 
-const pieChartData = [
-  { name: "feeTypeNewYear", value: 68, amount: 8500000, fill: "#10b981" },
-  { name: "feeTypeSupplementary", value: 18, amount: 2200000, fill: "#3b82f6" },
-  { name: "laboratory", value: 9, amount: 1100000, fill: "#f59e0b" },
-  { name: "feeTypeStudentServices", value: 5, amount: 700000, fill: "#ef4444" },
-];
+// Pie chart data derived from incomeByCategory state
 
 const detailedReports = [
   {
@@ -179,6 +131,58 @@ export function Reports() {
   const [selectedPeriod, setSelectedPeriod] = useState("monthly");
   const [selectedReport, setSelectedReport] = useState("financial");
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [yearSummary, setYearSummary] = useState<{
+    payments: number;
+    expenses: number;
+    netIncome: number;
+    paymentsCount: number;
+    expensesCount: number;
+    year: number;
+  } | null>(null);
+
+  // New: quick live summaries for today, this month, this year
+  const [quickDaily, setQuickDaily] = useState<{
+    date: string;
+    totalIncome: number;
+    totalExpenses: number;
+    netProfit: number;
+  } | null>(null);
+  const [quickMonthly, setQuickMonthly] = useState<{
+    date: string; // YYYY-MM
+    totalIncome: number;
+    totalExpenses: number;
+    netProfit: number;
+    year: number;
+    month: number;
+  } | null>(null);
+  const [quickYearly, setQuickYearly] = useState<{
+    date: string; // YYYY
+    totalIncome: number;
+    totalExpenses: number;
+    netProfit: number;
+    year: number;
+  } | null>(null);
+
+  // Button loading states for PDF downloads
+  const [downloading, setDownloading] = useState({
+    daily: false,
+    monthly: false,
+    yearly: false,
+  });
+
+  // Analytics state
+  const [monthlyData, setMonthlyData] = useState<
+    { month: string; income: number; expenses: number; profit: number }[]
+  >([]);
+  const [incomeByCategory, setIncomeByCategory] = useState<
+    { category: string; amount: number; percentage: number }[]
+  >([]);
+  const [expenseByCategory, setExpenseByCategory] = useState<
+    { category: string; amount: number; percentage: number }[]
+  >([]);
+  const [chartsLoading, setChartsLoading] = useState(true);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("ar-SD").format(amount);
@@ -209,6 +213,121 @@ export function Reports() {
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = now.getMonth() + 1; // 1-12
+        const dd = String(now.getDate()).padStart(2, "0");
+        const monthStr = String(mm).padStart(2, "0");
+        const dateStr = `${yyyy}-${String(mm).padStart(2, "0")}-${dd}`;
+
+        // Fetch in parallel: summary, daily, monthly, yearly
+        const [summaryRes, dailyRes, monthlyRes, yearlyRes] = await Promise.all(
+          [
+            reportsService.getSummary(),
+            reportsService.getDailyReport(dateStr),
+            reportsService.getMonthlyReport(yyyy, mm),
+            reportsService.getYearlyReport(yyyy),
+          ]
+        );
+
+        setYearSummary(summaryRes.data.summary.thisYear);
+
+        // Daily
+        const d = dailyRes.data.report;
+        setQuickDaily({
+          date: d.date,
+          totalIncome: d.payments.total,
+          totalExpenses: d.expenses.total,
+          netProfit: d.netIncome,
+        });
+
+        // Monthly
+        const m = monthlyRes.data.report;
+        setQuickMonthly({
+          date: `${m.year}-${monthStr}`,
+          totalIncome: m.payments.total,
+          totalExpenses: m.expenses.total,
+          netProfit: m.netIncome,
+          year: m.year,
+          month: m.month,
+        });
+
+        // Yearly
+        const y = yearlyRes.data.report;
+        setQuickYearly({
+          date: String(y.year),
+          totalIncome: y.summary.payments.total,
+          totalExpenses: y.summary.expenses.total,
+          netProfit: y.summary.netIncome,
+          year: y.year,
+        });
+      } catch (e: any) {
+        setError(e?.message || "Failed to load summary");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSummary();
+  }, []);
+
+  // Load analytics for charts
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setChartsLoading(true);
+        const year = new Date().getFullYear();
+        const res = await analyticsService.getCharts(year);
+        const data = res.data;
+        // Map months 1-12 to i18n keys
+        const monthKey = [
+          "january",
+          "february",
+          "march",
+          "april",
+          "may",
+          "june",
+          "july",
+          "august",
+          "september",
+          "october",
+          "november",
+          "december",
+        ];
+        setMonthlyData(
+          data.monthly.map((m) => ({
+            month: monthKey[(m.month - 1) % 12],
+            income: m.income,
+            expenses: m.expenses,
+            profit: m.profit,
+          }))
+        );
+        setIncomeByCategory(data.incomeByCategory);
+        setExpenseByCategory(data.expenseByCategory);
+      } catch (e: any) {
+        toast({
+          variant: "destructive",
+          title: t("loadFailed") || "Failed to load charts",
+          description: e?.message || "",
+        });
+      } finally {
+        setChartsLoading(false);
+      }
+    };
+    load();
+  }, [t]);
+
+  if (loading) {
+    return <Loading labelKey="loading" />;
+  }
+  if (error) {
+    return <div className="text-center text-destructive py-8">{error}</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -276,7 +395,7 @@ export function Reports() {
                       {t("totalIncome")}
                     </p>
                     <p className="text-2xl font-bold text-success">
-                      {formatCurrency(12500000)} {t("sdg")}
+                      {formatCurrency(yearSummary?.payments ?? 0)} {t("sdg")}
                     </p>
                     <div className="flex items-center mt-1">
                       <TrendingUp className="h-4 w-4 text-success mr-1" />
@@ -296,7 +415,7 @@ export function Reports() {
                       {t("reportsExpenses")}
                     </p>
                     <p className="text-2xl font-bold text-destructive">
-                      {formatCurrency(4200000)} {t("sdg")}
+                      {formatCurrency(yearSummary?.expenses ?? 0)} {t("sdg")}
                     </p>
                     <div className="flex items-center mt-1">
                       <TrendingDown className="h-4 w-4 text-success mr-1" />
@@ -316,7 +435,7 @@ export function Reports() {
                       {t("profit")}
                     </p>
                     <p className="text-2xl font-bold text-primary">
-                      {formatCurrency(8300000)} {t("sdg")}
+                      {formatCurrency(yearSummary?.netIncome ?? 0)} {t("sdg")}
                     </p>
                     <div className="flex items-center mt-1">
                       <TrendingUp className="h-4 w-4 text-success mr-1" />
@@ -335,7 +454,10 @@ export function Reports() {
                     <p className="text-sm font-medium text-muted-foreground">
                       {t("totalTransactions")}
                     </p>
-                    <p className="text-2xl font-bold text-foreground">678</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {(yearSummary?.paymentsCount ?? 0) +
+                        (yearSummary?.expensesCount ?? 0)}
+                    </p>
                     <div className="flex items-center mt-1">
                       <TrendingUp className="h-4 w-4 text-success mr-1" />
                       <span className="text-sm text-success">+45</span>
@@ -347,75 +469,291 @@ export function Reports() {
             </Card>
           </div>
 
-          {/* Quick Reports */}
+          {/* Quick Reports - Live (Daily/Monthly/Yearly) */}
           <Card>
             <CardHeader>
               <CardTitle>{t("quickReports")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-3">
-                {mockReports.map((report) => (
-                  <div
-                    key={report.id}
-                    className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        {getReportIcon(report.type)}
-                        <h3 className="font-medium text-sm">
-                          {t(report.name)}
-                        </h3>
-                      </div>
-                      <Badge className={getReportColor(report.type)}>
-                        {report.type === "daily" && t("daily")}
-                        {report.type === "weekly" && t("weekly")}
-                        {report.type === "monthly" && t("monthly")}
-                      </Badge>
+                {/* Daily */}
+                <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {getReportIcon("daily")}
+                      <h3 className="font-medium text-sm">
+                        {t("financialDaily")}
+                      </h3>
                     </div>
-
-                    <div className="space-y-2 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          {t("period")}:
-                        </span>
-                        <span>{report.date}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          {t("income")}:
-                        </span>
-                        <span className="text-success">
-                          +{formatCurrency(report.totalIncome)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          {t("reportsExpensesCat")}:
-                        </span>
-                        <span className="text-destructive">
-                          -{formatCurrency(report.totalExpenses)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between font-medium">
-                        <span>{t("profit")}:</span>
-                        <span className="text-primary">
-                          {formatCurrency(report.netProfit)}
-                        </span>
-                      </div>
+                    <Badge className={getReportColor("daily")}>
+                      {t("daily")}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("period")}:
+                      </span>
+                      <span>{quickDaily?.date ?? "-"}</span>
                     </div>
-
-                    <div className="flex gap-2 mt-4">
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <Eye className="h-3 w-3 mr-1" />
-                        {t("view")}
-                      </Button>
-                      <Button size="sm" variant="outline" className="flex-1">
-                        <Download className="h-3 w-3 mr-1" />
-                        {t("download")}
-                      </Button>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("income")}:
+                      </span>
+                      <span className="text-success">
+                        +{formatCurrency(quickDaily?.totalIncome ?? 0)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("reportsExpensesCat")}:
+                      </span>
+                      <span className="text-destructive">
+                        -{formatCurrency(quickDaily?.totalExpenses ?? 0)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between font-medium">
+                      <span>{t("profit")}:</span>
+                      <span className="text-primary">
+                        {formatCurrency(quickDaily?.netProfit ?? 0)}
+                      </span>
                     </div>
                   </div>
-                ))}
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={!quickDaily?.date}
+                      onClick={() => {
+                        if (!quickDaily?.date) return;
+                        reportsService.viewDailyPdf(quickDaily.date);
+                      }}
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      {t("view")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={downloading.daily || !quickDaily?.date}
+                      onClick={async () => {
+                        if (!quickDaily?.date) return;
+                        try {
+                          setDownloading((s) => ({ ...s, daily: true }));
+                          await reportsService.downloadDailyPdf(
+                            quickDaily.date
+                          );
+                        } catch (err: any) {
+                          toast({
+                            variant: "destructive",
+                            title: t("downloadFailed") || "Download failed",
+                            description: err?.message || "",
+                          });
+                        } finally {
+                          setDownloading((s) => ({ ...s, daily: false }));
+                        }
+                      }}
+                    >
+                      {downloading.daily ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Download className="h-3 w-3 mr-1" />
+                      )}
+                      {t("download")}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Monthly */}
+                <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {getReportIcon("monthly")}
+                      <h3 className="font-medium text-sm">
+                        {t("financialMonthly")}
+                      </h3>
+                    </div>
+                    <Badge className={getReportColor("monthly")}>
+                      {t("monthly")}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("period")}:
+                      </span>
+                      <span>{quickMonthly?.date ?? "-"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("income")}:
+                      </span>
+                      <span className="text-success">
+                        +{formatCurrency(quickMonthly?.totalIncome ?? 0)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("reportsExpensesCat")}:
+                      </span>
+                      <span className="text-destructive">
+                        -{formatCurrency(quickMonthly?.totalExpenses ?? 0)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between font-medium">
+                      <span>{t("profit")}:</span>
+                      <span className="text-primary">
+                        {formatCurrency(quickMonthly?.netProfit ?? 0)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={!(quickMonthly?.year && quickMonthly?.month)}
+                      onClick={() => {
+                        if (!(quickMonthly?.year && quickMonthly?.month))
+                          return;
+                        reportsService.viewMonthlyPdf(
+                          quickMonthly.year,
+                          quickMonthly.month
+                        );
+                      }}
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      {t("view")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={
+                        downloading.monthly ||
+                        !(quickMonthly?.year && quickMonthly?.month)
+                      }
+                      onClick={async () => {
+                        if (!(quickMonthly?.year && quickMonthly?.month))
+                          return;
+                        try {
+                          setDownloading((s) => ({ ...s, monthly: true }));
+                          await reportsService.downloadMonthlyPdf(
+                            quickMonthly.year,
+                            quickMonthly.month
+                          );
+                        } catch (err: any) {
+                          toast({
+                            variant: "destructive",
+                            title: t("downloadFailed") || "Download failed",
+                            description: err?.message || "",
+                          });
+                        } finally {
+                          setDownloading((s) => ({ ...s, monthly: false }));
+                        }
+                      }}
+                    >
+                      {downloading.monthly ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Download className="h-3 w-3 mr-1" />
+                      )}
+                      {t("download")}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Yearly */}
+                <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {getReportIcon("yearly")}
+                      <h3 className="font-medium text-sm">
+                        {t("financialYearly")}
+                      </h3>
+                    </div>
+                    <Badge className={getReportColor("yearly")}>
+                      {t("yearly")}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("period")}:
+                      </span>
+                      <span>{quickYearly?.date ?? "-"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("income")}:
+                      </span>
+                      <span className="text-success">
+                        +{formatCurrency(quickYearly?.totalIncome ?? 0)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("reportsExpensesCat")}:
+                      </span>
+                      <span className="text-destructive">
+                        -{formatCurrency(quickYearly?.totalExpenses ?? 0)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between font-medium">
+                      <span>{t("profit")}:</span>
+                      <span className="text-primary">
+                        {formatCurrency(quickYearly?.netProfit ?? 0)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={!quickYearly?.year}
+                      onClick={() => {
+                        if (!quickYearly?.year) return;
+                        reportsService.viewYearlyPdf(quickYearly.year);
+                      }}
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      {t("view")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={downloading.yearly || !quickYearly?.year}
+                      onClick={async () => {
+                        if (!quickYearly?.year) return;
+                        try {
+                          setDownloading((s) => ({ ...s, yearly: true }));
+                          await reportsService.downloadYearlyPdf(
+                            quickYearly.year
+                          );
+                        } catch (err: any) {
+                          toast({
+                            variant: "destructive",
+                            title: t("downloadFailed") || "Download failed",
+                            description: err?.message || "",
+                          });
+                        } finally {
+                          setDownloading((s) => ({ ...s, yearly: false }));
+                        }
+                      }}
+                    >
+                      {downloading.yearly ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Download className="h-3 w-3 mr-1" />
+                      )}
+                      {t("download")}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -471,7 +809,12 @@ export function Reports() {
                     <PieChart>
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Pie
-                        data={pieChartData}
+                        data={incomeByCategory.map((c) => ({
+                          name: c.category,
+                          value: c.percentage,
+                          amount: c.amount,
+                          fill: "#10b981",
+                        }))}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
@@ -479,8 +822,20 @@ export function Reports() {
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {pieChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        {incomeByCategory.map((_, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={
+                              [
+                                "#10b981",
+                                "#3b82f6",
+                                "#f59e0b",
+                                "#ef4444",
+                                "#8b5cf6",
+                                "#06b6d4",
+                              ][index % 6]
+                            }
+                          />
                         ))}
                       </Pie>
                     </PieChart>

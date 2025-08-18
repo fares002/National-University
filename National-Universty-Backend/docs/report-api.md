@@ -438,13 +438,16 @@ When data is served from cache, the response includes `"cached": true` in the da
 
 ## 🎯 **Report Endpoints Summary**
 
-| Method | Endpoint                | Description               | Typical Response Time | Cache |
-| ------ | ----------------------- | ------------------------- | --------------------- | ----- |
-| `GET`  | `/daily/:date`          | Daily financial report    | ~200ms                | ❌    |
-| `GET`  | `/monthly/:year/:month` | Monthly financial report  | ~500ms                | ❌    |
-| `GET`  | `/yearly/:year`         | Yearly financial report   | ~1s                   | ❌    |
-| `GET`  | `/summary`              | Current financial summary | ~300ms                | ❌    |
-| `GET`  | `/dashboard`            | Dashboard overview        | ~800ms / ~50ms        | ✅    |
+| Method | Endpoint                | Description                 | Typical Response Time | Cache |
+| ------ | ----------------------- | --------------------------- | --------------------- | ----- |
+| `GET`  | `/daily/:date`          | Daily financial report      | ~200ms                | ❌    |
+| `GET`  | `/monthly/:year/:month` | Monthly financial report    | ~500ms                | ❌    |
+| `GET`  | `/yearly/:year`         | Yearly financial report     | ~1s                   | ❌    |
+| `GET`  | `/summary`              | Current financial summary   | ~300ms                | ❌    |
+| `GET`  | `/dashboard`            | Dashboard overview          | ~800ms / ~50ms        | ✅    |
+| `GET`  | `/daily/:date/pdf`      | Daily report PDF download   | similar to `/daily`   | ❌    |
+| `GET`  | `/monthly/:y/:m/pdf`    | Monthly report PDF download | similar to `/monthly` | ❌    |
+| `GET`  | `/yearly/:year/pdf`     | Yearly report PDF download  | similar to `/yearly`  | ❌    |
 
 ---
 
@@ -562,3 +565,67 @@ Cookie: token=YOUR_JWT_TOKEN
 5. **Error Handling**: Comprehensive error responses without exposing system internals
 
 These report APIs provide powerful business intelligence for the National University financial management system! 📊💰
+
+---
+
+## 📄 **6. PDF Report Downloads**
+
+Download printable PDF versions of the daily, monthly, and yearly financial reports. These endpoints return an application/pdf stream with a filename attachment.
+
+### a) Daily Report PDF
+
+**GET** `/api/v1/reports/daily/:date/pdf`
+
+- Description: Download the daily report as a PDF for a specific date.
+- URL Params:
+  - `date` (required): YYYY-MM-DD
+- Response:
+  - Content-Type: `application/pdf`
+  - Content-Disposition: `attachment; filename="daily-report-YYYY-MM-DD.pdf"`
+  - Status: `200` on success; errors: `400`, `401`, `403`, `500`
+
+Example:
+
+```
+GET http://localhost:3000/api/v1/reports/daily/2025-08-03/pdf
+Cookie: token=YOUR_JWT_TOKEN
+```
+
+### b) Monthly Report PDF
+
+**GET** `/api/v1/reports/monthly/:year/:month/pdf`
+
+- Description: Download the monthly report as a PDF.
+- URL Params:
+  - `year` (required): e.g., 2025
+  - `month` (required): 1-12
+- Response:
+  - Content-Type: `application/pdf`
+  - Content-Disposition: `attachment; filename="monthly-report-YYYY-MM.pdf"`
+  - Status: `200` on success; errors: `400`, `401`, `403`, `500`
+
+Example:
+
+```
+GET http://localhost:3000/api/v1/reports/monthly/2025/8/pdf
+Cookie: token=YOUR_JWT_TOKEN
+```
+
+### c) Yearly Report PDF
+
+**GET** `/api/v1/reports/yearly/:year/pdf`
+
+- Description: Download the yearly report as a PDF.
+- URL Params:
+  - `year` (required): e.g., 2025
+- Response:
+  - Content-Type: `application/pdf`
+  - Content-Disposition: `attachment; filename="yearly-report-YYYY.pdf"`
+  - Status: `200` on success; errors: `400`, `401`, `403`, `500`
+
+Example:
+
+```
+GET http://localhost:3000/api/v1/reports/yearly/2025/pdf
+Cookie: token=YOUR_JWT_TOKEN
+```

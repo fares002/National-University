@@ -14,6 +14,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Loading from "@/components/common/Loading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +51,7 @@ const expenseCategories: { value: ExpenseCategory; label: string }[] = [
   { value: "Fixed Assets", label: "categories.fixedAssets" },
   { value: "Part-time Professors", label: "categories.partTimeProfessors" },
   {
-    value: "Study Materials & Administration Leaves",
+    value: "Study Materials and Administration Leaves",
     label: "categories.studyMaterialsAdminLeaves",
   },
   { value: "Salaries", label: "categories.salaries" },
@@ -58,7 +59,7 @@ const expenseCategories: { value: ExpenseCategory; label: string }[] = [
   { value: "Advances", label: "categories.advances" },
   { value: "Bonuses", label: "categories.bonuses" },
   {
-    value: "General & Administrative Expenses",
+    value: "General and Administrative Expenses",
     label: "categories.generalAdminExpenses",
   },
   { value: "Library Supplies", label: "categories.librarySupplies" },
@@ -68,15 +69,19 @@ const expenseCategories: { value: ExpenseCategory; label: string }[] = [
 ];
 
 // Map API category values to translation keys
-const categoryKeyMap: Record<ExpenseCategory, string> = {
+const categoryKeyMap: Record<string, string> = {
   "Fixed Assets": "categories.fixedAssets",
   "Part-time Professors": "categories.partTimeProfessors",
+  // Support both legacy '&' and new 'and'
+  "Study Materials and Administration Leaves":
+    "categories.studyMaterialsAdminLeaves",
   "Study Materials & Administration Leaves":
     "categories.studyMaterialsAdminLeaves",
   Salaries: "categories.salaries",
   "Student Fees Refund": "categories.studentFeesRefund",
   Advances: "categories.advances",
   Bonuses: "categories.bonuses",
+  "General and Administrative Expenses": "categories.generalAdminExpenses",
   "General & Administrative Expenses": "categories.generalAdminExpenses",
   "Library Supplies": "categories.librarySupplies",
   "Lab Consumables": "categories.labConsumables",
@@ -180,9 +185,19 @@ export function Expenses() {
       fetchExpenses(true); // Refresh the expenses list
     } catch (error) {
       console.error("❌ Error adding expense:", error);
+      const err: any = error as any;
+      const validatorMsg = Array.isArray(err?.response?.data?.errors)
+        ? err.response.data.errors[0]?.msg
+        : undefined;
+      const message =
+        validatorMsg ||
+        err?.response?.data?.data?.message ||
+        err?.response?.data?.message ||
+        err?.message ||
+        t("error");
       toast({
         title: t("error"),
-        description: t("saveExpenseBtn"),
+        description: message,
         variant: "destructive",
       });
     }
@@ -197,13 +212,13 @@ export function Expenses() {
     const colors: Record<string, string> = {
       "Fixed Assets": "bg-green-100 text-green-800",
       "Part-time Professors": "bg-blue-100 text-blue-800",
-      "Study Materials & Administration Leaves":
+      "Study Materials and Administration Leaves":
         "bg-orange-100 text-orange-800",
       Salaries: "bg-purple-100 text-purple-800",
       "Student Fees Refund": "bg-yellow-100 text-yellow-800",
       Advances: "bg-indigo-100 text-indigo-800",
       Bonuses: "bg-pink-100 text-pink-800",
-      "General & Administrative Expenses": "bg-red-100 text-red-800",
+      "General and Administrative Expenses": "bg-red-100 text-red-800",
       "Library Supplies": "bg-cyan-100 text-cyan-800",
       "Lab Consumables": "bg-teal-100 text-teal-800",
       "Student Training": "bg-lime-100 text-lime-800",
@@ -227,14 +242,7 @@ export function Expenses() {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">{t("loading")}</p>
-        </div>
-      </div>
-    );
+    return <Loading labelKey="loadingExpenses" size="lg" />;
   }
 
   return (

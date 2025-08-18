@@ -7,6 +7,7 @@ import authRouter from "./routes/authRouter";
 import paymentRoutes from "./routes/paymentRoutes";
 import expenseRoutes from "./routes/expenseRoutes";
 import reportRoutes from "./routes/reportRoutes";
+import analyticsRoutes from "./routes/analyticsRoutes";
 
 dotenv.config();
 
@@ -50,6 +51,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/expenses", expenseRoutes);
 app.use("/api/v1/reports", reportRoutes);
+app.use("/api/v1/analytics", analyticsRoutes);
 
 app.use((req: Request, res: Response) => {
   return res.status(404).json({
