@@ -239,45 +239,15 @@ export function Payments() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
-        <div>
+        {/* <div>
           <h1 className="text-3xl font-bold text-foreground">
             {t("paymentManagement")}
           </h1>
           <p className="text-muted-foreground">
             {t("paymentManagement")} - {t("addPayment")}
           </p>
-        </div>
-        {canEdit && (
-          <Dialog
-            open={isPaymentDialogOpen}
-            onOpenChange={setIsPaymentDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-primary hover:opacity-90">
-                <Plus className="mr-2 h-4 w-4" />
-                {t("addPayment")}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>تسجيل دفعة جديدة</DialogTitle>
-                <DialogDescription>
-                  قم بإدخال بيانات الدفعة الجديدة وإصدار الإيصال
-                </DialogDescription>
-              </DialogHeader>
-              <PaymentForm
-                onSubmit={handlePaymentSubmit}
-                onCancel={() => setIsPaymentDialogOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
-        {!canEdit && (
-          <Badge variant="outline" className="text-muted-foreground">
-            <Eye className="mr-1 h-3 w-3" />
-            عرض فقط
-          </Badge>
-        )}
+        </div> */}
+
       </div>
 
       {/* Stats Cards */}
@@ -377,7 +347,7 @@ export function Payments() {
                   <SelectItem value="SUPPLEMENTARY">
                     {t("supplementary")}
                   </SelectItem>
-                  <SelectItem value="LAB">{t("laboratory")}</SelectItem>
+                  <SelectItem value="TRAINING">{t("training")}</SelectItem>
                   <SelectItem value="STUDENT_SERVICES">
                     {t("studentServices")}
                   </SelectItem>
@@ -400,12 +370,38 @@ export function Payments() {
                   <SelectItem value="CHEQUE">{t("check")}</SelectItem>
                 </SelectContent>
               </Select>
-
-              <Button variant="outline">
-                <Filter className="mr-2 h-4 w-4" />
-                {t("advancedFilterBtn")}
-              </Button>
             </div>
+                    {canEdit && (
+          <Dialog
+            open={isPaymentDialogOpen}
+            onOpenChange={setIsPaymentDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-primary hover:opacity-90">
+                <Plus className="mr-2 h-4 w-4" />
+                {t("addPayment")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>تسجيل دفعة جديدة</DialogTitle>
+                <DialogDescription>
+                  قم بإدخال بيانات الدفعة الجديدة وإصدار الإيصال
+                </DialogDescription>
+              </DialogHeader>
+              <PaymentForm
+                onSubmit={handlePaymentSubmit}
+                onCancel={() => setIsPaymentDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
+        {!canEdit && (
+          <Badge variant="outline" className="text-muted-foreground">
+            <Eye className="mr-1 h-3 w-3" />
+            عرض فقط
+          </Badge>
+        )}
           </div>
         </CardContent>
       </Card>

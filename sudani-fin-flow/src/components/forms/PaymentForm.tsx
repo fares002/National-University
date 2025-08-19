@@ -55,7 +55,7 @@ const buildPaymentSchema = (t: (k: string) => string) =>
         (val) => !isNaN(Number(val)) && Number(val) > 0,
         t("validation.amountPositive")
       )
-      .refine((val) => Number(val) <= 999999.99, t("validation.amountMax")),
+      .refine((val) => Number(val) <= 99999999.99, t("validation.amountMax")),
     paymentMethod: z.enum(["CASH", "TRANSFER", "CHEQUE"], {
       required_error: t("validation.paymentMethodRequired"),
     }),

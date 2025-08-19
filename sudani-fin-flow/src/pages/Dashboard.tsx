@@ -14,6 +14,7 @@ import Loading from "@/components/common/Loading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { reportsService, DashboardData } from "@/services/reportsService";
+import { useNavigate } from "react-router-dom";
 
 function StatsCard({
   title,
@@ -22,21 +23,30 @@ function StatsCard({
   trend,
   trendValue,
   color,
+  formatType = "currency",
+  showTrend = true,
 }: {
   title: string;
   value: number;
   icon: React.ElementType;
   trend: "up" | "down";
-  trendValue: string;
+  trendValue?: string;
   color: string;
+  formatType?: "currency" | "number";
+  showTrend?: boolean;
 }) {
   const { t } = useTranslation();
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("ar-SD", {
-      style: "currency",
-      currency: "SDG",
-      minimumFractionDigits: 0,
-    }).format(amount);
+  const formatValue = (amount: number) => {
+    if (formatType === "currency") {
+      return new Intl.NumberFormat("ar-SD", {
+        style: "currency",
+        currency: "SDG",
+        minimumFractionDigits: 0,
+      }).format(amount);
+    }
+    return new Intl.NumberFormat("ar-SD", { maximumFractionDigits: 0 }).format(
+      amount
+    );
   };
 
   return (
@@ -48,25 +58,29 @@ function StatsCard({
               {title}
             </p>
             <p className="text-2xl font-bold text-foreground">
-              {formatCurrency(value)}
+              {formatValue(value)}
             </p>
-            <div className="flex items-center mt-2">
-              {trend === "up" ? (
-                <ArrowUpRight className="h-4 w-4 text-success mr-1" />
-              ) : (
-                <ArrowDownRight className="h-4 w-4 text-destructive mr-1" />
-              )}
-              <span
-                className={`text-sm font-medium ${
-                  trend === "up" ? "text-success" : "text-destructive"
-                }`}
-              >
-                {trendValue}
-              </span>
-              <span className="text-sm text-muted-foreground mr-1">
-                {t("fromLastMonth")}
-              </span>
-            </div>
+            {showTrend && (
+              <div className="flex items-center mt-2">
+                {trend === "up" ? (
+                  <ArrowUpRight className="h-4 w-4 text-success mr-1" />
+                ) : (
+                  <ArrowDownRight className="h-4 w-4 text-destructive mr-1" />
+                )}
+                {trendValue && (
+                  <span
+                    className={`text-sm font-medium ${
+                      trend === "up" ? "text-success" : "text-destructive"
+                    }`}
+                  >
+                    {trendValue}
+                  </span>
+                )}
+                <span className="text-sm text-muted-foreground mr-1">
+                  {t("fromLastMonth")}
+                </span>
+              </div>
+            )}
           </div>
           <div
             className={`h-12 w-12 rounded-lg ${color} flex items-center justify-center`}
@@ -81,6 +95,7 @@ function StatsCard({
 
 export function Dashboard() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     null
   );
@@ -199,8 +214,8 @@ export function Dashboard() {
           icon={TrendingDown}
           trend={
             dashboardData.overview.comparison.expenseTrend === "increase"
-              ? "up"
-              : "down"
+              ? "down"
+              : "up"
           }
           trendValue={`${
             dashboardData.overview.comparison.expenseChange > 0 ? "+" : ""
@@ -217,21 +232,27 @@ export function Dashboard() {
               ? "up"
               : "down"
           }
-          trendValue={`${(
-            ((dashboardData.overview.currentMonth.netProfit -
-              dashboardData.overview.previousMonth.netProfit) /
-              dashboardData.overview.previousMonth.netProfit) *
-            100
-          ).toFixed(1)}%`}
+          trendValue={
+            dashboardData.overview.previousMonth.netProfit === 0
+              ? "100%"
+              : `${(
+                  ((dashboardData.overview.currentMonth.netProfit -
+                    dashboardData.overview.previousMonth.netProfit) /
+                    dashboardData.overview.previousMonth.netProfit) *
+                  100
+                ).toFixed(1)}%`
+          }
           color="bg-gradient-primary"
         />
+
         <StatsCard
-          title={t("dailyTransactions")}
-          value={dashboardData.todayMetrics.totalTransactions}
+          title={t("monthlyTransactionsCount")}
+          value={dashboardData.overview.currentMonth.totalTransactions}
           icon={Users}
           trend="up"
-          trendValue={`Today: ${dashboardData.todayMetrics.totalTransactions}`}
           color="bg-accent"
+          formatType="number"
+          showTrend={false}
         />
       </div>
 
@@ -244,7 +265,11 @@ export function Dashboard() {
               <CreditCard className="h-5 w-5 text-primary" />
               {t("lastPayment")}
             </CardTitle>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/payments")}
+            >
               {t("viewAllPayments")}
             </Button>
           </CardHeader>
@@ -297,7 +322,11 @@ export function Dashboard() {
               <Receipt className="h-5 w-5 text-primary" />
               {t("lastExpense")}
             </CardTitle>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/expenses")}
+            >
               {t("viewAllExpenses")}
             </Button>
           </CardHeader>
@@ -347,26 +376,29 @@ export function Dashboard() {
           <CardTitle>{t("quickActions")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-            <Button className="h-20 flex-col gap-2 bg-gradient-primary hover:opacity-90">
+          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
+            <Button
+              className="h-20 flex-col gap-2 bg-gradient-primary hover:opacity-90"
+              onClick={() => navigate("/payments")}
+            >
               <CreditCard className="h-6 w-6" />
               {t("registerPayment")}
             </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
+            <Button
+              variant="outline"
+              className="h-20 flex-col gap-2"
+              onClick={() => navigate("/expenses")}
+            >
               <Receipt className="h-6 w-6" />
               {t("registerExpense")}
             </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
-              <Users className="h-6 w-6" />
-              {t("registerStudent")}
-            </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
+            <Button
+              variant="outline"
+              className="h-20 flex-col gap-2"
+              onClick={() => navigate("/reports?period=daily")}
+            >
               <DollarSign className="h-6 w-6" />
               {t("generateDailyReport")}
-            </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
-              <TrendingUp className="h-6 w-6" />
-              {t("viewCashFlow")}
             </Button>
           </div>
         </CardContent>

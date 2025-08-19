@@ -17,7 +17,7 @@ export function Header({ title }: HeaderProps) {
       <div className="flex h-full items-center justify-between px-6">
         {/* Page Title */}
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+          <h1 className="text-3xl font-bold text-foreground">{title}</h1>
         </div>
 
         {/* Header Actions */}
@@ -30,14 +30,6 @@ export function Header({ title }: HeaderProps) {
               className="w-64 pl-10"
             />
           </div>
-
-          {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-xs text-white flex items-center justify-center">
-              3
-            </span>
-          </Button>
 
           {/* Language Toggle */}
           <LanguageToggle />
