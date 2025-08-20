@@ -304,6 +304,75 @@ const getAllExpenses = asyncWrapper(
 );
 
 /**
+ * Quick search expenses
+ * GET /api/expenses/search?q=term&page=&limit=
+ * Access: admin, auditor
+ */
+const searchExpenses = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const q = (req.query.q as string) || "";
+    const page = parseInt((req.query.page as string) || "1", 10);
+    const limit = parseInt((req.query.limit as string) || "10", 10);
+    const skip = (page - 1) * limit;
+
+    if (!q.trim()) {
+      return res.status(200).json({
+        status: httpStatusText.SUCCESS,
+        data: {
+          expenses: [],
+          pagination: {
+            currentPage: page,
+            totalPages: 0,
+            totalExpenses: 0,
+            hasNextPage: false,
+            hasPrevPage: false,
+            limit,
+          },
+        },
+      });
+    }
+
+    const where: any = {
+      OR: [
+        { description: { contains: q } },
+        { category: { contains: q } },
+        { vendor: { contains: q } },
+      ],
+    };
+
+    const [expenses, totalExpenses] = await Promise.all([
+      prisma.expense.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { date: "desc" },
+        include: {
+          creator: { select: { id: true, username: true, email: true } },
+        },
+      }),
+      prisma.expense.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(totalExpenses / limit);
+
+    return res.status(200).json({
+      status: httpStatusText.SUCCESS,
+      data: {
+        expenses,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalExpenses,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
+          limit,
+        },
+      },
+    });
+  }
+);
+
+/**
  * Get expense by ID
  * Authorization: admin and auditor roles
  */
@@ -658,4 +727,5 @@ export {
   deleteExpense,
   getExpensesByCategory,
   getExpensesByVendor,
+  searchExpenses,
 };

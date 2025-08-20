@@ -144,22 +144,38 @@ export type ExpenseSubmissionData = {
 interface ExpenseFormProps {
   onSubmit: (data: ExpenseSubmissionData) => void;
   onCancel: () => void;
+  initialValues?: Partial<ExpenseSubmissionData>;
+  isEdit?: boolean;
 }
 
-export function ExpenseForm({ onSubmit, onCancel }: ExpenseFormProps) {
+export function ExpenseForm({
+  onSubmit,
+  onCancel,
+  initialValues,
+  isEdit = false,
+}: ExpenseFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
 
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(buildExpenseSchema(t)),
-    defaultValues: {
-      description: "",
-      category: undefined,
-      amount: "",
-      vendor: "",
-      receiptUrl: "",
-      date: new Date(),
-    },
+    defaultValues: initialValues
+      ? {
+          description: initialValues.description ?? "",
+          category: (initialValues.category as any) ?? undefined,
+          amount: initialValues.amount ?? "",
+          vendor: initialValues.vendor ?? "",
+          receiptUrl: initialValues.receiptUrl ?? "",
+          date: initialValues.date ? new Date(initialValues.date) : new Date(),
+        }
+      : {
+          description: "",
+          category: undefined,
+          amount: "",
+          vendor: "",
+          receiptUrl: "",
+          date: new Date(),
+        },
   });
 
   const handleSubmit = async (data: ExpenseFormData) => {

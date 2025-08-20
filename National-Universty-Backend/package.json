@@ -43,7 +43,8 @@
     "pdfmake": "^0.2.20",
     "prisma": "^6.12.0",
     "puppeteer": "^24.15.0",
-    "redis": "^5.8.0"
+    "redis": "^5.8.0",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@ljharb/tsconfig": "^0.3.2",

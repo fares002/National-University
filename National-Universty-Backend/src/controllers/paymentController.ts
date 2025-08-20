@@ -7,6 +7,7 @@ import redis, {
 } from "../utils/redis";
 import AppError from "../utils/AppError";
 import { httpStatusText } from "../utils/httpStatusText";
+import { generatePaymentReceiptPDF } from "../utils/paymentReceiptPdf";
 
 // Types for request validation
 interface CreatePaymentBody {
@@ -163,6 +164,69 @@ const getAllPayments = asyncWrapper(
 
     const totalPages = Math.ceil(totalCount / limit);
 
+    // Compute payment statistics (daily and monthly)
+    const today = new Date();
+    const startOfToday = new Date(today);
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date(today);
+    endOfToday.setHours(23, 59, 59, 999);
+
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endOfMonth = new Date(
+      today.getFullYear(),
+      today.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999
+    );
+
+    const [dailyAgg, monthlyAgg] = await Promise.all([
+      prisma.payment.aggregate({
+        where: {
+          paymentDate: {
+            gte: startOfToday,
+            lte: endOfToday,
+          },
+        },
+        _sum: { amount: true },
+        _count: { id: true },
+      }),
+      prisma.payment.aggregate({
+        where: {
+          paymentDate: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
+        },
+        _sum: { amount: true },
+        _count: { id: true },
+      }),
+    ]);
+
+    const daysInMonth = endOfMonth.getDate();
+    const monthlyTotal = Number(monthlyAgg._sum.amount || 0);
+    const averageDailyIncome = monthlyTotal / daysInMonth;
+
+    const statistics = {
+      daily: {
+        totalAmount: Number(dailyAgg._sum.amount || 0),
+        operationsCount: dailyAgg._count.id || 0,
+        date: startOfToday.toISOString().slice(0, 10),
+      },
+      monthly: {
+        totalAmount: monthlyTotal,
+        operationsCount: monthlyAgg._count.id || 0,
+        averageDailyIncome,
+        month: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+          2,
+          "0"
+        )}`,
+        daysInMonth,
+      },
+    };
+
     const result = {
       status: httpStatusText.SUCCESS,
       data: {
@@ -175,6 +239,7 @@ const getAllPayments = asyncWrapper(
           hasNextPage: page < totalPages,
           hasPrevPage: page > 1,
         },
+        statistics,
       },
     };
 
@@ -188,6 +253,87 @@ const getAllPayments = asyncWrapper(
     }
 
     return res.status(200).json(result);
+  }
+);
+
+/**
+ * Quick search payments
+ * GET /api/payments/search?q=term&page=&limit=
+ * Access: admin, auditor
+ */
+const searchPayments = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const q = (req.query.q as string) || "";
+    const page = parseInt((req.query.page as string) || "1", 10);
+    const limit = parseInt((req.query.limit as string) || "10", 10);
+    const skip = (page - 1) * limit;
+
+    if (!q.trim()) {
+      return res.status(200).json({
+        status: httpStatusText.SUCCESS,
+        data: {
+          payments: [],
+          pagination: {
+            page,
+            limit,
+            totalCount: 0,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPrevPage: false,
+          },
+        },
+      });
+    }
+
+    const where: any = {
+      OR: [
+        { studentId: { contains: q } },
+        { studentName: { contains: q } },
+        { receiptNumber: { contains: q } },
+        { notes: { contains: q } },
+      ],
+    };
+
+    const [payments, totalCount] = await Promise.all([
+      prisma.payment.findMany({
+        where,
+        select: {
+          id: true,
+          studentId: true,
+          studentName: true,
+          feeType: true,
+          amount: true,
+          receiptNumber: true,
+          paymentMethod: true,
+          paymentDate: true,
+          notes: true,
+          createdBy: {
+            select: { id: true, username: true, email: true },
+          },
+        },
+        orderBy: { paymentDate: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.payment.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return res.status(200).json({
+      status: httpStatusText.SUCCESS,
+      data: {
+        payments,
+        pagination: {
+          page,
+          limit,
+          totalCount,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
+        },
+      },
+    });
   }
 );
 
@@ -652,4 +798,47 @@ export {
   deletePayment,
   getPaymentsByStudentId,
   getPaymentByReceiptNumber,
+  searchPayments,
 };
+
+/**
+ * Generate and stream a PDF receipt with QR code for a payment
+ * GET /api/payments/:id/receipt
+ * Access: admin, auditor
+ */
+export const getPaymentReceiptPdf = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const payment = await prisma.payment.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        studentId: true,
+        studentName: true,
+        feeType: true,
+        amount: true,
+        receiptNumber: true,
+        paymentMethod: true,
+        paymentDate: true,
+        createdBy: { select: { username: true } },
+      },
+    });
+    if (!payment) {
+      return next(new AppError("Payment not found", 404, httpStatusText.FAIL));
+    }
+    await generatePaymentReceiptPDF(
+      {
+        id: payment.id,
+        studentId: payment.studentId,
+        studentName: payment.studentName,
+        feeType: String(payment.feeType),
+        amount: Number(payment.amount),
+        receiptNumber: payment.receiptNumber,
+        paymentMethod: String(payment.paymentMethod),
+        paymentDate: payment.paymentDate,
+        createdBy: payment.createdBy,
+      },
+      res
+    );
+  }
+);

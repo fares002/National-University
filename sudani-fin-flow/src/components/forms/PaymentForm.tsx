@@ -86,9 +86,17 @@ export type PaymentSubmissionData = PaymentFormData & {
 interface PaymentFormProps {
   onSubmit: (data: PaymentSubmissionData) => void;
   onCancel: () => void;
+  // Optional: pre-populate form for editing
+  initialValues?: Partial<PaymentSubmissionData>;
+  isEdit?: boolean;
 }
 
-export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
+export function PaymentForm({
+  onSubmit,
+  onCancel,
+  initialValues,
+  isEdit = false,
+}: PaymentFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
@@ -103,35 +111,53 @@ export function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
 
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(buildPaymentSchema(t)),
-    defaultValues: {
-      studentId: "",
-      studentName: "",
-      feeType: undefined,
-      amount: "",
-      paymentMethod: undefined,
-      paymentDate: new Date(),
-      notes: "",
-    },
+    defaultValues: initialValues
+      ? {
+          studentId: initialValues.studentId ?? "",
+          studentName: initialValues.studentName ?? "",
+          feeType: (initialValues.feeType as any) ?? undefined,
+          amount: initialValues.amount ?? "",
+          paymentMethod: (initialValues.paymentMethod as any) ?? undefined,
+          paymentDate: initialValues.paymentDate
+            ? new Date(initialValues.paymentDate as any)
+            : new Date(),
+          notes: initialValues.notes ?? "",
+        }
+      : {
+          studentId: "",
+          studentName: "",
+          feeType: undefined,
+          amount: "",
+          paymentMethod: undefined,
+          paymentDate: new Date(),
+          notes: "",
+        },
   });
 
   const handleSubmit = async (data: PaymentFormData) => {
     setIsSubmitting(true);
     try {
-      // Generate receipt number automatically
-      const receiptNumber = generateReceiptNumber();
-
-      // Add receipt number to the data
-      const dataWithReceiptNumber = {
-        ...data,
-        receiptNumber,
-      };
-
-      await onSubmit(dataWithReceiptNumber);
-      toast({
-        title: t("paymentSuccessTitle"),
-        description: t("addNewPayment"),
-      });
-      form.reset();
+      if (isEdit) {
+        // For edit, don't generate a new receipt number; pass existing one if provided
+        const dataWithReceiptNumber = {
+          ...data,
+          receiptNumber: initialValues?.receiptNumber || "",
+        } as PaymentSubmissionData;
+        await onSubmit(dataWithReceiptNumber);
+      } else {
+        // Generate receipt number automatically
+        const receiptNumber = generateReceiptNumber();
+        const dataWithReceiptNumber = {
+          ...data,
+          receiptNumber,
+        };
+        await onSubmit(dataWithReceiptNumber);
+        toast({
+          title: t("paymentSuccessTitle"),
+          description: t("addNewPayment"),
+        });
+        form.reset();
+      }
     } catch (error) {
       toast({
         title: t("paymentErrorTitle"),

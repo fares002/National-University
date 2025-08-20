@@ -7,6 +7,7 @@ import {
   deleteExpense,
   getExpensesByCategory,
   getExpensesByVendor,
+  searchExpenses,
 } from "../controllers/expenseController";
 import {
   expenseIdValidator,
@@ -39,6 +40,13 @@ router.get(
   validate,
   getAllExpenses
 );
+
+/**
+ * GET /api/expenses/search
+ * Quick search expenses
+ * Access: admin, auditor
+ */
+router.get("/search", allowedTo("admin", "auditor"), validate, searchExpenses);
 
 /**
  * GET /api/expenses/:id

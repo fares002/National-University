@@ -51,12 +51,27 @@ import {
   Payment,
   PaymentFilters,
   CreatePaymentData,
+  PaymentStatistics,
 } from "@/services/paymentService";
+import i18n from "@/lib/i18n";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Pencil, Trash2, Printer } from "lucide-react";
 
 export function Payments() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
+  const isArabic = i18n.language === "ar";
 
   // API state
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -70,6 +85,8 @@ export function Payments() {
     hasNextPage: false,
     hasPrevPage: false,
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Filter state
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,6 +94,9 @@ export function Payments() {
   const [feeTypeFilter, setFeeTypeFilter] = useState("all");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState("all");
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Payment | null>(null);
+  const [stats, setStats] = useState<PaymentStatistics | null>(null);
 
   // Debounce search term
   useEffect(() => {
@@ -96,23 +116,30 @@ export function Payments() {
       setLoading(true);
       setError(null);
 
-      const currentFilters: PaymentFilters = {
-        page: pagination.page,
-        limit: pagination.limit,
-        ...filters,
-      };
-
-      // Only add non-empty filters
-      if (debouncedSearchTerm.trim())
-        currentFilters.search = debouncedSearchTerm.trim();
-      if (feeTypeFilter !== "all") currentFilters.feeType = feeTypeFilter;
-      if (paymentMethodFilter !== "all")
-        currentFilters.paymentMethod = paymentMethodFilter;
-
-      const response = await paymentService.getAllPayments(currentFilters);
+      let response;
+      const hasSearch = debouncedSearchTerm.trim().length > 0;
+      if (hasSearch) {
+        response = await paymentService.searchPayments(
+          debouncedSearchTerm.trim(),
+          currentPage,
+          pagination.limit
+        );
+      } else {
+        const currentFilters: PaymentFilters = {
+          page: currentPage,
+          limit: pagination.limit,
+          ...filters,
+        };
+        if (feeTypeFilter !== "all") currentFilters.feeType = feeTypeFilter;
+        if (paymentMethodFilter !== "all")
+          currentFilters.paymentMethod = paymentMethodFilter;
+        response = await paymentService.getAllPayments(currentFilters);
+      }
 
       setPayments(response.data.payments);
       setPagination(response.data.pagination);
+      setTotalPages(response.data.pagination.totalPages);
+      setStats(response.data.statistics ?? null);
     } catch (err: any) {
       setError(err.message || "Failed to load payments");
       console.error("Payment API error:", err);
@@ -121,22 +148,10 @@ export function Payments() {
     }
   };
 
-  // Initial load and whenever filters change
+  // Initial load and whenever page or filters change (match Expenses behavior)
   useEffect(() => {
-    fetchPayments({
-      page: 1,
-      search: debouncedSearchTerm,
-      feeType: feeTypeFilter !== "all" ? feeTypeFilter : undefined,
-      paymentMethod:
-        paymentMethodFilter !== "all" ? paymentMethodFilter : undefined,
-    });
-  }, [debouncedSearchTerm, feeTypeFilter, paymentMethodFilter]);
-
-  // Handle pagination
-  const handlePageChange = (newPage: number) => {
-    setPagination((prev) => ({ ...prev, page: newPage }));
-    fetchPayments({ page: newPage });
-  };
+    fetchPayments();
+  }, [currentPage, debouncedSearchTerm, feeTypeFilter, paymentMethodFilter]);
 
   // Helper functions
   const getFeeTypeBadge = (feeType: string) => {
@@ -177,29 +192,47 @@ export function Payments() {
 
   const handlePaymentSubmit = async (data: PaymentSubmissionData) => {
     try {
-      // Prepare payment data for API (already in the correct format)
-      const paymentData: CreatePaymentData = {
-        studentId: data.studentId,
-        studentName: data.studentName,
-        feeType: data.feeType,
-        amount: data.amount,
-        receiptNumber: data.receiptNumber,
-        paymentMethod: data.paymentMethod,
-        paymentDate: data.paymentDate.toISOString(),
-        notes: data.notes || "",
-      };
-
-      const response = await paymentService.createPayment(paymentData);
-
-      toast({
-        title: "تم تسجيل الدفعة بنجاح",
-        description: `رقم الإيصال: ${response.data.payment.receiptNumber}`,
-      });
-
-      setIsPaymentDialogOpen(false);
-
-      // Refresh payments list
-      fetchPayments();
+      if (editingPayment) {
+        // Update flow
+        const updatePayload: Partial<CreatePaymentData> = {
+          studentId: data.studentId,
+          studentName: data.studentName,
+          feeType: data.feeType,
+          amount: data.amount,
+          // allow editing receipt number if provided
+          receiptNumber: data.receiptNumber,
+          paymentMethod: data.paymentMethod,
+          paymentDate: data.paymentDate.toISOString(),
+          notes: data.notes || "",
+        };
+        const resp = await paymentService.updatePayment(
+          editingPayment.id,
+          updatePayload
+        );
+        toast({ title: "تم تحديث الدفعة", description: resp.status });
+        setEditingPayment(null);
+        setIsPaymentDialogOpen(false);
+        fetchPayments();
+      } else {
+        // Create flow
+        const paymentData: CreatePaymentData = {
+          studentId: data.studentId,
+          studentName: data.studentName,
+          feeType: data.feeType,
+          amount: data.amount,
+          receiptNumber: data.receiptNumber,
+          paymentMethod: data.paymentMethod,
+          paymentDate: data.paymentDate.toISOString(),
+          notes: data.notes || "",
+        };
+        const response = await paymentService.createPayment(paymentData);
+        toast({
+          title: "تم تسجيل الدفعة بنجاح",
+          description: `رقم الإيصال: ${response.data.payment.receiptNumber}`,
+        });
+        setIsPaymentDialogOpen(false);
+        fetchPayments();
+      }
     } catch (err: any) {
       toast({
         title: "خطأ في تسجيل الدفعة",
@@ -238,20 +271,10 @@ export function Payments() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        {/* <div>
-          <h1 className="text-3xl font-bold text-foreground">
-            {t("paymentManagement")}
-          </h1>
-          <p className="text-muted-foreground">
-            {t("paymentManagement")} - {t("addPayment")}
-          </p>
-        </div> */}
-
-      </div>
+      <div className="flex items-center justify-between"></div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -260,7 +283,7 @@ export function Payments() {
               </div>
               <div>
                 <p className="text-lg font-bold text-foreground">
-                  {formatCurrency(completedAmount)}
+                  {formatCurrency(stats?.daily.totalAmount ?? 0)}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {t("todayTotal")}
@@ -277,10 +300,10 @@ export function Payments() {
               </div>
               <div>
                 <p className="text-lg font-bold text-foreground">
-                  {completedPayments.length}
+                  {stats?.daily.operationsCount ?? 0}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {t("completedTransactions")}
+                  {t("todayOperations")}
                 </p>
               </div>
             </div>
@@ -294,27 +317,10 @@ export function Payments() {
               </div>
               <div>
                 <p className="text-lg font-bold text-foreground">
-                  {pagination.totalCount}
+                  {formatCurrency(stats?.monthly.averageDailyIncome ?? 0)}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  إجمالي المعاملات
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-accent flex items-center justify-center">
-                <Receipt className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <p className="text-lg font-bold text-foreground">
-                  {formatCurrency(totalAmount)}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {t("totalAmount")}
+                  {t("averageDailyIncome")}
                 </p>
               </div>
             </div>
@@ -371,37 +377,59 @@ export function Payments() {
                 </SelectContent>
               </Select>
             </div>
-                    {canEdit && (
-          <Dialog
-            open={isPaymentDialogOpen}
-            onOpenChange={setIsPaymentDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-primary hover:opacity-90">
-                <Plus className="mr-2 h-4 w-4" />
-                {t("addPayment")}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>تسجيل دفعة جديدة</DialogTitle>
-                <DialogDescription>
-                  قم بإدخال بيانات الدفعة الجديدة وإصدار الإيصال
-                </DialogDescription>
-              </DialogHeader>
-              <PaymentForm
-                onSubmit={handlePaymentSubmit}
-                onCancel={() => setIsPaymentDialogOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
-        {!canEdit && (
-          <Badge variant="outline" className="text-muted-foreground">
-            <Eye className="mr-1 h-3 w-3" />
-            عرض فقط
-          </Badge>
-        )}
+            {canEdit && (
+              <Dialog
+                open={isPaymentDialogOpen}
+                onOpenChange={setIsPaymentDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-primary hover:opacity-90">
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t("addPayment")}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingPayment ? "تعديل دفعة" : "تسجيل دفعة جديدة"}
+                    </DialogTitle>
+                    <DialogDescription>
+                      {editingPayment
+                        ? "قم بتحديث بيانات الدفعة"
+                        : "قم بإدخال بيانات الدفعة الجديدة وإصدار الإيصال"}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <PaymentForm
+                    onSubmit={handlePaymentSubmit}
+                    onCancel={() => {
+                      setIsPaymentDialogOpen(false);
+                      setEditingPayment(null);
+                    }}
+                    initialValues={
+                      editingPayment
+                        ? {
+                            studentId: editingPayment.studentId,
+                            studentName: editingPayment.studentName,
+                            feeType: editingPayment.feeType as any,
+                            amount: String(editingPayment.amount),
+                            receiptNumber: editingPayment.receiptNumber,
+                            paymentMethod: editingPayment.paymentMethod as any,
+                            paymentDate: new Date(editingPayment.paymentDate),
+                            notes: editingPayment.notes || "",
+                          }
+                        : undefined
+                    }
+                    isEdit={Boolean(editingPayment)}
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
+            {!canEdit && (
+              <Badge variant="outline" className="text-muted-foreground">
+                <Eye className="mr-1 h-3 w-3" />
+                عرض فقط
+              </Badge>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -412,44 +440,63 @@ export function Payments() {
           <CardTitle>
             {t("paymentRecords")} ({pagination.totalCount})
           </CardTitle>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={!pagination.hasPrevPage}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-sm">
-              {t("pageOf", {
-                current: pagination.page,
-                total: pagination.totalPages,
-              })}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={!pagination.hasNextPage}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+          {totalPages > 1 && (
+            <div className="flex gap-4 items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                {t("pageOf", { current: currentPage, total: totalPages })}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  {t("previous")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  {t("next")}
+                </Button>
+              </div>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <div className="overflow-auto">
             <Table>
-              <TableHeader>
+              <TableHeader className={isArabic ? "text-right" : "text-left"}>
                 <TableRow>
-                  <TableHead>رقم الإيصال</TableHead>
-                  <TableHead>بيانات الطالب</TableHead>
-                  <TableHead>نوع الرسوم</TableHead>
-                  <TableHead>المبلغ</TableHead>
-                  <TableHead>طريقة الدفع</TableHead>
-                  <TableHead>تاريخ الدفع</TableHead>
-                  <TableHead>الموظف</TableHead>
-                  <TableHead>الإجراءات</TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("receiptNumber")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("studentData")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("feeType")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("amount")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("paymentMethod")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("paymentDate")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("employee")}
+                  </TableHead>
+                  <TableHead
+                    className={isArabic ? "text-center" : "text-center"}
+                  >
+                    {t("actions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -489,21 +536,73 @@ export function Payments() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-primary hover:text-primary"
+                          onClick={() =>
+                            paymentService.openReceiptPdf(payment.id)
+                          }
+                          title="طباعة"
                         >
-                          <Receipt className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          طباعة
+                          <Printer className="h-4 w-4" />
                         </Button>
                         {canEdit && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-warning"
-                          >
-                            تعديل
-                          </Button>
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-warning"
+                              onClick={() => {
+                                setEditingPayment(payment);
+                                setIsPaymentDialogOpen(true);
+                              }}
+                              title="تعديل"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive"
+                                  title="حذف"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    تأكيد الحذف
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    هل أنت متأكد أنك تريد حذف هذه الدفعة؟ لا
+                                    يمكن التراجع عن هذا الإجراء.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={async () => {
+                                      try {
+                                        await paymentService.deletePayment(
+                                          payment.id
+                                        );
+                                        toast({ title: "تم حذف الدفعة" });
+                                        fetchPayments();
+                                      } catch (e: any) {
+                                        toast({
+                                          title: "فشل حذف الدفعة",
+                                          description: e?.message,
+                                          variant: "destructive",
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    حذف
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </>
                         )}
                       </div>
                     </TableCell>

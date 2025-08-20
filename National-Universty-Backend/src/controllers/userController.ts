@@ -9,6 +9,15 @@ interface UpdateUserBody {
   email?: string;
   password?: string;
   newPassword?: string;
+  role?: "admin" | "auditor";
+}
+
+interface CreateUserBody {
+  username: string;
+  email: string;
+  password: string;
+  passwordConfirmation: string;
+  role?: "admin" | "auditor";
 }
 
 /**
@@ -29,7 +38,7 @@ const getAllUsers = asyncWrapper(
         username: true,
         email: true,
         role: true,
-        lastLoginAt:true,
+        lastLoginAt: true,
         createdAt: true,
         updatedAt: true,
         // Password excluded for security
@@ -52,7 +61,6 @@ const getAllUsers = asyncWrapper(
     });
   }
 );
-
 
 /**
  * Get user by ID
@@ -103,7 +111,6 @@ const getUserById = asyncWrapper(
   }
 );
 
-
 /**
  * Update user data
  * Security: User can update their own data or admin can update any user
@@ -112,7 +119,7 @@ const getUserById = asyncWrapper(
 const updateUser = asyncWrapper(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
-    const { email, password, newPassword }: UpdateUserBody = req.body;
+    const { email, password, newPassword, role }: UpdateUserBody = req.body;
     const currentUser = (req as any).currentUser;
     const currentUserId = currentUser?.id;
     const currentUserRole = currentUser?.role;
@@ -183,6 +190,31 @@ const updateUser = asyncWrapper(
       updateData.passwordHash = await bcrypt.hash(newPassword, 12);
     }
 
+    // Update role (admin only)
+    if (role !== undefined) {
+      if (currentUserRole !== "admin") {
+        return next(new AppError("Only admins can change roles", 403, "fail"));
+      }
+
+      if (role !== "admin" && role !== "auditor") {
+        return next(new AppError("Invalid role", 400, "fail"));
+      }
+
+      // Prevent removing the last admin role if target is admin and will become auditor
+      if (existingUser.role === "admin" && role !== "admin") {
+        const adminCount = await prisma.user.count({
+          where: { role: "admin" },
+        });
+        if (adminCount <= 1) {
+          return next(
+            new AppError("Cannot remove the last admin role", 400, "fail")
+          );
+        }
+      }
+
+      updateData.role = role as any;
+    }
+
     // Update avatar (remove this section since avatar doesn't exist)
     // if (avatar !== undefined) {
     //   updateData.avatar = avatar;
@@ -213,8 +245,6 @@ const updateUser = asyncWrapper(
     });
   }
 );
-
-
 
 /**
  * Delete user
@@ -286,3 +316,67 @@ const deleteUser = asyncWrapper(
 );
 
 export { getAllUsers, getUserById, updateUser, deleteUser };
+
+// Admin create user (does not log in as the new user)
+const createUser = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const currentUserRole = (req as any).currentUser?.role;
+    console.log(currentUserRole)
+    if (currentUserRole !== "admin") {
+      return next(new AppError("Only admins can create users", 403, "fail"));
+    }
+
+    const {
+      username,
+      email,
+      password,
+      passwordConfirmation,
+      role,
+    }: CreateUserBody = req.body;
+
+    if (!username || !email || !password || !passwordConfirmation) {
+      return next(new AppError("Missing required fields", 400, "fail"));
+    }
+    if (password !== passwordConfirmation) {
+      return next(
+        new AppError(
+          "Password confirmation does not match password",
+          400,
+          "fail"
+        )
+      );
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      return next(new AppError("User already exists", 400, "fail"));
+    }
+
+    const hashed = await bcrypt.hash(password, 12);
+    const newUser = await prisma.user.create({
+      data: {
+        username,
+        email: email.toLowerCase(),
+        passwordHash: hashed,
+        role: (role === "admin" ? "admin" : "auditor") as any,
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return res.status(201).json({
+      status: "success",
+      data: {
+        message: "User created successfully",
+        user: newUser,
+      },
+    });
+  }
+);
+
+export { createUser };

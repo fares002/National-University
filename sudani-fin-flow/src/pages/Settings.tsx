@@ -1,13 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Users,
-  Shield,
-  Settings as SettingsIcon,
-  Eye,
-  Edit,
-  Trash2,
-} from "lucide-react";
+import { Users, Shield, Trash2, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,62 +16,67 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { userService } from "@/services/userService";
+import { UserForm, UserFormData } from "@/components/forms/UserForm";
 
-// Mock users data
-const mockUsers = [
-  {
-    id: "1",
-    username: "ahmed_admin",
-    email: "ahmed@university.edu.sd",
-    role: "admin",
-    status: "active",
-    lastLogin: "2024-01-15 10:30",
-    createdAt: "2023-09-01",
-  },
-  {
-    id: "2",
-    username: "fatima_auditor",
-    email: "fatima@university.edu.sd",
-    role: "auditor",
-    status: "active",
-    lastLogin: "2024-01-15 09:15",
-    createdAt: "2023-09-15",
-  },
-  {
-    id: "3",
-    username: "mohamed_admin",
-    email: "mohamed@university.edu.sd",
-    role: "admin",
-    status: "active",
-    lastLogin: "2024-01-14 16:45",
-    createdAt: "2023-10-01",
-  },
-  {
-    id: "4",
-    username: "sara_auditor",
-    email: "sara@university.edu.sd",
-    role: "auditor",
-    status: "inactive",
-    lastLogin: "2024-01-10 14:20",
-    createdAt: "2023-11-01",
-  },
-];
+type Role = "admin" | "auditor";
 
 export function Settings() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [users, setUsers] = useState(mockUsers);
-  const [selectedUser, setSelectedUser] = useState<string>("");
+  const [users, setUsers] = useState<
+    { id: string; username: string; email: string; role: Role }[]
+  >([]);
+  const [addOpen, setAddOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<{
+    open: boolean;
+    id?: string;
+  }>({ open: false });
 
   const isAdmin = user?.role === "admin";
+
+  const loadUsers = async () => {
+    if (!isAdmin) return;
+    try {
+      const res = await userService.getAll(1, 100);
+      setUsers(res.users as any);
+    } catch (e: any) {
+      toast({
+        title: "خطأ",
+        description: e.message || String(e),
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getRoleLabel = (role: string) => {
     switch (role) {
       case "admin":
-        return t("role.admin");
+        return "مدير";
       case "auditor":
-        return t("role.auditor");
+        return "مراجع";
       default:
         return role;
     }
@@ -95,48 +93,31 @@ export function Settings() {
     }
   };
 
-  const getStatusBadgeColor = (status: string) => {
-    return status === "active"
-      ? "bg-green-100 text-green-800"
-      : "bg-red-100 text-red-800";
-  };
-
   const handleRoleChange = (userId: string, newRole: string) => {
     if (!isAdmin) {
       toast({
-        title: t("notAllowed"),
-        description: t("noPermissionChangeRoles"),
+        title: "غير مسموح",
+        description: "ليس لديك صلاحية لتغيير الأدوار",
         variant: "destructive",
       });
       return;
     }
-
-    setUsers(users.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
-
-    toast({
-      title: t("updated"),
-      description: t("roleUpdated"),
-    });
-  };
-
-  const handleStatusChange = (userId: string, newStatus: string) => {
-    if (!isAdmin) {
-      toast({
-        title: t("notAllowed"),
-        description: t("noPermissionChangeStatus"),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setUsers(
-      users.map((u) => (u.id === userId ? { ...u, status: newStatus } : u))
-    );
-
-    toast({
-      title: t("updated"),
-      description: t("statusUpdated"),
-    });
+    userService
+      .updateRole(userId, newRole as Role)
+      .then(() => {
+        toast({
+          title: "تم التحديث",
+          description: "تم تغيير دور المستخدم بنجاح",
+        });
+        loadUsers();
+      })
+      .catch((e) =>
+        toast({
+          title: "خطأ",
+          description: e.message || String(e),
+          variant: "destructive",
+        })
+      );
   };
 
   if (!isAdmin) {
@@ -145,10 +126,14 @@ export function Settings() {
         <div className="text-center py-12">
           <Shield className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
           <h2 className="text-2xl font-bold text-foreground mb-2">
-            {t("accessRestricted")}
+            الوصول محدود
           </h2>
-          <p className="text-muted-foreground">{t("noPermissionSettings")}</p>
-          <p className="text-sm text-muted-foreground mt-2">{t("adminOnly")}</p>
+          <p className="text-muted-foreground">
+            ليس لديك صلاحية للوصول إلى إعدادات النظام
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            يمكن للمدير المالي فقط الوصول لهذه الصفحة
+          </p>
         </div>
       </div>
     );
@@ -157,20 +142,18 @@ export function Settings() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">
-          {t("systemSettings")}
-        </h1>
+        <h1 className="text-3xl font-bold text-foreground">إعدادات النظام</h1>
         <Badge className="bg-primary text-primary-foreground">
           <Shield className="h-3 w-3 mr-1" />
-          {t("adminPrivileges")}
+          صلاحيات المدير
         </Badge>
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="users">{t("usersManagement")}</TabsTrigger>
-          <TabsTrigger value="permissions">{t("permissionsTab")}</TabsTrigger>
-          <TabsTrigger value="system">{t("systemTab")}</TabsTrigger>
+          <TabsTrigger value="users">إدارة المستخدمين</TabsTrigger>
+          <TabsTrigger value="permissions">الصلاحيات</TabsTrigger>
+          <TabsTrigger value="system">إعدادات النظام</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-6">
@@ -178,10 +161,51 @@ export function Settings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                {t("usersList")}
+                قائمة المستخدمين
               </CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="flex justify-start mb-4">
+                <Dialog open={addOpen} onOpenChange={setAddOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      className="bg-gradient-primary inline-flex items-center"
+                      onClick={() => setAddOpen(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      إضافة مستخدم
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>إضافة مستخدم</DialogTitle>
+                    </DialogHeader>
+                    <UserForm
+                      onSubmit={async (data: UserFormData) => {
+                        try {
+                          await userService.create(data as any);
+                          toast({
+                            title: "تم الحفظ",
+                            description: "تم إضافة المستخدم بنجاح",
+                          });
+                          setAddOpen(false);
+                          loadUsers();
+                        } catch (e: any) {
+                          // Try to extract express-validator or backend error message
+                          const backendMsg = e?.response?.data?.message || e?.response?.data?.error;
+                          toast({
+                            title: "خطأ",
+                            description: backendMsg || e.message || String(e),
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      onCancel={() => setAddOpen(false)}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
+
               <div className="space-y-4">
                 {users.map((user) => (
                   <div
@@ -199,9 +223,6 @@ export function Settings() {
                         <p className="text-sm text-muted-foreground">
                           {user.email}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("lastLogin")}: {user.lastLogin}
-                        </p>
                       </div>
                     </div>
 
@@ -211,16 +232,9 @@ export function Settings() {
                           {getRoleLabel(user.role)}
                         </Badge>
                         <br />
-                        <Badge
-                          className={`${getStatusBadgeColor(user.status)} mt-1`}
-                        >
-                          {user.status === "active"
-                            ? t("active")
-                            : t("inactive")}
-                        </Badge>
                       </div>
 
-                      <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
                         <Select
                           value={user.role}
                           onValueChange={(value) =>
@@ -231,38 +245,65 @@ export function Settings() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="admin">
-                              {t("role.admin")}
-                            </SelectItem>
-                            <SelectItem value="auditor">
-                              {t("role.auditor")}
-                            </SelectItem>
+                            <SelectItem value="admin">مدير</SelectItem>
+                            <SelectItem value="auditor">مراجع</SelectItem>
                           </SelectContent>
                         </Select>
 
-                        <Select
-                          value={user.status}
-                          onValueChange={(value) =>
-                            handleStatusChange(user.id, value)
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          aria-label="حذف"
+                          onClick={() =>
+                            setConfirmDelete({ open: true, id: user.id })
                           }
+                          className="bg-white hover:bg-gray-100"
                         >
-                          <SelectTrigger className="w-40">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="active">
-                              {t("active")}
-                            </SelectItem>
-                            <SelectItem value="inactive">
-                              {t("inactive")}
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
+
+              <AlertDialog
+                open={confirmDelete.open}
+                onOpenChange={(open) => setConfirmDelete({ open })}
+              >
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={async () => {
+                        try {
+                          if (confirmDelete.id) {
+                            await userService.remove(confirmDelete.id);
+                            toast({
+                              title: "تم الحذف",
+                              description: "تم حذف المستخدم",
+                            });
+                            loadUsers();
+                          }
+                        } catch (e: any) {
+                          toast({
+                            title: "خطأ",
+                            description: e.message || String(e),
+                            variant: "destructive",
+                          });
+                        } finally {
+                          setConfirmDelete({ open: false });
+                        }
+                      }}
+                    >
+                      تأكيد
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
         </TabsContent>
@@ -270,77 +311,59 @@ export function Settings() {
         <TabsContent value="permissions" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t("permissionsTab")}</CardTitle>
+              <CardTitle>مصفوفة الصلاحيات</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="grid grid-cols-5 gap-4 p-4 bg-muted/50 rounded-lg font-medium">
-                  <div>{t("reports")}</div>
-                  <div className="text-center">{t("role.admin")}</div>
-                  <div className="text-center">{t("accountant")}</div>
-                  <div className="text-center">{t("financeOfficer")}</div>
-                  <div className="text-center">{t("role.auditor")}</div>
+                <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg font-medium">
+                  <div>الصفحة/الوظيفة</div>
+                  <div className="text-center">المدير المالي</div>
+                  <div className="text-center">المراجع</div>
                 </div>
 
                 {[
                   {
-                    page: t("dashboard"),
+                    page: "لوحة التحكم",
                     admin: "✅",
-                    accountant: "✅",
-                    finance: "✅",
                     auditor: "✅",
                   },
                   {
-                    page: `${t("payments")} - ${t("view")}`,
+                    page: "المدفوعات - عرض",
                     admin: "✅",
-                    accountant: "✅",
-                    finance: "✅",
                     auditor: "✅",
                   },
                   {
-                    page: `${t("payments")} - ${t("edit")}`,
+                    page: "المدفوعات - تعديل",
                     admin: "✅",
-                    accountant: "✅",
-                    finance: "❌",
                     auditor: "❌",
                   },
                   {
-                    page: `${t("expenses")} - ${t("view")}`,
+                    page: "المصروفات - عرض",
                     admin: "✅",
-                    accountant: "✅",
-                    finance: "✅",
                     auditor: "✅",
                   },
                   {
-                    page: `${t("expenses")} - ${t("edit")}`,
+                    page: "المصروفات - تعديل",
                     admin: "✅",
-                    accountant: "✅",
-                    finance: "❌",
                     auditor: "❌",
                   },
                   {
-                    page: t("reports"),
+                    page: "التقارير",
                     admin: "✅",
-                    accountant: "✅",
-                    finance: "✅",
                     auditor: "✅",
                   },
                   {
-                    page: t("usersManagement"),
+                    page: "إدارة المستخدمين",
                     admin: "✅",
-                    accountant: "❌",
-                    finance: "❌",
                     auditor: "❌",
                   },
                 ].map((perm, index) => (
                   <div
                     key={index}
-                    className="grid grid-cols-5 gap-4 p-4 border rounded-lg"
+                    className="grid grid-cols-3 gap-4 p-4 border rounded-lg"
                   >
                     <div className="font-medium">{perm.page}</div>
                     <div className="text-center">{perm.admin}</div>
-                    <div className="text-center">{perm.accountant}</div>
-                    <div className="text-center">{perm.finance}</div>
                     <div className="text-center">{perm.auditor}</div>
                   </div>
                 ))}
@@ -352,20 +375,20 @@ export function Settings() {
         <TabsContent value="system" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t("systemSettings")}</CardTitle>
+              <CardTitle>إعدادات عامة</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="university-name">{t("universityName")}</Label>
+                  <Label htmlFor="university-name">اسم الجامعة</Label>
                   <Input
                     id="university-name"
-                    defaultValue="National University of Sudan"
+                    defaultValue="الجامعة الوطنية السودانية"
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="system-version">{t("systemVersion")}</Label>
+                  <Label htmlFor="system-version">إصدار النظام</Label>
                   <Input
                     id="system-version"
                     defaultValue="1.0.0"
@@ -377,7 +400,7 @@ export function Settings() {
 
               <div className="pt-4 border-t">
                 <Button className="bg-gradient-primary hover:opacity-90">
-                  {t("saveSettings")}
+                  حفظ الإعدادات
                 </Button>
               </div>
             </CardContent>

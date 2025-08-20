@@ -65,6 +65,7 @@ const resources = {
       notes: "ملاحظات",
       receipt: "إيصال",
       printReceipt: "طباعة الإيصال",
+      employee: "الموظف",
 
       // Expenses
       expenseManagement: "إدارة المصروفات",
@@ -147,6 +148,13 @@ const resources = {
       confirm: "تأكيد",
       close: "إغلاق",
 
+      // Deletion confirmations
+      deleted: "تم الحذف",
+      editExpense: "تعديل مصروف",
+      confirmDeleteTitle: "تأكيد الحذف",
+      confirmDeleteDescription:
+        "هل أنت متأكد من حذف هذا السجل؟ لا يمكن التراجع عن هذا الإجراء.",
+
       // Dashboard specific
       welcomeMessage: "مرحباً بك في النظام المالي",
       welcomeSubtitle:
@@ -171,12 +179,15 @@ const resources = {
       paymentStatus: "الحالة",
       completed: "مكتمل",
       pending: "معلق",
+
       cancelled: "ملغي",
       viewOnly: "عرض فقط",
       todayTotal: "إجمالي المحصل اليوم",
+      todayOperations: "عدد عمليات اليوم",
       completedTransactions: "عدد المعاملات المكتملة",
       pendingTransactions: "معاملات معلقة",
       totalAmount: "إجمالي المبلغ",
+      averageDailyIncome: "متوسط الدخل اليومي (هذا الشهر)",
       allStatuses: "جميع الحالات",
       allMethods: "جميع الطرق",
       advancedFilter: "تصفية متقدمة",
@@ -228,7 +239,7 @@ const resources = {
       newYear: "سنة جديدة",
       supplementary: "ملحق",
       laboratory: "مختبر",
-      training:"تدريب طلاب",
+      training: "تدريب طلاب",
       studentServices: "خدمات طلابية",
       examination: "امتحان",
       otherFees: "أخرى",
@@ -449,6 +460,7 @@ const resources = {
       notes: "Notes",
       receipt: "Receipt",
       printReceipt: "Print Receipt",
+      employee: "Employee",
 
       // Expenses
       expenseManagement: "Expense Management",
@@ -558,9 +570,11 @@ const resources = {
       cancelled: "Cancelled",
       viewOnly: "View Only",
       todayTotal: "Today's Total Collected",
+      todayOperations: "Today's Operations",
       completedTransactions: "Completed Transactions",
       pendingTransactions: "Pending Transactions",
       totalAmount: "Total Amount",
+      averageDailyIncome: "Average Daily Income (This Month)",
       allStatuses: "All Statuses",
       allMethods: "All Methods",
       advancedFilter: "Advanced Filter",
@@ -614,7 +628,7 @@ const resources = {
       newYear: "New Year",
       supplementary: "Supplementary",
       laboratory: "Laboratory",
-      training:"Student Tranning",
+      training: "Student Tranning",
       studentServices: "Student Services",
       examination: "Examination",
       otherFees: "Other",

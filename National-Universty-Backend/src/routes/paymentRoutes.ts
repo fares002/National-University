@@ -7,7 +7,9 @@ import {
   deletePayment,
   getPaymentsByStudentId,
   getPaymentByReceiptNumber,
+  searchPayments,
 } from "../controllers/paymentController";
+import { getPaymentReceiptPdf } from "../controllers/paymentController";
 import {
   paymentIdValidator,
   studentIdValidator,
@@ -39,6 +41,13 @@ router.get(
 );
 
 /**
+ * GET /api/payments/search
+ * Quick search payments
+ * Access: admin, auditor
+ */
+router.get("/search", allowedTo("admin", "auditor"), validate, searchPayments);
+
+/**
  * GET /api/payments/:id
  * Get payment by ID
  * Access: admin, auditor
@@ -49,6 +58,19 @@ router.get(
   paymentIdValidator,
   validate,
   getPaymentById
+);
+
+/**
+ * GET /api/payments/:id/receipt
+ * Get PDF receipt for payment
+ * Access: admin, auditor
+ */
+router.get(
+  "/:id/receipt",
+  allowedTo("admin", "auditor"),
+  paymentIdValidator,
+  validate,
+  getPaymentReceiptPdf
 );
 
 /**

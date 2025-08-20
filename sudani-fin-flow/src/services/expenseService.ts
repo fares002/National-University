@@ -133,6 +133,35 @@ class ExpenseService {
   }
 
   /**
+   * Search expenses quickly by term
+   */
+  async searchExpenses(
+    q: string,
+    page = 1,
+    limit = 10
+  ): Promise<{
+    status: string;
+    data: { expenses: Expense[]; pagination: ExpensePagination };
+  }> {
+    try {
+      const params = new URLSearchParams();
+      if (q) params.append("q", q);
+      if (page) params.append("page", String(page));
+      if (limit) params.append("limit", String(limit));
+
+      const url = `expenses/search?${params.toString()}`;
+      const response = await api.get<{
+        status: string;
+        data: { expenses: Expense[]; pagination: ExpensePagination };
+      }>(url);
+      return response.data;
+    } catch (error) {
+      console.error("❌ Error searching expenses:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Get single expense by ID
    */
   async getExpenseById(

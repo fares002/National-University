@@ -34,6 +34,17 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import expenseService, {
   Expense,
   ExpenseStatistics,
@@ -104,6 +115,8 @@ export function Expenses() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [operation, setOperation] = useState("");
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   // Debounce search query to avoid excessive API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -133,11 +146,26 @@ export function Expenses() {
         filters.category = selectedCategory;
       }
 
-      const response = await expenseService.getAllExpenses(filters);
+      let response;
+      if (debouncedSearchQuery.trim()) {
+        response = await expenseService.searchExpenses(
+          debouncedSearchQuery.trim(),
+          currentPage,
+          10
+        );
+      } else {
+        response = await expenseService.getAllExpenses(filters);
+      }
 
       setExpenses(response.data.expenses);
-      setStatistics(response.data.statistics);
+      // statistics only available on getAll endpoint; keep when present
+      // Preserve previous statistics if not included in response
+      setStatistics((prev) => {
+        const anyData: any = response.data as any;
+        return anyData.statistics ?? prev;
+      });
       setTotalPages(response.data.pagination.totalPages);
+      setOperation(response.data.pagination.totalExpenses);
 
       console.log("✅ Expenses loaded successfully:", {
         count: response.data.expenses.length,
@@ -198,6 +226,46 @@ export function Expenses() {
       toast({
         title: t("error"),
         description: message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditExpense = async (
+    id: string,
+    formData: ExpenseSubmissionData
+  ) => {
+    try {
+      await expenseService.updateExpense(id, {
+        description: formData.description,
+        category: formData.category,
+        amount: formData.amount,
+        vendor: formData.vendor,
+        receiptUrl: formData.receiptUrl,
+        date: formData.date,
+      });
+      toast({ title: t("success"), description: t("saving") });
+      setIsAddDialogOpen(false);
+      setEditingExpense(null);
+      fetchExpenses(true);
+    } catch (error: any) {
+      toast({
+        title: t("error"),
+        description: error?.message || t("error"),
+        variant: "destructive",
+      });
+    }
+  };
+
+  const confirmDeleteExpense = async (id: string) => {
+    try {
+      await expenseService.deleteExpense(id);
+      toast({ title: t("success"), description: t("deleted") });
+      fetchExpenses(true);
+    } catch (error: any) {
+      toast({
+        title: t("error"),
+        description: error?.message || t("error"),
         variant: "destructive",
       });
     }
@@ -356,11 +424,33 @@ export function Expenses() {
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{t("addExpense")}</DialogTitle>
+                <DialogTitle>
+                  {editingExpense ? t("editExpense") : t("addExpense")}
+                </DialogTitle>
               </DialogHeader>
               <ExpenseForm
-                onSubmit={handleAddExpense}
-                onCancel={() => setIsAddDialogOpen(false)}
+                onSubmit={(data) =>
+                  editingExpense
+                    ? handleEditExpense(editingExpense.id, data)
+                    : handleAddExpense(data)
+                }
+                onCancel={() => {
+                  setIsAddDialogOpen(false);
+                  setEditingExpense(null);
+                }}
+                initialValues={
+                  editingExpense
+                    ? {
+                        description: editingExpense.description,
+                        category: editingExpense.category as ExpenseCategory,
+                        amount: String(editingExpense.amount),
+                        vendor: editingExpense.vendor,
+                        receiptUrl: editingExpense.receiptUrl,
+                        date: editingExpense.date,
+                      }
+                    : undefined
+                }
+                isEdit={Boolean(editingExpense)}
               />
             </DialogContent>
           </Dialog>
@@ -407,9 +497,9 @@ export function Expenses() {
           <CardTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5 text-primary" />
             {t("expenseRecords")}
-            {statistics && (
+            {operation && (
               <Badge variant="outline" className="ml-auto">
-                {statistics.daily.operationsCount}
+                {operation}
               </Badge>
             )}
           </CardTitle>
@@ -460,6 +550,52 @@ export function Expenses() {
                   <p className="text-lg font-bold text-destructive">
                     -{formatCurrency(expense.amount)} {t("sdg")}
                   </p>
+                  {canEdit && (
+                    <div className="flex gap-2 justify-end mt-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-warning"
+                        onClick={() => {
+                          setEditingExpense(expense);
+                          setIsAddDialogOpen(true);
+                        }}
+                      >
+                        {t("edit")}
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive"
+                          >
+                            {t("delete")}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              {t("confirmDeleteTitle")}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t("confirmDeleteDescription")}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>
+                              {t("cancelBtn")}
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => confirmDeleteExpense(expense.id)}
+                            >
+                              {t("delete")}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

@@ -1,21 +1,22 @@
 import express from "express";
 import {
-getAllUsers,
-getUserById,
-updateUser,
-deleteUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  createUser,
 } from "../controllers/userController";
 import {
-getUsersQueryValidator,
-userIdValidator,
-updateUserValidator,
+  getUsersQueryValidator,
+  userIdValidator,
+  updateUserValidator,
+  registerValidator,
 } from "../validators/userValidators";
 import validate from "../middlewares/validate";
 import verifyToken from "../middlewares/verifyToken";
 import allowedTo from "../middlewares/allowedTo";
 const userRouter = express.Router();
 // Apply authentication middleware to all routes
-
 
 userRouter.use(verifyToken);
 
@@ -27,9 +28,9 @@ userRouter.use(verifyToken);
  * - limit: results per page (optional, default: 10)
  */
 userRouter
-.route("/")
-.get(allowedTo("admin"), getUsersQueryValidator, validate, getAllUsers);
-
+  .route("/")
+  .get(allowedTo("admin"), getUsersQueryValidator, validate, getAllUsers)
+  .post(allowedTo("admin"), registerValidator, validate, createUser);
 
 /**
  * GET /api/v1/users/:id
@@ -37,7 +38,6 @@ userRouter
  * User can view their own data, admin can view any user
  */
 userRouter.route("/:id").get(userIdValidator, validate, getUserById);
-
 
 /**
  * PATCH /api/v1/users/:id
@@ -52,7 +52,6 @@ userRouter.route("/:id").get(userIdValidator, validate, getUserById);
  */
 userRouter.route("/:id").patch(updateUserValidator, validate, updateUser);
 
-
 /**
  * DELETE /api/v1/users/:id
  * Delete user
@@ -60,6 +59,5 @@ userRouter.route("/:id").patch(updateUserValidator, validate, updateUser);
  * Warning: Last admin cannot delete themselves
  */
 userRouter.route("/:id").delete(userIdValidator, validate, deleteUser);
-
 
 export default userRouter;

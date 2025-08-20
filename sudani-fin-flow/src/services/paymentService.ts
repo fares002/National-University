@@ -41,6 +41,22 @@ export interface PaymentResponse {
     payments: Payment[];
     pagination: PaymentPagination;
     cached?: boolean;
+    statistics?: PaymentStatistics;
+  };
+}
+
+export interface PaymentStatistics {
+  daily: {
+    totalAmount: number;
+    operationsCount: number;
+    date: string;
+  };
+  monthly: {
+    totalAmount: number;
+    operationsCount: number;
+    averageDailyIncome: number;
+    month: string;
+    daysInMonth: number;
   };
 }
 
@@ -109,6 +125,25 @@ class PaymentService {
     }
   }
 
+  async searchPayments(
+    q: string,
+    page?: number,
+    limit?: number
+  ): Promise<PaymentResponse> {
+    try {
+      const params = new URLSearchParams();
+      if (q) params.set("q", q);
+      if (page) params.set("page", String(page));
+      if (limit) params.set("limit", String(limit));
+
+      const url = `/payments/search?${params.toString()}`;
+      const response = await api.get<PaymentResponse>(url);
+      return response.data;
+    } catch (error: any) {
+      throw this.handleError(error);
+    }
+  }
+
   async getPaymentById(id: string): Promise<SinglePaymentResponse> {
     try {
       const response = await api.get<SinglePaymentResponse>(`/payments/${id}`);
@@ -156,6 +191,14 @@ class PaymentService {
     } catch (error: any) {
       throw this.handleError(error);
     }
+  }
+
+  async openReceiptPdf(id: string): Promise<void> {
+    // Open the receipt in a new tab using the API base URL
+    const base =
+      import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/v1";
+    const url = `${base}/payments/${id}/receipt`;
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   async getPaymentsByStudent(

@@ -8,9 +8,10 @@ const registerValidator = [
     .trim()
     .isLength({ min: 3, max: 50 })
     .withMessage("Username must be between 3 and 50 characters")
-    .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage("Username can only contain letters, numbers, and underscores"),
-
+    .matches(/^[\p{L}\p{N}_\-\s]+$/u)
+    .withMessage(
+      "Username can contain letters (any language), numbers, spaces, underscores, and hyphens"
+    ),
   body("email")
     .notEmpty()
     .withMessage("Email is required")
@@ -105,8 +106,10 @@ const updateUserValidator = [
     .trim()
     .isLength({ min: 3, max: 50 })
     .withMessage("Username must be between 3 and 50 characters")
-    .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage("Username can only contain letters, numbers, and underscores"),
+    .matches(/^[\p{L}\p{N}_\-\s]+$/u)
+    .withMessage(
+      "Username can contain letters (any language), numbers, spaces, underscores, and hyphens"
+    ),
 
   body("email")
     .optional()
@@ -129,6 +132,11 @@ const updateUserValidator = [
     .withMessage(
       "New password must contain at least one lowercase letter, one uppercase letter, and one number"
     ),
+
+  body("role")
+    .optional()
+    .isIn(["admin", "auditor"])
+    .withMessage("Role must be one of: admin, auditor"),
 ];
 
 export {
