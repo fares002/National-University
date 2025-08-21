@@ -49,7 +49,7 @@ const buildPaymentSchema = (t: any) =>
       .min(STUDENT_NAME_MIN, t("validation.studentNameRequired"))
       .max(STUDENT_NAME_MAX, t("validation.studentNameMax")),
     feeType: z.enum(
-      ["NEW_YEAR", "SUPPLEMENTARY", "LAB", "STUDENT_SERVICES", "OTHER", "EXAM"],
+      ["NEW_YEAR", "SUPPLEMENTARY", "LAB", "STUDENT_SERVICES", "OTHER", "EXAM", "TRAINING"],
       {
         required_error: t("validation.feeTypeRequired"),
       }
@@ -232,7 +232,7 @@ export function PaymentForm({
                     <SelectItem value="SUPPLEMENTARY">
                       {t("feeTypeSupplementary")}
                     </SelectItem>
-                    <SelectItem value="LAB">{t("laboratory")}</SelectItem>
+                    <SelectItem value="TRAINING">{t("studentTraining")}</SelectItem>
                     <SelectItem value="STUDENT_SERVICES">
                       {t("feeTypeStudentServices")}
                     </SelectItem>

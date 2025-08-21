@@ -163,6 +163,7 @@ export function Payments() {
       STUDENT_SERVICES: "رسوم خدمات طلابية",
       OTHER: "أخرى",
       EXAM: "رسوم امتحان",
+      TRAINING: "رسوم تدريب"
     };
     return feeTypeMap[feeType] || feeType;
   };

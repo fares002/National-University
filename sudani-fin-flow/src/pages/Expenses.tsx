@@ -201,11 +201,7 @@ export function Expenses() {
   // Handle add expense
   const handleAddExpense = async (formData: ExpenseSubmissionData) => {
     try {
-      console.log("🔄 Creating expense:", formData);
-
       const response = await expenseService.createExpense(formData);
-
-      console.log("✅ Expense created successfully:", response);
 
       toast({
         title: t("success"),
@@ -448,7 +444,8 @@ export function Expenses() {
                         amount: String(editingExpense.amount),
                         vendor: editingExpense.vendor,
                         receiptUrl: editingExpense.receiptUrl,
-                        date: editingExpense.date,
+                        // Provide formatted date string (yyyy-MM-dd) to match form submission type
+                        date: editingExpense.date.slice(0, 10),
                       }
                     : undefined
                 }

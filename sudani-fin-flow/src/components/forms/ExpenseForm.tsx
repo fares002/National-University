@@ -146,7 +146,8 @@ export type ExpenseSubmissionData = {
   amount: string;
   vendor?: string;
   receiptUrl?: string;
-  date: string; // ISO date string for API
+  // Backend expects a formatted date string (yyyy-MM-dd)
+  date: string;
 };
 
 interface ExpenseFormProps {
@@ -194,7 +195,7 @@ export function ExpenseForm({
         description: data.description,
         category: data.category,
         amount: data.amount,
-        date: data.date.toISOString().split("T")[0], // Convert to YYYY-MM-DD format
+        date: format(data.date, "yyyy-MM-dd"), // Already formatted string
         vendor: data.vendor || undefined,
         receiptUrl: data.receiptUrl || undefined,
       };

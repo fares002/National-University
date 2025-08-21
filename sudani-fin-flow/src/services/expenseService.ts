@@ -88,6 +88,7 @@ export interface CreateExpenseData {
   category: string;
   vendor?: string;
   receiptUrl?: string;
+  // Backend expects formatted date string (yyyy-MM-dd)
   date: string;
 }
 
@@ -97,6 +98,7 @@ export interface UpdateExpenseData {
   category?: string;
   vendor?: string;
   receiptUrl?: string;
+  // Optional formatted date string
   date?: string;
 }
 

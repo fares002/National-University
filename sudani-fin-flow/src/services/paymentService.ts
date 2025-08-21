@@ -11,7 +11,8 @@ export interface Payment {
     | "LAB"
     | "STUDENT_SERVICES"
     | "OTHER"
-    | "EXAM";
+    | "EXAM"
+    | "TRINING";
   amount: number;
   receiptNumber: string;
   paymentMethod: "CASH" | "TRANSFER" | "CHEQUE";
@@ -79,7 +80,8 @@ export interface CreatePaymentData {
     | "LAB"
     | "STUDENT_SERVICES"
     | "OTHER"
-    | "EXAM";
+    | "EXAM"
+    | "TRAINING";
   amount: string;
   receiptNumber: string;
   paymentMethod: "CASH" | "TRANSFER" | "CHEQUE";
