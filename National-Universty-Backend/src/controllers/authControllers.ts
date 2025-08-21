@@ -11,6 +11,7 @@ interface RegisterBody {
   email: string;
   password: string;
   passwordConfirmation: string;
+  role:string
 }
 interface LoginBody {
   email: string;
@@ -24,6 +25,7 @@ const register = asyncWrapper(
       email,
       password,
       passwordConfirmation,
+      role
     }: RegisterBody = req.body;
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -52,7 +54,7 @@ const register = asyncWrapper(
       data: {
         username,
         email,
-        role: "auditor", // Default role
+        role: (role === "admin" ? "admin" : "auditor") as any,
         passwordHash: hashedPassword,
       },
       select: {
@@ -63,16 +65,9 @@ const register = asyncWrapper(
       },
     });
     // Generate JWT token
-    const token = await generateJWT({ email: newUser.email, id: newUser.id });
+    const token = await generateJWT({ email: newUser.email, id: newUser.id, role:newUser.role });
     // Set cookie options
     const isProd = process.env.NODE_ENV === "production";
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
-      maxAge: 1000 * 60 * 60 * 24 * 10, // 10 days
-      path: "/",
-    });
     return res.status(201).json({
       status: "success",
       data: {

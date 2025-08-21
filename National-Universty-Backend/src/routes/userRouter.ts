@@ -4,7 +4,7 @@ import {
   getUserById,
   updateUser,
   deleteUser,
-  createUser,
+//   createUser,
 } from "../controllers/userController";
 import {
   getUsersQueryValidator,
@@ -15,6 +15,7 @@ import {
 import validate from "../middlewares/validate";
 import verifyToken from "../middlewares/verifyToken";
 import allowedTo from "../middlewares/allowedTo";
+import { register } from "../controllers/authControllers";
 const userRouter = express.Router();
 // Apply authentication middleware to all routes
 
@@ -30,7 +31,7 @@ userRouter.use(verifyToken);
 userRouter
   .route("/")
   .get(allowedTo("admin"), getUsersQueryValidator, validate, getAllUsers)
-  .post(allowedTo("admin"), registerValidator, validate, createUser);
+  .post(allowedTo("admin"), registerValidator, validate, register);
 
 /**
  * GET /api/v1/users/:id

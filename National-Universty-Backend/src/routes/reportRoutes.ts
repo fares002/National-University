@@ -8,11 +8,13 @@ import {
   downloadDailyReportPDF,
   downloadMonthlyReportPDF,
   downloadYearlyReportPDF,
+  downloadRangeReportPDF,
 } from "../controllers/reportController";
 import {
   dateValidator,
   monthlyReportValidator,
   yearlyReportValidator,
+  rangeReportValidator,
 } from "../validators/reportValidators";
 import validate from "../middlewares/validate";
 import verifyToken from "../middlewares/verifyToken";
@@ -121,6 +123,19 @@ router.get(
   yearlyReportValidator,
   validate,
   downloadYearlyReportPDF
+);
+
+/**
+ * GET /api/v1/reports/custom/pdf?from=YYYY-MM-DD&to=YYYY-MM-DD
+ * Download custom date range report as PDF
+ * Access: admin, auditor
+ */
+router.get(
+  "/custom/pdf",
+  // allowedTo("admin", "auditor"),
+  rangeReportValidator,
+  validate,
+  downloadRangeReportPDF
 );
 
 export default router;

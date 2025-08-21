@@ -1,4 +1,4 @@
-import { param } from "express-validator";
+import { param, query } from "express-validator";
 
 // Validate date parameter for daily reports
 const dateValidator = [
@@ -55,3 +55,50 @@ const yearlyReportValidator = [
 ];
 
 export { dateValidator, monthlyReportValidator, yearlyReportValidator };
+
+// Validate custom range (query: from, to) for custom PDF report
+const rangeReportValidator = [
+  query("from")
+    .notEmpty()
+    .withMessage("from is required")
+    .matches(/^\d{4}-\d{2}-\d{2}$/)
+    .withMessage("from must be in YYYY-MM-DD format")
+    .isISO8601()
+    .withMessage("from must be a valid ISO 8601 date"),
+  query("to")
+    .notEmpty()
+    .withMessage("to is required")
+    .matches(/^\d{4}-\d{2}-\d{2}$/)
+    .withMessage("to must be in YYYY-MM-DD format")
+    .isISO8601()
+    .withMessage("to must be a valid ISO 8601 date")
+    .custom((value, { req }) => {
+      const r: any = req as any;
+      const from = new Date(String(r?.query?.from));
+      const to = new Date(String(value));
+
+      if (isNaN(from.getTime()) || isNaN(to.getTime())) {
+        throw new Error("Invalid date range");
+      }
+
+      if (from > to) {
+        throw new Error("from must be before or equal to to");
+      }
+
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      if (to > today) {
+        throw new Error("to cannot be in the future");
+      }
+
+      const fiveYearsAgo = new Date();
+      fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+      if (from < fiveYearsAgo) {
+        throw new Error("from cannot be more than 5 years in the past");
+      }
+
+      return true;
+    }),
+];
+
+export { rangeReportValidator };

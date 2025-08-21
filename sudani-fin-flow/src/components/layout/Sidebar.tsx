@@ -35,8 +35,8 @@ export function Sidebar() {
           <GraduationCap className="h-6 w-6 text-white" />
         </div>
         <div className="text-white">
-          <h1 className="text-sm font-bold">الجامعة الوطنية السودانية</h1>
-          <p className="text-xs opacity-80">النظام المالي</p>
+          <h1 className="text-sm font-bold">{t("universityFullName")}</h1>
+          <p className="text-xs opacity-80">{t("financialSystem")}</p>
         </div>
       </div>
 
@@ -46,8 +46,7 @@ export function Sidebar() {
           <p className="text-sm font-medium">{user?.username}</p>
           <p className="text-xs opacity-80">{user?.email}</p>
           <p className="text-xs opacity-60 mt-1">
-            {user?.role === "admin" && "مدير"}
-            {user?.role === "auditor" && "مراجع"}
+            {user?.role ? t(`role.${user.role}`) : null}
           </p>
         </div>
       </div>

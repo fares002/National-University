@@ -66,6 +66,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Pencil, Trash2, Printer } from "lucide-react";
+import { formatCurrency, formatNumber } from "@/lib/utils";
 
 export function Payments() {
   const { t } = useTranslation();
@@ -182,9 +183,7 @@ export function Payments() {
     );
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("ar-SD").format(amount) + " ج.س";
-  };
+  // Use centralized helpers for numbers/currency
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ar-SD");
@@ -283,7 +282,7 @@ export function Payments() {
               </div>
               <div>
                 <p className="text-lg font-bold text-foreground">
-                  {formatCurrency(stats?.daily.totalAmount ?? 0)}
+                  {formatCurrency(stats?.daily.totalAmount ?? 0)} {t("sdg")}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {t("todayTotal")}
@@ -317,7 +316,8 @@ export function Payments() {
               </div>
               <div>
                 <p className="text-lg font-bold text-foreground">
-                  {formatCurrency(stats?.monthly.averageDailyIncome ?? 0)}
+                  {formatCurrency(stats?.monthly.averageDailyIncome ?? 0)}{" "}
+                  {t("sdg")}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {t("averageDailyIncome")}
@@ -515,7 +515,7 @@ export function Payments() {
                     </TableCell>
                     <TableCell>{getFeeTypeBadge(payment.feeType)}</TableCell>
                     <TableCell className="font-bold text-success">
-                      {formatCurrency(payment.amount)}
+                      {formatCurrency(payment.amount)} {t("sdg")}
                     </TableCell>
                     <TableCell>
                       <div>

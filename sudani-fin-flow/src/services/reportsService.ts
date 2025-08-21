@@ -238,6 +238,15 @@ class ReportsService {
     );
   }
 
+  async downloadCustomRangePdf(from: string, to: string): Promise<void> {
+    await this.downloadPdf(
+      `/reports/custom/pdf?from=${encodeURIComponent(
+        from
+      )}&to=${encodeURIComponent(to)}`,
+      `custom-report-${from}-to-${to}.pdf`
+    );
+  }
+
   // Open PDFs directly in a new browser tab (View)
   viewDailyPdf(date: string): void {
     this.openPdfInNewTab(`/reports/daily/${date}/pdf`);
@@ -249,6 +258,14 @@ class ReportsService {
 
   viewYearlyPdf(year: number): void {
     this.openPdfInNewTab(`/reports/yearly/${year}/pdf`);
+  }
+
+  viewCustomRangePdf(from: string, to: string): void {
+    this.openPdfInNewTab(
+      `/reports/custom/pdf?from=${encodeURIComponent(
+        from
+      )}&to=${encodeURIComponent(to)}`
+    );
   }
 
   private async downloadPdf(url: string, filename: string): Promise<void> {

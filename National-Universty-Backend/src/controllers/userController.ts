@@ -317,66 +317,66 @@ const deleteUser = asyncWrapper(
 
 export { getAllUsers, getUserById, updateUser, deleteUser };
 
-// Admin create user (does not log in as the new user)
-const createUser = asyncWrapper(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const currentUserRole = (req as any).currentUser?.role;
-    console.log(currentUserRole)
-    if (currentUserRole !== "admin") {
-      return next(new AppError("Only admins can create users", 403, "fail"));
-    }
+// // Admin create user (does not log in as the new user)
+// const createUser = asyncWrapper(
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     const currentUserRole = (req as any).currentUser?.role;
+//     console.log(currentUserRole)
+//     if (currentUserRole !== "admin") {
+//       return next(new AppError("Only admins can create users", 403, "fail"));
+//     }
 
-    const {
-      username,
-      email,
-      password,
-      passwordConfirmation,
-      role,
-    }: CreateUserBody = req.body;
+//     const {
+//       username,
+//       email,
+//       password,
+//       passwordConfirmation,
+//       role,
+//     }: CreateUserBody = req.body;
 
-    if (!username || !email || !password || !passwordConfirmation) {
-      return next(new AppError("Missing required fields", 400, "fail"));
-    }
-    if (password !== passwordConfirmation) {
-      return next(
-        new AppError(
-          "Password confirmation does not match password",
-          400,
-          "fail"
-        )
-      );
-    }
+//     if (!username || !email || !password || !passwordConfirmation) {
+//       return next(new AppError("Missing required fields", 400, "fail"));
+//     }
+//     if (password !== passwordConfirmation) {
+//       return next(
+//         new AppError(
+//           "Password confirmation does not match password",
+//           400,
+//           "fail"
+//         )
+//       );
+//     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      return next(new AppError("User already exists", 400, "fail"));
-    }
+//     const existing = await prisma.user.findUnique({ where: { email } });
+//     if (existing) {
+//       return next(new AppError("User already exists", 400, "fail"));
+//     }
 
-    const hashed = await bcrypt.hash(password, 12);
-    const newUser = await prisma.user.create({
-      data: {
-        username,
-        email: email.toLowerCase(),
-        passwordHash: hashed,
-        role: (role === "admin" ? "admin" : "auditor") as any,
-      },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
-    });
+//     const hashed = await bcrypt.hash(password, 12);
+//     const newUser = await prisma.user.create({
+//       data: {
+//         username,
+//         email: email.toLowerCase(),
+//         passwordHash: hashed,
+//         role: (role === "admin" ? "admin" : "auditor") as any,
+//       },
+//       select: {
+//         id: true,
+//         username: true,
+//         email: true,
+//         role: true,
+//         createdAt: true,
+//       },
+//     });
 
-    return res.status(201).json({
-      status: "success",
-      data: {
-        message: "User created successfully",
-        user: newUser,
-      },
-    });
-  }
-);
+//     return res.status(201).json({
+//       status: "success",
+//       data: {
+//         message: "User created successfully",
+//         user: newUser,
+//       },
+//     });
+//   }
+// );
 
-export { createUser };
+// export { createUser };

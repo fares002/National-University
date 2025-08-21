@@ -14,30 +14,36 @@ export const getChartsAnalytics = asyncWrapper(
 
     // Use raw SQL for efficient monthly aggregation in MySQL
     const paymentsMonthly = await prisma.$queryRaw<
-      { month: number; total: string }[]
-    >`SELECT MONTH(paymentDate) AS month, COALESCE(SUM(amount),0) AS total
-       FROM payments
-       WHERE YEAR(paymentDate) = ${year}
-       GROUP BY MONTH(paymentDate)
-       ORDER BY MONTH(paymentDate)`;
+      { month: number | bigint | string; total: string | number }[]
+    >`SELECT CAST(MONTH(paymentDate) AS UNSIGNED) AS month, COALESCE(SUM(amount),0) AS total
+     FROM payments
+     WHERE YEAR(paymentDate) = ${year}
+     GROUP BY 1
+     ORDER BY 1`;
 
     const expensesMonthly = await prisma.$queryRaw<
-      { month: number; total: string }[]
-    >`SELECT MONTH(date) AS month, COALESCE(SUM(amount),0) AS total
-       FROM expenses
-       WHERE YEAR(date) = ${year}
-       GROUP BY MONTH(date)
-       ORDER BY MONTH(date)`;
+      { month: number | bigint | string; total: string | number }[]
+    >`SELECT CAST(MONTH(\`date\`) AS UNSIGNED) AS month, COALESCE(SUM(amount),0) AS total
+     FROM expenses
+     WHERE YEAR(\`date\`) = ${year}
+     GROUP BY 1
+     ORDER BY 1`;
+
+
+
+    // Normalize to numbers and build fast lookup maps to avoid BigInt/number mismatches
+    const incomeByMonth = new Map<number, number>(
+      paymentsMonthly.map((r) => [Number(r.month), Number(r.total)])
+    );
+    const expenseByMonth = new Map<number, number>(
+      expensesMonthly.map((r) => [Number(r.month), Number(r.total)])
+    );
 
     // Build 12-month array
     const monthly = Array.from({ length: 12 }, (_, i) => {
       const m = i + 1;
-      const income = Number(
-        paymentsMonthly.find((p) => p.month === m)?.total ?? 0
-      );
-      const expenses = Number(
-        expensesMonthly.find((e) => e.month === m)?.total ?? 0
-      );
+      const income = incomeByMonth.get(m) ?? 0;
+      const expenses = expenseByMonth.get(m) ?? 0;
       return {
         month: m,
         income,
@@ -71,11 +77,11 @@ export const getChartsAnalytics = asyncWrapper(
     const expenseByCategoryRaw = await prisma.$queryRaw<
       { category: string; total: string }[]
     >`SELECT category, COALESCE(SUM(amount),0) AS total
-       FROM expenses
-       WHERE YEAR(date) = ${year}
-       GROUP BY category
-       ORDER BY total DESC
-       LIMIT 12`;
+     FROM expenses
+     WHERE YEAR(\`date\`) = ${year}
+     GROUP BY category
+     ORDER BY total DESC
+     LIMIT 12`;
     const totalExpenseYear = expenseByCategoryRaw.reduce(
       (acc, r) => acc + Number(r.total),
       0

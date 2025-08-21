@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { userService } from "@/services/userService";
 import { UserForm, UserFormData } from "@/components/forms/UserForm";
+import i18n from "@/lib/i18n";
 
 type Role = "admin" | "auditor";
 
@@ -42,7 +43,7 @@ export function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<
-    { id: string; username: string; email: string; role: Role }[]
+    { id: string; username: string; email: string; role: Role; lastLoginAt:string }[]
   >([]);
   const [addOpen, setAddOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{
@@ -57,9 +58,10 @@ export function Settings() {
     try {
       const res = await userService.getAll(1, 100);
       setUsers(res.users as any);
+      console.log(users)
     } catch (e: any) {
       toast({
-        title: "خطأ",
+        title: t("error"),
         description: e.message || String(e),
         variant: "destructive",
       });
@@ -74,9 +76,9 @@ export function Settings() {
   const getRoleLabel = (role: string) => {
     switch (role) {
       case "admin":
-        return "مدير";
+        return t("role.admin");
       case "auditor":
-        return "مراجع";
+        return t("role.auditor");
       default:
         return role;
     }
@@ -96,8 +98,8 @@ export function Settings() {
   const handleRoleChange = (userId: string, newRole: string) => {
     if (!isAdmin) {
       toast({
-        title: "غير مسموح",
-        description: "ليس لديك صلاحية لتغيير الأدوار",
+        title: t("notAllowed"),
+        description: t("noPermissionChangeRoles"),
         variant: "destructive",
       });
       return;
@@ -106,19 +108,31 @@ export function Settings() {
       .updateRole(userId, newRole as Role)
       .then(() => {
         toast({
-          title: "تم التحديث",
-          description: "تم تغيير دور المستخدم بنجاح",
+          title: t("updated"),
+          description: t("roleUpdated"),
         });
         loadUsers();
       })
       .catch((e) =>
         toast({
-          title: "خطأ",
+          title: t("error"),
           description: e.message || String(e),
           variant: "destructive",
         })
       );
   };
+
+  const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("en", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  }).format(date);
+};
 
   if (!isAdmin) {
     return (
@@ -126,14 +140,10 @@ export function Settings() {
         <div className="text-center py-12">
           <Shield className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
           <h2 className="text-2xl font-bold text-foreground mb-2">
-            الوصول محدود
+            {t("accessRestricted")}
           </h2>
-          <p className="text-muted-foreground">
-            ليس لديك صلاحية للوصول إلى إعدادات النظام
-          </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            يمكن للمدير المالي فقط الوصول لهذه الصفحة
-          </p>
+          <p className="text-muted-foreground">{t("noPermissionSettings")}</p>
+          <p className="text-sm text-muted-foreground mt-2">{t("adminOnly")}</p>
         </div>
       </div>
     );
@@ -142,18 +152,20 @@ export function Settings() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">إعدادات النظام</h1>
+        <h1 className="text-3xl font-bold text-foreground">
+          {t("systemSettings")}
+        </h1>
         <Badge className="bg-primary text-primary-foreground">
           <Shield className="h-3 w-3 mr-1" />
-          صلاحيات المدير
+          {t("adminPrivileges")}
         </Badge>
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="users">إدارة المستخدمين</TabsTrigger>
-          <TabsTrigger value="permissions">الصلاحيات</TabsTrigger>
-          <TabsTrigger value="system">إعدادات النظام</TabsTrigger>
+          <TabsTrigger value="users">{t("usersManagement")}</TabsTrigger>
+          <TabsTrigger value="permissions">{t("permissionsTab")}</TabsTrigger>
+          <TabsTrigger value="system">{t("systemTab")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-6">
@@ -161,7 +173,7 @@ export function Settings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                قائمة المستخدمين
+                {t("usersList")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -173,28 +185,30 @@ export function Settings() {
                       onClick={() => setAddOpen(true)}
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      إضافة مستخدم
+                      {t("addUser")}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>إضافة مستخدم</DialogTitle>
+                      <DialogTitle>{t("addUser")}</DialogTitle>
                     </DialogHeader>
                     <UserForm
                       onSubmit={async (data: UserFormData) => {
                         try {
                           await userService.create(data as any);
                           toast({
-                            title: "تم الحفظ",
-                            description: "تم إضافة المستخدم بنجاح",
+                            title: t("success"),
+                            description: t("userAdded"),
                           });
                           setAddOpen(false);
                           loadUsers();
                         } catch (e: any) {
                           // Try to extract express-validator or backend error message
-                          const backendMsg = e?.response?.data?.message || e?.response?.data?.error;
+                          const backendMsg =
+                            e?.response?.data?.message ||
+                            e?.response?.data?.error;
                           toast({
-                            title: "خطأ",
+                            title: t("error"),
                             description: backendMsg || e.message || String(e),
                             variant: "destructive",
                           });
@@ -223,6 +237,11 @@ export function Settings() {
                         <p className="text-sm text-muted-foreground">
                           {user.email}
                         </p>
+                        <p className="text-sm text-muted-foreground flex">
+                          
+                          {user.lastLoginAt ? formatDate(user.lastLoginAt) : t("neverLoggedIn")}
+                          
+                        </p>
                       </div>
                     </div>
 
@@ -245,15 +264,19 @@ export function Settings() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="admin">مدير</SelectItem>
-                            <SelectItem value="auditor">مراجع</SelectItem>
+                            <SelectItem value="admin">
+                              {t("role.admin")}
+                            </SelectItem>
+                            <SelectItem value="auditor">
+                              {t("role.auditor")}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
 
                         <Button
                           variant="destructive"
                           size="icon"
-                          aria-label="حذف"
+                          aria-label={t("delete")}
                           onClick={() =>
                             setConfirmDelete({ open: true, id: user.id })
                           }
@@ -273,24 +296,26 @@ export function Settings() {
               >
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      {t("confirmDeleteTitle")}
+                    </AlertDialogTitle>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                    <AlertDialogCancel>{t("cancelBtn")}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={async () => {
                         try {
                           if (confirmDelete.id) {
                             await userService.remove(confirmDelete.id);
                             toast({
-                              title: "تم الحذف",
-                              description: "تم حذف المستخدم",
+                              title: t("deleted"),
+                              description: t("userDeleted"),
                             });
                             loadUsers();
                           }
                         } catch (e: any) {
                           toast({
-                            title: "خطأ",
+                            title: t("error"),
                             description: e.message || String(e),
                             variant: "destructive",
                           });
@@ -299,7 +324,7 @@ export function Settings() {
                         }
                       }}
                     >
-                      تأكيد
+                      {t("confirm")}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -311,49 +336,49 @@ export function Settings() {
         <TabsContent value="permissions" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>مصفوفة الصلاحيات</CardTitle>
+              <CardTitle>{t("permissionsMatrix")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg font-medium">
-                  <div>الصفحة/الوظيفة</div>
-                  <div className="text-center">المدير المالي</div>
-                  <div className="text-center">المراجع</div>
+                  <div>{t("pageFeature")}</div>
+                  <div className="text-center">{t("role.admin")}</div>
+                  <div className="text-center">{t("role.auditor")}</div>
                 </div>
 
                 {[
                   {
-                    page: "لوحة التحكم",
+                    page: t("dashboard"),
                     admin: "✅",
                     auditor: "✅",
                   },
                   {
-                    page: "المدفوعات - عرض",
+                    page: `${t("payments")} - ${t("view")}`,
                     admin: "✅",
                     auditor: "✅",
                   },
                   {
-                    page: "المدفوعات - تعديل",
+                    page: `${t("payments")} - ${t("edit")}`,
                     admin: "✅",
                     auditor: "❌",
                   },
                   {
-                    page: "المصروفات - عرض",
+                    page: `${t("expenses")} - ${t("view")}`,
                     admin: "✅",
                     auditor: "✅",
                   },
                   {
-                    page: "المصروفات - تعديل",
+                    page: `${t("expenses")} - ${t("edit")}`,
                     admin: "✅",
                     auditor: "❌",
                   },
                   {
-                    page: "التقارير",
+                    page: t("reports"),
                     admin: "✅",
                     auditor: "✅",
                   },
                   {
-                    page: "إدارة المستخدمين",
+                    page: t("usersManagement"),
                     admin: "✅",
                     auditor: "❌",
                   },
@@ -375,12 +400,12 @@ export function Settings() {
         <TabsContent value="system" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>إعدادات عامة</CardTitle>
+              <CardTitle>{t("generalSettings")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="university-name">اسم الجامعة</Label>
+                  <Label htmlFor="university-name">{t("universityName")}</Label>
                   <Input
                     id="university-name"
                     defaultValue="الجامعة الوطنية السودانية"
@@ -388,7 +413,7 @@ export function Settings() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="system-version">إصدار النظام</Label>
+                  <Label htmlFor="system-version">{t("systemVersion")}</Label>
                   <Input
                     id="system-version"
                     defaultValue="1.0.0"
@@ -400,7 +425,7 @@ export function Settings() {
 
               <div className="pt-4 border-t">
                 <Button className="bg-gradient-primary hover:opacity-90">
-                  حفظ الإعدادات
+                  {t("saveSettings")}
                 </Button>
               </div>
             </CardContent>

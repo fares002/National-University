@@ -33,6 +33,14 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { ExpenseCategory } from "@/services/expenseService";
+import {
+  DESCRIPTION_MIN,
+  DESCRIPTION_MAX,
+  VENDOR_MIN,
+  VENDOR_MAX,
+  RECEIPT_URL_MAX,
+  EXPENSE_AMOUNT_MAX,
+} from "./validation";
 
 // Expense categories with localized labels
 const expenseCategories: { value: ExpenseCategory; label: string }[] = [
@@ -56,12 +64,12 @@ const expenseCategories: { value: ExpenseCategory; label: string }[] = [
   { value: "Saudi-Egyptian Company", label: "categories.saudiEgyptianCompany" },
 ];
 
-const buildExpenseSchema = (t: (k: string) => string) =>
+const buildExpenseSchema = (t: any) =>
   z.object({
     description: z
       .string()
-      .min(3, t("validation.descriptionMin"))
-      .max(1000, t("validation.descriptionMax")),
+      .min(DESCRIPTION_MIN, t("validation.descriptionMin"))
+      .max(DESCRIPTION_MAX, t("validation.descriptionMax")),
     category: z.enum(
       [
         "Fixed Assets",
@@ -89,19 +97,19 @@ const buildExpenseSchema = (t: (k: string) => string) =>
         t("validation.amountPositive")
       )
       .refine(
-        (val) => Number(val) < 999999999999.99,
+        (val) => Number(val) < EXPENSE_AMOUNT_MAX,
         t("validation.amountMax")
       ),
     vendor: z
       .string()
-      .min(2, t("validation.vendorMin"))
-      .max(255, t("validation.vendorMax"))
+      .min(VENDOR_MIN, t("validation.vendorMin"))
+      .max(VENDOR_MAX, t("validation.vendorMax"))
       .optional()
       .or(z.literal("")),
     receiptUrl: z
       .string()
       .url(t("validation.receiptUrlInvalid"))
-      .max(500, t("validation.receiptUrlMax"))
+      .max(RECEIPT_URL_MAX, t("validation.receiptUrlMax"))
       .optional()
       .or(z.literal("")),
     date: z

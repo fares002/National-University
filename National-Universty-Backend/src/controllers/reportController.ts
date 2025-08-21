@@ -24,7 +24,6 @@ interface DailyReportData {
   netIncome: number;
 }
 
-
 interface MonthlyReportData {
   year: number;
   month: number;
@@ -60,7 +59,6 @@ interface MonthlyReportData {
     };
   };
 }
-
 
 /**
  * Get daily financial report
@@ -207,7 +205,6 @@ const getDailyReport = asyncWrapper(
     }
   }
 );
-
 
 /**
  * Get monthly financial report
@@ -1073,7 +1070,6 @@ const getDashboardReport = asyncWrapper(
   }
 );
 
-
 /**
  * Get financial summary (current month, quarter, year overview)
  * Authorization: admin and auditor roles
@@ -1205,7 +1201,6 @@ const getFinancialSummary = asyncWrapper(
   }
 );
 
-
 /**
  * Download daily report as PDF
  * Authorization: admin and auditor roles
@@ -1313,7 +1308,6 @@ const downloadDailyReportPDF = asyncWrapper(
     }
   }
 );
-
 
 /**
  * Download monthly report as PDF
@@ -1457,7 +1451,6 @@ const downloadMonthlyReportPDF = asyncWrapper(
     }
   }
 );
-
 
 /**
  * Download yearly report as PDF
@@ -1617,6 +1610,89 @@ const downloadYearlyReportPDF = asyncWrapper(
   }
 );
 
+/**
+ * Download custom date range report as PDF
+ * Query: from=YYYY-MM-DD, to=YYYY-MM-DD
+ * Authorization: admin and auditor roles
+ */
+const downloadRangeReportPDF = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { from, to } = req.query as { from?: string; to?: string };
+      if (!from || !to) {
+        return next(new AppError("from and to are required", 400));
+      }
+
+      const startDate = new Date(from);
+      const endDate = new Date(to);
+      // Normalize to full day bounds
+      const startOfFrom = new Date(startDate);
+      startOfFrom.setHours(0, 0, 0, 0);
+      const endOfTo = new Date(endDate);
+      endOfTo.setHours(23, 59, 59, 999);
+
+      const [payments, expenses] = await Promise.all([
+        prisma.payment.findMany({
+          where: {
+            paymentDate: {
+              gte: startOfFrom,
+              lte: endOfTo,
+            },
+          },
+          orderBy: { paymentDate: "asc" },
+          select: {
+            amount: true,
+            studentName: true,
+            feeType: true,
+            paymentMethod: true,
+            paymentDate: true,
+            receiptNumber: true,
+          },
+        }),
+        prisma.expense.findMany({
+          where: {
+            date: {
+              gte: startOfFrom,
+              lte: endOfTo,
+            },
+          },
+          orderBy: { date: "asc" },
+          select: {
+            amount: true,
+            category: true,
+            vendor: true,
+            description: true,
+            date: true,
+          },
+        }),
+      ]);
+
+      const totalPayments = payments.reduce((s, p) => s + Number(p.amount), 0);
+      const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
+      const netIncome = totalPayments - totalExpenses;
+
+      const data: ReportData = {
+        title: "تقرير النطاق الزمني المخصص",
+        subtitle: `من ${from} إلى ${to}`,
+        date: new Date().toISOString(),
+        payments: payments as any[],
+        expenses: expenses as any[],
+        summary: {
+          totalPayments,
+          totalExpenses,
+          netIncome,
+          paymentCount: payments.length,
+          expenseCount: expenses.length,
+        },
+      };
+
+      const filename = `custom-report-${from}-to-${to}.pdf`;
+      await generatePDF(data, filename, res);
+    } catch (error) {
+      return next(new AppError("Failed to generate custom report PDF", 500));
+    }
+  }
+);
 
 export {
   getDailyReport,
@@ -1627,4 +1703,5 @@ export {
   downloadDailyReportPDF,
   downloadMonthlyReportPDF,
   downloadYearlyReportPDF,
+  downloadRangeReportPDF,
 };

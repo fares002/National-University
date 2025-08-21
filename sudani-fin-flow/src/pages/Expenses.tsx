@@ -56,6 +56,8 @@ import {
   ExpenseForm,
   ExpenseSubmissionData,
 } from "@/components/forms/ExpenseForm";
+import i18n from "@/lib/i18n";
+import { formatCurrency, formatNumber } from "@/lib/utils";
 
 // Expense categories that match the API categories, labels are localized via i18n
 const expenseCategories: { value: ExpenseCategory; label: string }[] = [
@@ -77,6 +79,7 @@ const expenseCategories: { value: ExpenseCategory; label: string }[] = [
   { value: "Lab Consumables", label: "categories.labConsumables" },
   { value: "Student Training", label: "categories.studentTraining" },
   { value: "Saudi-Egyptian Company", label: "categories.saudiEgyptianCompany" },
+  { value: "other", label: "categories.other" },
 ];
 
 // Map API category values to translation keys
@@ -271,10 +274,7 @@ export function Expenses() {
     }
   };
 
-  const formatCurrency = (amount: number | string) => {
-    const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
-    return new Intl.NumberFormat("ar-SD").format(numAmount);
-  };
+  // Use centralized helpers for numbers/currency
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -326,9 +326,10 @@ export function Expenses() {
                 </p>
                 <p className="text-2xl font-bold text-destructive">
                   {statistics?.daily.totalAmount
-                    ? formatCurrency(statistics.daily.totalAmount)
-                    : "0"}{" "}
-                  {t("sdg")}
+                    ? `${formatCurrency(statistics.daily.totalAmount)} ${t(
+                        "sdg"
+                      )}`
+                    : `0 ${t("sdg")}`}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-destructive" />
@@ -361,9 +362,10 @@ export function Expenses() {
                 </p>
                 <p className="text-2xl font-bold text-foreground">
                   {statistics?.monthly.averageDailyExpenditure
-                    ? formatCurrency(statistics.monthly.averageDailyExpenditure)
-                    : "0"}{" "}
-                  ج.س
+                    ? `${formatCurrency(
+                        statistics.monthly.averageDailyExpenditure
+                      )} ${t("sdg")}`
+                    : `0 ${t("sdg")}`}
                 </p>
               </div>
               <Calendar className="h-8 w-8 text-secondary" />

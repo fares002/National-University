@@ -4,6 +4,9 @@ import { initReactI18next } from "react-i18next";
 const resources = {
   ar: {
     translation: {
+      fromDate:"من تاريخ",
+      toDate: "الي تاريخ",
+      pickADate: "اختر تاريخ",
       // Misc additions
       averageExpense: "متوسط المصروف",
       expensesCount: "عدد المصروفات",
@@ -276,6 +279,7 @@ const resources = {
         labConsumables: "مستهلكات المعامل",
         studentTraining: "تدريب طلاب",
         saudiEgyptianCompany: "الشركة السعودية المصرية",
+        other:"أخرى"
       },
 
       // Reports page additions
@@ -326,6 +330,12 @@ const resources = {
       permissionsTab: "الصلاحيات",
       systemTab: "إعدادات النظام",
       usersList: "قائمة المستخدمين",
+      addUser: "إضافة مستخدم",
+      userAdded: "تم إضافة المستخدم بنجاح",
+      userDeleted: "تم حذف المستخدم",
+      permissionsMatrix: "مصفوفة الصلاحيات",
+      pageFeature: "الصفحة/الوظيفة",
+      generalSettings: "إعدادات عامة",
       lastLogin: "آخر دخول",
       role: {
         admin: "مدير",
@@ -344,11 +354,32 @@ const resources = {
       universityName: "اسم الجامعة",
       systemVersion: "إصدار النظام",
       saveSettings: "حفظ الإعدادات",
+      universityFullName: "الجامعة الوطنية السودانية",
+      financialSystem: "النظام المالي",
 
       // Forms common
-      sdg: "ج.س",
+      sdg: "ج.م",
       chooseDate: "اختر التاريخ",
       cancelBtn: "إلغاء",
+
+      // Forms - UserForm labels/placeholders
+      form: {
+        username: "اسم المستخدم",
+        usernamePlaceholder: "أدخل اسم المستخدم",
+        email: "البريد الإلكتروني",
+        password: "كلمة المرور",
+        confirmPassword: "تأكيد كلمة المرور",
+        role: "الدور",
+        selectRole: "اختر الدور",
+        cancel: "إلغاء",
+        saving: "جاري الحفظ...",
+        save: "حفظ",
+      },
+      // Roles (for selects in forms)
+      roles: {
+        admin: "مدير",
+        auditor: "مراجع",
+      },
 
       // Payment form
       registerPaymentBtn: "تسجيل الدفعة",
@@ -373,6 +404,20 @@ const resources = {
 
       // Validation messages
       validation: {
+        // User form validation
+        usernameMin: "يجب أن لا يقل اسم المستخدم عن {{min}} أحرف",
+        usernameMax: "يجب ألا يزيد اسم المستخدم عن {{max}} حرفًا",
+        usernamePattern:
+          "يمكن أن يحتوي اسم المستخدم على أحرف (أي لغة)، أرقام، مسافات، شرطات سفلية ومتصلة",
+        emailInvalid: "يرجى إدخال بريد إلكتروني صالح",
+        passwordMin: "يجب أن لا تقل كلمة المرور عن {{min}} أحرف",
+        passwordMax: "يجب ألا تزيد كلمة المرور عن {{max}} حرفًا",
+        passwordComplexity:
+          "يجب أن تحتوي كلمة المرور على حرف صغير وحرف كبير ورقم واحد على الأقل",
+        passwordsMismatch: "كلمتا المرور غير متطابقتين",
+        roleRequired: "الدور مطلوب",
+
+        // Payment form validation
         studentIdRequired: "الرقم الجامعي مطلوب",
         studentNameRequired: "اسم الطالب مطلوب",
         studentNameMax: "اسم الطالب طويل جداً",
@@ -384,6 +429,8 @@ const resources = {
         paymentDateRequired: "تاريخ الدفع مطلوب",
         paymentDateFuture: "لا يمكن أن يكون التاريخ في المستقبل",
         notesMax: "الملاحظات طويلة جداً",
+
+        // Expense form validation
         descriptionMin: "الوصف يجب أن يكون 3 أحرف على الأقل",
         descriptionMax: "الوصف طويل جداً",
         categoryRequired: "التصنيف مطلوب",
@@ -399,6 +446,9 @@ const resources = {
   },
   en: {
     translation: {
+      fromDate:"From Date", 
+      toDate: "To Date",
+      pickADate:"Pick Date",
       // Misc additions
       averageExpense: "Average Expense",
       expensesCount: "Expenses Count",
@@ -665,6 +715,7 @@ const resources = {
         labConsumables: "Lab Consumables",
         studentTraining: "Student Training",
         saudiEgyptianCompany: "Saudi-Egyptian Company",
+        other:"other"
       },
 
       // Reports page additions
@@ -715,6 +766,12 @@ const resources = {
       permissionsTab: "Permissions",
       systemTab: "System",
       usersList: "Users List",
+      addUser: "Add User",
+      userAdded: "User added successfully",
+      userDeleted: "User deleted",
+      permissionsMatrix: "Permissions Matrix",
+      pageFeature: "Page / Feature",
+      generalSettings: "General Settings",
       lastLogin: "Last Login",
       role: {
         admin: "Admin",
@@ -734,11 +791,32 @@ const resources = {
       universityName: "University Name",
       systemVersion: "System Version",
       saveSettings: "Save Settings",
+      universityFullName: "National University of Sudan",
+      financialSystem: "Financial System",
 
       // Forms common
-      sdg: "SDG",
+      sdg: "Egp",
       chooseDate: "Choose date",
       cancelBtn: "Cancel",
+
+      // Forms - UserForm labels/placeholders
+      form: {
+        username: "Username",
+        usernamePlaceholder: "Enter username",
+        email: "Email",
+        password: "Password",
+        confirmPassword: "Confirm Password",
+        role: "Role",
+        selectRole: "Select role",
+        cancel: "Cancel",
+        saving: "Saving...",
+        save: "Save",
+      },
+      // Roles (for selects in forms)
+      roles: {
+        admin: "Admin",
+        auditor: "Auditor",
+      },
 
       // Payment form
       registerPaymentBtn: "Register Payment",
@@ -763,6 +841,20 @@ const resources = {
 
       // Validation messages
       validation: {
+        // User form validation
+        usernameMin: "Username must be at least {{min}} characters",
+        usernameMax: "Username must be at most {{max}} characters",
+        usernamePattern:
+          "Username can contain letters (any language), numbers, spaces, underscores, and hyphens",
+        emailInvalid: "Please provide a valid email address",
+        passwordMin: "Password must be at least {{min}} characters",
+        passwordMax: "Password must be at most {{max}} characters",
+        passwordComplexity:
+          "Password must contain at least one lowercase letter, one uppercase letter, and one number",
+        passwordsMismatch: "Passwords do not match",
+        roleRequired: "Role is required",
+
+        // Payment form validation
         studentIdRequired: "Student ID is required",
         studentNameRequired: "Student name is required",
         studentNameMax: "Student name is too long",
@@ -774,6 +866,8 @@ const resources = {
         paymentDateRequired: "Payment date is required",
         paymentDateFuture: "Date cannot be in the future",
         notesMax: "Notes are too long",
+
+        // Expense form validation
         descriptionMin: "Description must be at least 3 characters",
         descriptionMax: "Description is too long",
         categoryRequired: "Category is required",

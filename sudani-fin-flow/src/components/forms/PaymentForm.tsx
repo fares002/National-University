@@ -34,14 +34,20 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import {
+  STUDENT_NAME_MIN,
+  STUDENT_NAME_MAX,
+  AMOUNT_MAX,
+  NOTES_MAX,
+} from "./validation";
 
-const buildPaymentSchema = (t: (k: string) => string) =>
+const buildPaymentSchema = (t: any) =>
   z.object({
     studentId: z.string().min(1, t("validation.studentIdRequired")),
     studentName: z
       .string()
-      .min(2, t("validation.studentNameRequired"))
-      .max(100, t("validation.studentNameMax")),
+      .min(STUDENT_NAME_MIN, t("validation.studentNameRequired"))
+      .max(STUDENT_NAME_MAX, t("validation.studentNameMax")),
     feeType: z.enum(
       ["NEW_YEAR", "SUPPLEMENTARY", "LAB", "STUDENT_SERVICES", "OTHER", "EXAM"],
       {
@@ -55,7 +61,7 @@ const buildPaymentSchema = (t: (k: string) => string) =>
         (val) => !isNaN(Number(val)) && Number(val) > 0,
         t("validation.amountPositive")
       )
-      .refine((val) => Number(val) <= 99999999.99, t("validation.amountMax")),
+      .refine((val) => Number(val) <= AMOUNT_MAX, t("validation.amountMax")),
     paymentMethod: z.enum(["CASH", "TRANSFER", "CHEQUE"], {
       required_error: t("validation.paymentMethodRequired"),
     }),
@@ -73,7 +79,7 @@ const buildPaymentSchema = (t: (k: string) => string) =>
 
         return selectedDate <= today;
       }, t("validation.paymentDateFuture")),
-    notes: z.string().max(500, t("validation.notesMax")).optional(),
+    notes: z.string().max(NOTES_MAX, t("validation.notesMax")).optional(),
   });
 
 type PaymentFormData = z.infer<ReturnType<typeof buildPaymentSchema>>;

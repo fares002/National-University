@@ -15,6 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { reportsService, DashboardData } from "@/services/reportsService";
 import { useNavigate } from "react-router-dom";
+import i18n from "@/lib/i18n";
+import { formatCurrency, formatNumber } from "@/lib/utils";
 
 function StatsCard({
   title,
@@ -36,18 +38,10 @@ function StatsCard({
   showTrend?: boolean;
 }) {
   const { t } = useTranslation();
-  const formatValue = (amount: number) => {
-    if (formatType === "currency") {
-      return new Intl.NumberFormat("ar-SD", {
-        style: "currency",
-        currency: "SDG",
-        minimumFractionDigits: 0,
-      }).format(amount);
-    }
-    return new Intl.NumberFormat("ar-SD", { maximumFractionDigits: 0 }).format(
-      amount
-    );
-  };
+  const display =
+    formatType === "currency"
+      ? `${formatCurrency(value)} ${t("sdg")}`
+      : formatNumber(value);
 
   return (
     <Card className="overflow-hidden">
@@ -57,9 +51,7 @@ function StatsCard({
             <p className="text-sm font-medium text-muted-foreground mb-1">
               {title}
             </p>
-            <p className="text-2xl font-bold text-foreground">
-              {formatValue(value)}
-            </p>
+            <p className="text-2xl font-bold text-foreground">{display}</p>
             {showTrend && (
               <div className="flex items-center mt-2">
                 {trend === "up" ? (
@@ -299,10 +291,10 @@ export function Dashboard() {
                   <div className="text-right">
                     <p className="font-bold text-2xl text-success">
                       +
-                      {new Intl.NumberFormat("ar-SD").format(
+                      {formatCurrency(
                         dashboardData.recentActivity.lastPayment.amount
                       )}{" "}
-                      ج.س
+                      {t("sdg")}
                     </p>
                   </div>
                 </div>
@@ -353,10 +345,10 @@ export function Dashboard() {
                   <div className="text-right">
                     <p className="font-bold text-2xl text-destructive">
                       -
-                      {new Intl.NumberFormat("ar-SD").format(
+                      {formatCurrency(
                         dashboardData.recentActivity.lastExpense.amount
                       )}{" "}
-                      ج.س
+                      {t("sdg")}
                     </p>
                   </div>
                 </div>

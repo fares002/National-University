@@ -60,18 +60,19 @@ import Loading from "@/components/common/Loading";
 import { reportsService } from "@/services/reportsService";
 import { analyticsService } from "@/services/analyticsService";
 import { toast } from "@/components/ui/use-toast";
-
-// Removed mock reports; we'll fetch live daily/monthly/yearly reports
-
-// Will be loaded from API
-// const incomeByCategory ... moved to state
-// const expenseByCategory ... moved to state
-
-// Chart data
-// Will be loaded from API
-// const monthlyData ... moved to state
-
-// Pie chart data derived from incomeByCategory state
+import { formatCurrency, formatNumber } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 
 const detailedReports = [
   {
@@ -127,12 +128,16 @@ const chartConfig = {
 };
 
 export function Reports() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selectedPeriod, setSelectedPeriod] = useState("monthly");
   const [selectedReport, setSelectedReport] = useState("financial");
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [customOpen, setCustomOpen] = useState(false);
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(undefined);
+  const [downloadingCustom, setDownloadingCustom] = useState(false);
   const [yearSummary, setYearSummary] = useState<{
     payments: number;
     expenses: number;
@@ -184,9 +189,8 @@ export function Reports() {
   >([]);
   const [chartsLoading, setChartsLoading] = useState(true);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("ar-SD").format(amount);
-  };
+  // Use centralized helpers from utils
+  const isRTL = i18n.language === "ar" || i18n.dir() === "rtl";
 
   const getReportIcon = (type: string) => {
     switch (type) {
@@ -284,6 +288,7 @@ export function Reports() {
         const year = new Date().getFullYear();
         const res = await analyticsService.getCharts(year);
         const data = res.data;
+        console.log(data);
         // Map months 1-12 to i18n keys
         const monthKey = [
           "january",
@@ -307,6 +312,7 @@ export function Reports() {
             profit: m.profit,
           }))
         );
+        console.log(monthlyData);
         setIncomeByCategory(data.incomeByCategory);
         setExpenseByCategory(data.expenseByCategory);
       } catch (e: any) {
@@ -330,50 +336,8 @@ export function Reports() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={i18n.dir()}>
       {/* Header Controls */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex gap-4">
-          <Select value={selectedReport} onValueChange={setSelectedReport}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder={t("reportType")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="financial">{t("financialReports")}</SelectItem>
-              <SelectItem value="income">{t("income")}</SelectItem>
-              <SelectItem value="expense">{t("reportsExpensesCat")}</SelectItem>
-              <SelectItem value="cashflow">{t("cashFlowReport")}</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder={t("timePeriod")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="daily">{t("daily")}</SelectItem>
-              <SelectItem value="weekly">{t("weekly")}</SelectItem>
-              <SelectItem value="monthly">{t("monthly")}</SelectItem>
-              <SelectItem value="yearly">{t("yearly")}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Filter className="h-4 w-4 mr-2" />
-            {t("filter")}
-          </Button>
-          <Button variant="outline">
-            <PrinterIcon className="h-4 w-4 mr-2" />
-            {t("print")}
-          </Button>
-          <Button className="bg-gradient-primary hover:opacity-90">
-            <Download className="h-4 w-4 mr-2" />
-            {t("export")}
-          </Button>
-        </div>
-      </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-5">
@@ -381,7 +345,6 @@ export function Reports() {
           <TabsTrigger value="analytics">{t("analytics")}</TabsTrigger>
           <TabsTrigger value="income">{t("income")}</TabsTrigger>
           <TabsTrigger value="expenses">{t("reportsExpensesCat")}</TabsTrigger>
-          <TabsTrigger value="reports">{t("reports")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -471,8 +434,22 @@ export function Reports() {
 
           {/* Quick Reports - Live (Daily/Monthly/Yearly) */}
           <Card>
-            <CardHeader>
-              <CardTitle>{t("quickReports")}</CardTitle>
+            <CardHeader
+              className={`flex items-center justify-between ${
+                isRTL ? "flex-row-reverse" : "flex-row"
+              }`}
+            >
+              <CardTitle className={isRTL ? "text-right" : undefined}>
+                {t("quickReports")}
+              </CardTitle>
+              <Button
+                variant="outline"
+                className="m-5"
+                onClick={() => setCustomOpen(true)}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                {t("createNewReport")}
+              </Button>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-3">
@@ -756,6 +733,128 @@ export function Reports() {
                 </div>
               </div>
             </CardContent>
+
+            <Dialog open={customOpen} onOpenChange={setCustomOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{t("createNewReport")}</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        {t("fromDate") || "From date"}
+                      </label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-between"
+                          >
+                            {fromDate
+                              ? fromDate.toISOString().slice(0, 10)
+                              : t("pickADate") || "Pick a date"}
+                            <Calendar className="h-4 w-4 opacity-60" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent 
+                        className="w-[280px] h-[340px] p-0" 
+                        align="start"
+                        side="top" 
+                        avoidCollisions={false}>
+                          <CalendarPicker
+                            mode="single"
+                            selected={fromDate}
+                            onSelect={setFromDate}
+                            initialFocus
+                            className="h-full w-full"
+                            
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        {t("toDate") || "To date"}
+                      </label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-between"
+                          >
+                            {toDate
+                              ? toDate.toISOString().slice(0, 10)
+                              : t("pickADate") || "Pick a date"}
+                            <Calendar className="h-4 w-4 opacity-60" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent 
+                        className="w-[280px] h-[340px]  p-0" 
+                        align="start"
+                        side="top" 
+                        avoidCollisions={false}>
+                          <CalendarPicker
+                            mode="single"
+                            selected={toDate}
+                            onSelect={setToDate}
+                            initialFocus
+                            className="h-full w-full"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setFromDate(undefined);
+                        setToDate(undefined);
+                        setCustomOpen(false);
+                      }}
+                    >
+                      {t("cancel")}
+                    </Button>
+                    <Button
+                      disabled={!fromDate || !toDate || downloadingCustom}
+                      onClick={async () => {
+                        if (!fromDate || !toDate) return;
+                        const from = fromDate.toISOString().slice(0, 10);
+                        const to = toDate.toISOString().slice(0, 10);
+                        if (from > to) {
+                          toast({
+                            variant: "destructive",
+                            title: t("invalidRange") || "Invalid range",
+                          });
+                          return;
+                        }
+                        try {
+                          setDownloadingCustom(true);
+                          await reportsService.downloadCustomRangePdf(from, to);
+                          setCustomOpen(false);
+                        } catch (err: any) {
+                          toast({
+                            variant: "destructive",
+                            title: t("downloadFailed") || "Download failed",
+                            description: err?.message || "",
+                          });
+                        } finally {
+                          setDownloadingCustom(false);
+                        }
+                      }}
+                    >
+                      {downloadingCustom ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4 mr-2" />
+                      )}
+                      {t("download")}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </Card>
         </TabsContent>
 
@@ -995,90 +1094,6 @@ export function Reports() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-
-        <TabsContent value="reports" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>{t("savedReportsLibrary")}</CardTitle>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder={t("searchReportsPlaceholder")}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-64"
-                    />
-                  </div>
-                  <Button variant="outline">
-                    <FileText className="h-4 w-4 mr-2" />
-                    {t("createNewReport")}
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("reportTypeHeader")}</TableHead>
-                    <TableHead>{t("createdAt")}</TableHead>
-                    <TableHead>{t("statusLabel")}</TableHead>
-                    <TableHead>{t("sizeLabel")}</TableHead>
-                    <TableHead>{t("actions")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {detailedReports
-                    .filter(
-                      (report) =>
-                        searchTerm === "" ||
-                        report.type
-                          .toLowerCase()
-                          .includes(searchTerm.toLowerCase())
-                    )
-                    .map((report) => (
-                      <TableRow key={report.id}>
-                        <TableCell className="font-medium">
-                          {t(report.type)}
-                        </TableCell>
-                        <TableCell>{report.date}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              report.status === "completed"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className={
-                              report.status === "completed" ? "bg-success" : ""
-                            }
-                          >
-                            {t(report.status)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{report.size}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-3 w-3" />
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Download className="h-3 w-3" />
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <PrinterIcon className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>

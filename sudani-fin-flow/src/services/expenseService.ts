@@ -13,7 +13,8 @@ export type ExpenseCategory =
   | "Library Supplies"
   | "Lab Consumables"
   | "Student Training"
-  | "Saudi-Egyptian Company";
+  | "Saudi-Egyptian Company"
+  | "other";
 
 // Types for the expense API response
 export interface Expense {
