@@ -74,6 +74,29 @@ import {
 } from "@/components/ui/popover";
 import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 
+// Map raw API category labels to i18n translation keys
+const categoryKeyMap: Record<string, string> = {
+  // Income & Expense shared categories (adjust to your backend list)
+  "Fixed Assets": "categories.fixedAssets",
+  "Part-time Professors": "categories.partTimeProfessors",
+  "Study Materials and Administration Leaves":
+    "categories.studyMaterialsAdminLeaves",
+  "Study Materials & Administration Leaves":
+    "categories.studyMaterialsAdminLeaves",
+  Salaries: "categories.salaries",
+  "Student Fees Refund": "categories.studentFeesRefund",
+  Advances: "categories.advances",
+  Bonuses: "categories.bonuses",
+  "General and Administrative Expenses": "categories.generalAdminExpenses",
+  "General & Administrative Expenses": "categories.generalAdminExpenses",
+  "Library Supplies": "categories.librarySupplies",
+  "Lab Consumables": "categories.labConsumables",
+  "Student Training": "categories.studentTraining",
+  "Saudi-Egyptian Company": "categories.saudiEgyptianCompany",
+  other: "categories.other",
+  Other: "categories.other",
+};
+
 const detailedReports = [
   {
     id: "1",
@@ -340,7 +363,7 @@ export function Reports() {
       {/* Header Controls */}
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
           <TabsTrigger value="analytics">{t("analytics")}</TabsTrigger>
           <TabsTrigger value="income">{t("income")}</TabsTrigger>
@@ -361,7 +384,6 @@ export function Reports() {
                       {(yearSummary?.paymentsCount ?? 0) +
                         (yearSummary?.expensesCount ?? 0)}
                     </p>
-
                   </div>
                   <BarChart3 className="h-8 w-8 text-secondary" />
                 </div>
@@ -378,7 +400,6 @@ export function Reports() {
                     <p className="text-2xl font-bold text-primary">
                       {formatCurrency(yearSummary?.netIncome ?? 0)} {t("sdg")}
                     </p>
-
                   </div>
                   <TrendingUp className="h-8 w-8 text-primary" />
                 </div>
@@ -395,7 +416,6 @@ export function Reports() {
                     <p className="text-2xl font-bold text-destructive">
                       {formatCurrency(yearSummary?.expenses ?? 0)} {t("sdg")}
                     </p>
-
                   </div>
                   <TrendingDown className="h-8 w-8 text-destructive" />
                 </div>
@@ -412,7 +432,6 @@ export function Reports() {
                     <p className="text-2xl font-bold text-success">
                       {formatCurrency(yearSummary?.payments ?? 0)} {t("sdg")}
                     </p>
-
                   </div>
                   <DollarSign className="h-8 w-8 text-success" />
                 </div>
@@ -745,18 +764,18 @@ export function Reports() {
                             <Calendar className="h-4 w-4 opacity-60" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent 
-                        className="w-[280px] h-[340px] p-0" 
-                        align="start"
-                        side="top" 
-                        avoidCollisions={false}>
+                        <PopoverContent
+                          className="w-[280px] h-[340px] p-0"
+                          align="start"
+                          side="top"
+                          avoidCollisions={false}
+                        >
                           <CalendarPicker
                             mode="single"
                             selected={fromDate}
                             onSelect={setFromDate}
                             initialFocus
                             className="h-full w-full"
-                            
                           />
                         </PopoverContent>
                       </Popover>
@@ -777,11 +796,12 @@ export function Reports() {
                             <Calendar className="h-4 w-4 opacity-60" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent 
-                        className="w-[280px] h-[340px]  p-0" 
-                        align="start"
-                        side="top" 
-                        avoidCollisions={false}>
+                        <PopoverContent
+                          className="w-[280px] h-[340px]  p-0"
+                          align="start"
+                          side="top"
+                          avoidCollisions={false}
+                        >
                           <CalendarPicker
                             mode="single"
                             selected={toDate}
@@ -981,7 +1001,7 @@ export function Reports() {
                       <div className="flex items-center gap-3">
                         <div className="w-3 h-3 bg-success rounded-full" />
                         <span className="font-medium text-sm">
-                          {t(item.category)}
+                          {t(categoryKeyMap[item.category] || item.category)}
                         </span>
                       </div>
                       <div className="text-right">
@@ -1043,7 +1063,7 @@ export function Reports() {
                       <div className="flex items-center gap-3">
                         <div className="w-3 h-3 bg-destructive rounded-full" />
                         <span className="font-medium text-sm">
-                          {t(item.category)}
+                          {t(categoryKeyMap[item.category] || item.category)}
                         </span>
                       </div>
                       <div className="text-right">

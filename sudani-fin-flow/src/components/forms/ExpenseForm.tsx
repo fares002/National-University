@@ -224,7 +224,7 @@ export function ExpenseForm({
               <FormControl>
                 <Textarea
                   placeholder={t("descriptionPlaceholder")}
-                  className="min-h-[80px]"
+                  className="min-h-[60px]"
                   {...field}
                 />
               </FormControl>

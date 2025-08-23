@@ -22,14 +22,6 @@ export function Header({ title }: HeaderProps) {
 
         {/* Header Actions */}
         <div className="flex items-center gap-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder={t('search') + '...'}
-              className="w-64 pl-10"
-            />
-          </div>
 
           {/* Language Toggle */}
           <LanguageToggle />
