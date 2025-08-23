@@ -140,7 +140,8 @@ export function Payments() {
       setPayments(response.data.payments);
       setPagination(response.data.pagination);
       setTotalPages(response.data.pagination.totalPages);
-      setStats(response.data.statistics ?? null);
+      // Preserve previous stats if search endpoint (or filtered call) doesn't include them
+      setStats((prev) => (response.data as any).statistics ?? prev);
     } catch (err: any) {
       setError(err.message || "Failed to load payments");
       console.error("Payment API error:", err);
@@ -163,7 +164,7 @@ export function Payments() {
       STUDENT_SERVICES: "رسوم خدمات طلابية",
       OTHER: "أخرى",
       EXAM: "رسوم امتحان",
-      TRAINING: "رسوم تدريب"
+      TRAINING: "رسوم تدريب",
     };
     return feeTypeMap[feeType] || feeType;
   };

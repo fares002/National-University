@@ -118,7 +118,6 @@ const login = asyncWrapper(
       path: "/",
     });
 
-    console.log(token);
 
     return res.status(200).json({
       status: "success",

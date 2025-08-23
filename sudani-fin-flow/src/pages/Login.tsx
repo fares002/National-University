@@ -61,23 +61,22 @@ export function Login() {
 
       if (success) {
         toast({
-          title: "نجح تسجيل الدخول",
-          description: "مرحباً بك في النظام المالي",
+          title: t("loginSuccessTitle"),
+          description: t("loginSuccessDesc"),
         });
         navigate("/dashboard");
       } else {
         toast({
           variant: "destructive",
-          title: "خطأ في تسجيل الدخول",
-          description: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+          title: t("loginErrorTitle"),
+          description: t("loginErrorDesc"),
         });
       }
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "خطأ في الاتصال",
-        description:
-          "حدث خطأ أثناء محاولة تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+        title: t("loginNetworkErrorTitle"),
+        description: t("loginNetworkErrorDesc"),
       });
     }
   };
@@ -100,9 +99,9 @@ export function Login() {
               </div>
             </div>
             <h1 className="text-2xl font-bold text-foreground mb-2">
-              الجامعة الوطنية السودانية
+              {t("universityName")}
             </h1>
-            <p className="text-muted-foreground">النظام المالي المتكامل</p>
+            <p className="text-muted-foreground">{t("systemName")}</p>
           </div>
 
           {/* Welcome Message */}
@@ -118,7 +117,7 @@ export function Login() {
           {/* Login Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
+              <Label htmlFor="email">{t("email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -134,14 +133,14 @@ export function Login() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">كلمة المرور</Label>
+              <Label htmlFor="password">{t("password")}</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   {...register("password")}
                   className="h-11 pr-10"
-                  placeholder="أدخل كلمة المرور"
+                  placeholder={t("passwordPlaceholder")}
                 />
                 <Button
                   type="button"
@@ -174,12 +173,12 @@ export function Login() {
                   }
                 />
                 <Label htmlFor="remember" className="text-sm">
-                  تذكرني
+                  {t("rememberMe")}
                 </Label>
               </div>
 
               <Button variant="link" className="px-0 text-sm">
-                نسيت كلمة المرور؟
+                {t("forgotPassword")}
               </Button>
             </div>
 
@@ -188,16 +187,16 @@ export function Login() {
               className="w-full h-11 bg-gradient-primary hover:opacity-90 transition-smooth"
               disabled={isLoading || isSubmitting}
             >
-              {isLoading || isSubmitting
-                ? "جاري تسجيل الدخول..."
-                : "تسجيل الدخول"}
+              {isLoading || isSubmitting ? t("loggingIn") : t("login")}
             </Button>
           </form>
         </div>
 
         {/* Footer */}
         <div className="text-center mt-6 text-white/80 text-sm">
-          <p>© 2024 الجامعة الوطنية السودانية - جميع الحقوق محفوظة</p>
+          <p>
+            © 2024 {t("universityName")} - {t("allRightsReserved")}
+          </p>
         </div>
       </div>
     </div>

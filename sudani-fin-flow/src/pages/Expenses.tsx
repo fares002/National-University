@@ -101,6 +101,9 @@ const categoryKeyMap: Record<string, string> = {
   "Lab Consumables": "categories.labConsumables",
   "Student Training": "categories.studentTraining",
   "Saudi-Egyptian Company": "categories.saudiEgyptianCompany",
+  // Support lowercase 'other' coming from API and capitalized variant
+  other: "categories.other",
+  Other: "categories.other",
 };
 
 export function Expenses() {
@@ -169,12 +172,6 @@ export function Expenses() {
       });
       setTotalPages(response.data.pagination.totalPages);
       setOperation(response.data.pagination.totalExpenses);
-
-      console.log("✅ Expenses loaded successfully:", {
-        count: response.data.expenses.length,
-        statistics: response.data.statistics,
-        cached: response.data.cached,
-      });
     } catch (error) {
       console.error("❌ Error loading expenses:", error);
       toast({

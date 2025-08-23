@@ -4,7 +4,7 @@ import { initReactI18next } from "react-i18next";
 const resources = {
   ar: {
     translation: {
-      fromDate:"من تاريخ",
+      fromDate: "من تاريخ",
       toDate: "الي تاريخ",
       pickADate: "اختر تاريخ",
       // Misc additions
@@ -14,6 +14,22 @@ const resources = {
       refresh: "تحديث",
       allCategories: "جميع التصنيفات",
       expenseRecords: "سجل المصروفات",
+      // Expense category translations (ensure consistency)
+      categories: {
+        fixedAssets: "الأصول الثابتة",
+        partTimeProfessors: "الأساتذة المتعاونون",
+        studyMaterialsAdminLeaves: "مواد دراسية وإجازات إدارية",
+        salaries: "الرواتب",
+        studentFeesRefund: "رد رسوم الطلاب",
+        advances: "السلف",
+        bonuses: "المكافآت",
+        generalAdminExpenses: "المصروفات العامة والإدارية",
+        librarySupplies: "مستلزمات المكتبة",
+        labConsumables: "مستهلكات المعامل",
+        studentTraining: "تدريب الطلاب",
+        saudiEgyptianCompany: "الشركة السعودية المصرية",
+        other: "أخرى",
+      },
       // Navigation
       dashboard: "لوحة التحكم",
       students: "الطلاب",
@@ -31,6 +47,18 @@ const resources = {
       forgotPassword: "نسيت كلمة المرور؟",
       welcomeBack: "مرحباً بعودتك",
       loginSubtitle: "قم بتسجيل الدخول لإدارة النظام المالي",
+      loggingIn: "جاري تسجيل الدخول...",
+      loginSuccessTitle: "نجح تسجيل الدخول",
+      loginSuccessDesc: "مرحباً بك في النظام المالي",
+      loginErrorTitle: "خطأ في تسجيل الدخول",
+      loginErrorDesc: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+      loginNetworkErrorTitle: "خطأ في الاتصال",
+      loginNetworkErrorDesc:
+        "حدث خطأ أثناء محاولة تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+      universityName: "الجامعة الوطنية السودانية",
+      systemName: "النظام المالي المتكامل",
+      passwordPlaceholder: "أدخل كلمة المرور",
+      allRightsReserved: "جميع الحقوق محفوظة",
 
       // Dashboard
       totalRevenue: "إجمالي الإيرادات",
@@ -120,6 +148,8 @@ const resources = {
       categoryLabConsumables: "مستهلكات المعامل",
       categoryStudentTraining: "تدريب طلاب",
       categorySaudiEgyptianCompany: "الشركة السعودية المصرية",
+      categoryother: "آخرى",
+      other: "أخرى",
 
       // Reports
       financialReports: "التقارير المالية",
@@ -265,22 +295,7 @@ const resources = {
       next: "التالي",
       pageOf: "صفحة {{current}} من {{total}}",
 
-      // Expense Categories - nested (for convenience)
-      categories: {
-        fixedAssets: "الأصول الثابتة",
-        partTimeProfessors: "الأساتذة المتعاونون",
-        studyMaterialsAdminLeaves: "مواد دراسية وإجازات إدارية",
-        salaries: "الرواتب",
-        studentFeesRefund: "رد رسوم الطلاب",
-        advances: "السلف",
-        bonuses: "المكافآت",
-        generalAdminExpenses: "المصروفات العامة والإدارية",
-        librarySupplies: "مستلزمات المكتبة",
-        labConsumables: "مستهلكات المعامل",
-        studentTraining: "تدريب طلاب",
-        saudiEgyptianCompany: "الشركة السعودية المصرية",
-        other:"أخرى"
-      },
+      // (Removed duplicate nested categories block; using single categories object defined at top of file)
 
       // Reports page additions
       reportType: "نوع التقرير",
@@ -351,7 +366,7 @@ const resources = {
       updated: "تم التحديث",
       roleUpdated: "تم تغيير دور المستخدم بنجاح",
       statusUpdated: "تم تغيير حالة المستخدم بنجاح",
-      universityName: "اسم الجامعة",
+      // universityName removed duplicate; using universityFullName or top-level universityName already defined
       systemVersion: "إصدار النظام",
       saveSettings: "حفظ الإعدادات",
       universityFullName: "الجامعة الوطنية السودانية",
@@ -446,9 +461,9 @@ const resources = {
   },
   en: {
     translation: {
-      fromDate:"From Date", 
+      fromDate: "From Date",
       toDate: "To Date",
-      pickADate:"Pick Date",
+      pickADate: "Pick Date",
       // Misc additions
       averageExpense: "Average Expense",
       expensesCount: "Expenses Count",
@@ -456,6 +471,22 @@ const resources = {
       refresh: "Refresh",
       allCategories: "All Categories",
       expenseRecords: "Expense Records",
+      // Expense category translations (ensure consistency)
+      categories: {
+        fixedAssets: "Fixed Assets",
+        partTimeProfessors: "Part-time Professors",
+        studyMaterialsAdminLeaves: "Study Materials and Administration Leaves",
+        salaries: "Salaries",
+        studentFeesRefund: "Student Fees Refund",
+        advances: "Advances",
+        bonuses: "Bonuses",
+        generalAdminExpenses: "General and Administrative Expenses",
+        librarySupplies: "Library Supplies",
+        labConsumables: "Lab Consumables",
+        studentTraining: "Student Training",
+        saudiEgyptianCompany: "Saudi-Egyptian Company",
+        other: "Other",
+      },
       // Navigation
       dashboard: "Dashboard",
       students: "Students",
@@ -473,6 +504,18 @@ const resources = {
       forgotPassword: "Forgot password?",
       welcomeBack: "Welcome back",
       loginSubtitle: "Sign in to manage the financial system",
+      loggingIn: "Signing in...",
+      loginSuccessTitle: "Login successful",
+      loginSuccessDesc: "Welcome to the financial system",
+      loginErrorTitle: "Login error",
+      loginErrorDesc: "Email or password is incorrect",
+      loginNetworkErrorTitle: "Network error",
+      loginNetworkErrorDesc:
+        "An error occurred during login. Please try again.",
+      universityName: "Sudanese National University",
+      systemName: "Integrated Financial System",
+      passwordPlaceholder: "Enter password",
+      allRightsReserved: "All rights reserved",
 
       // Dashboard
       totalRevenue: "Total Revenue",
@@ -535,7 +578,7 @@ const resources = {
       labConsumables: "Lab Consumables",
       studentTraining: "Student Training",
       saudiEgyptianCompany: "Saudi Egyptian Company",
-
+      other: "other",
       // Fee Types
       feeTypeNewYear: "New Year Fee",
       feeTypeSupplementary: "Supplementary Fee",
@@ -562,6 +605,7 @@ const resources = {
       categoryLabConsumables: "Lab Consumables",
       categoryStudentTraining: "Student Training",
       categorySaudiEgyptianCompany: "Saudi-Egyptian Company",
+      categoryother: "Other",
 
       // Reports
       financialReports: "Financial Reports",
@@ -701,22 +745,7 @@ const resources = {
       next: "Next",
       pageOf: "Page {{current}} of {{total}}",
 
-      // Expense Categories - nested (for convenience)
-      categories: {
-        fixedAssets: "Fixed Assets",
-        partTimeProfessors: "Part-time Professors",
-        studyMaterialsAdminLeaves: "Study Materials & Administration Leaves",
-        salaries: "Salaries",
-        studentFeesRefund: "Student Fees Refund",
-        advances: "Advances",
-        bonuses: "Bonuses",
-        generalAdminExpenses: "General & Administrative Expenses",
-        librarySupplies: "Library Supplies",
-        labConsumables: "Lab Consumables",
-        studentTraining: "Student Training",
-        saudiEgyptianCompany: "Saudi-Egyptian Company",
-        other:"other"
-      },
+      // (Removed duplicate nested categories block; using single categories object defined at top of file)
 
       // Reports page additions
       reportType: "Report Type",
@@ -788,7 +817,7 @@ const resources = {
       updated: "Updated",
       roleUpdated: "User role changed successfully",
       statusUpdated: "User status changed successfully",
-      universityName: "University Name",
+      // universityName duplicate removed (already defined earlier)
       systemVersion: "System Version",
       saveSettings: "Save Settings",
       universityFullName: "National University of Sudan",

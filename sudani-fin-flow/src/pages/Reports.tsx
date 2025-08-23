@@ -355,37 +355,15 @@ export function Reports() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      {t("totalIncome")}
+                      {t("totalTransactions")}
                     </p>
-                    <p className="text-2xl font-bold text-success">
-                      {formatCurrency(yearSummary?.payments ?? 0)} {t("sdg")}
+                    <p className="text-2xl font-bold text-foreground">
+                      {(yearSummary?.paymentsCount ?? 0) +
+                        (yearSummary?.expensesCount ?? 0)}
                     </p>
-                    <div className="flex items-center mt-1">
-                      <TrendingUp className="h-4 w-4 text-success mr-1" />
-                      <span className="text-sm text-success">+12.5%</span>
-                    </div>
-                  </div>
-                  <DollarSign className="h-8 w-8 text-success" />
-                </div>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {t("reportsExpenses")}
-                    </p>
-                    <p className="text-2xl font-bold text-destructive">
-                      {formatCurrency(yearSummary?.expenses ?? 0)} {t("sdg")}
-                    </p>
-                    <div className="flex items-center mt-1">
-                      <TrendingDown className="h-4 w-4 text-success mr-1" />
-                      <span className="text-sm text-success">-3.2%</span>
-                    </div>
                   </div>
-                  <TrendingDown className="h-8 w-8 text-destructive" />
+                  <BarChart3 className="h-8 w-8 text-secondary" />
                 </div>
               </CardContent>
             </Card>
@@ -400,10 +378,7 @@ export function Reports() {
                     <p className="text-2xl font-bold text-primary">
                       {formatCurrency(yearSummary?.netIncome ?? 0)} {t("sdg")}
                     </p>
-                    <div className="flex items-center mt-1">
-                      <TrendingUp className="h-4 w-4 text-success mr-1" />
-                      <span className="text-sm text-success">+18.7%</span>
-                    </div>
+
                   </div>
                   <TrendingUp className="h-8 w-8 text-primary" />
                 </div>
@@ -415,18 +390,31 @@ export function Reports() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      {t("totalTransactions")}
+                      {t("reportsExpenses")}
                     </p>
-                    <p className="text-2xl font-bold text-foreground">
-                      {(yearSummary?.paymentsCount ?? 0) +
-                        (yearSummary?.expensesCount ?? 0)}
+                    <p className="text-2xl font-bold text-destructive">
+                      {formatCurrency(yearSummary?.expenses ?? 0)} {t("sdg")}
                     </p>
-                    <div className="flex items-center mt-1">
-                      <TrendingUp className="h-4 w-4 text-success mr-1" />
-                      <span className="text-sm text-success">+45</span>
-                    </div>
+
                   </div>
-                  <BarChart3 className="h-8 w-8 text-secondary" />
+                  <TrendingDown className="h-8 w-8 text-destructive" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {t("totalIncome")}
+                    </p>
+                    <p className="text-2xl font-bold text-success">
+                      {formatCurrency(yearSummary?.payments ?? 0)} {t("sdg")}
+                    </p>
+
+                  </div>
+                  <DollarSign className="h-8 w-8 text-success" />
                 </div>
               </CardContent>
             </Card>

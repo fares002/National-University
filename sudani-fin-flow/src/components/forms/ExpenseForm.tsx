@@ -62,6 +62,7 @@ const expenseCategories: { value: ExpenseCategory; label: string }[] = [
   { value: "Lab Consumables", label: "categories.labConsumables" },
   { value: "Student Training", label: "categories.studentTraining" },
   { value: "Saudi-Egyptian Company", label: "categories.saudiEgyptianCompany" },
+  { value: "other", label: "categories.other" },
 ];
 
 const buildExpenseSchema = (t: any) =>
@@ -84,6 +85,7 @@ const buildExpenseSchema = (t: any) =>
         "Lab Consumables",
         "Student Training",
         "Saudi-Egyptian Company",
+        "other"
       ] as const,
       {
         required_error: t("validation.categoryRequired"),
