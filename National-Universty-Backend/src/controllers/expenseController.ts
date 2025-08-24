@@ -551,6 +551,19 @@ const updateExpense = asyncWrapper(
       // Continue even if cache invalidation fails
     }
 
+    // Also invalidate dashboard cache so aggregated views refresh
+    try {
+      await invalidateDashboardCache();
+      await invalidateExpenseCache();
+      console.log("🧹 Dashboard and expense caches invalidated successfully");
+    } catch (cacheError) {
+      console.warn(
+        "⚠️ Dashboard cache invalidation error:",
+        (cacheError as Error).message
+      );
+      // Continue even if dashboard invalidation fails
+    }
+
     res.status(200).json({
       status: httpStatusText.SUCCESS,
       data: {
@@ -598,6 +611,19 @@ const deleteExpense = asyncWrapper(
         (cacheError as Error).message
       );
       // Continue even if cache invalidation fails
+    }
+
+    // Also invalidate dashboard cache so aggregated views refresh
+    try {
+      await invalidateDashboardCache();
+      await invalidateExpenseCache();
+      console.log("🧹 Dashboard and expense caches invalidated successfully");
+    } catch (cacheError) {
+      console.warn(
+        "⚠️ Dashboard cache invalidation error:",
+        (cacheError as Error).message
+      );
+      // Continue even if dashboard invalidation fails
     }
 
     res.status(200).json({
