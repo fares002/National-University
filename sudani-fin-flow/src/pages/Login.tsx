@@ -123,7 +123,7 @@ export function Login() {
                 type="email"
                 {...register("email")}
                 className="h-11"
-                placeholder="أدخل البريد الإلكتروني"
+                placeholder={t("emailPlaceholder")}
               />
               {errors.email && (
                 <p className="text-sm text-red-500 mt-1">
@@ -177,7 +177,11 @@ export function Login() {
                 </Label>
               </div>
 
-              <Button variant="link" className="px-0 text-sm">
+              <Button
+                variant="link"
+                className="px-0 text-sm"
+                onClick={() => navigate("/forgot-password")}
+              >
                 {t("forgotPassword")}
               </Button>
             </div>

@@ -20,16 +20,15 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    // Handle common errors
     if (error.response?.status === 401) {
-      // Only redirect if we're not already on the login page
-      if (window.location.pathname !== "/login") {
+      const publicPaths = ["/login", "/forgot-password", "/reset-password"];
+      const currentPath = window.location.pathname;
+
+      // Redirect only if we're not on a public page
+      if (!publicPaths.includes(currentPath)) {
         console.log("Authentication failed - redirecting to login");
         window.location.href = "/login";
       }
@@ -37,5 +36,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default api;

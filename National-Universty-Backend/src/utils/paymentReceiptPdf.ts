@@ -15,7 +15,7 @@ export interface PaymentForReceipt {
 }
 
 function formatCurrency(amount: number) {
-  return `${amount.toLocaleString("ar-EG", { minimumFractionDigits: 2 })} ج.س`;
+  return `${amount.toLocaleString("ar-EG", { minimumFractionDigits: 0 })} ج.م`;
 }
 
 function formatDate(date: string | Date) {
@@ -27,6 +27,29 @@ function formatTime(date: string | Date) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+// Arabic translations for fee types
+function translateFeeType(feeType: string): string {
+  const translations: Record<string, string> = {
+    NEW_YEAR: "رسوم سنة جديدة",
+    SUPPLEMENTARY: "رسوم ملحق",
+    TRAINING: "رسوم تدريب",
+    STUDENT_SERVICES: "رسوم خدمات طلابية",
+    EXAM: "رسوم امتحان",
+    OTHER: "أخرى",
+  };
+  return translations[feeType] || feeType;
+}
+
+// Arabic translations for payment methods
+function translatePaymentMethod(paymentMethod: string): string {
+  const translations: Record<string, string> = {
+    CASH: "نقداً",
+    TRANSFER: "تحويل",
+    CHEQUE: "شيك",
+  };
+  return translations[paymentMethod] || paymentMethod;
 }
 
 function receiptHTML(payment: PaymentForReceipt, qrDataUrl: string) {
@@ -73,12 +96,12 @@ function receiptHTML(payment: PaymentForReceipt, qrDataUrl: string) {
           <div class="row"><div class="label">الرقم الجامعي:</div><div class="val">${
             payment.studentId
           }</div></div>
-          <div class="row"><div class="label">نوع الرسوم:</div><div class="val">${
+          <div class="row"><div class="label">نوع الرسوم:</div><div class="val">${translateFeeType(
             payment.feeType
-          }</div></div>
-          <div class="row"><div class="label">طريقة الدفع:</div><div class="val">${
+          )}</div></div>
+          <div class="row"><div class="label">طريقة الدفع:</div><div class="val">${translatePaymentMethod(
             payment.paymentMethod
-          }</div></div>
+          )}</div></div>
         </div>
 
         <div class="amount">المبلغ: ${formatCurrency(
@@ -106,7 +129,12 @@ export async function generatePaymentReceiptPDF(
   const puppeteer = require("puppeteer");
   let browser: any;
   try {
+    // Create QR code with URL to receipt verification page
+    const verificationUrl = `${
+      process.env.FRONTEND_URL || "http://localhost:5173"
+    }/verify-receipt/${payment.receiptNumber}`;
     const qrPayload = JSON.stringify({
+      url: verificationUrl,
       r: payment.receiptNumber,
       s: payment.studentId,
       n: payment.studentName,

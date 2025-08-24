@@ -14,13 +14,19 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(
-  cors({
-    origin: [
+// CORS configuration with environment variable support
+const corsOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim())
+  : [
       "http://localhost:3000",
       "http://localhost:8080",
       "http://localhost:8081",
-    ],
+      "http://localhost:5173", // Frontend development server
+    ];
+
+app.use(
+  cors({
+    origin: corsOrigins,
     credentials: true,
   })
 );

@@ -24,7 +24,19 @@ import allowedTo from "../middlewares/allowedTo";
 
 const router = Router();
 
-// Apply authentication middleware to all routes
+/**
+ * GET /api/payments/verify/:receiptNumber
+ * Public endpoint for receipt verification (no authentication required)
+ * Access: Public
+ */
+router.get(
+  "/verify/:receiptNumber",
+  receiptNumberValidator,
+  validate,
+  getPaymentByReceiptNumber
+);
+
+// Apply authentication middleware to all routes below
 router.use(verifyToken);
 
 /**

@@ -60,6 +60,59 @@ const resources = {
       passwordPlaceholder: "أدخل كلمة المرور",
       allRightsReserved: "جميع الحقوق محفوظة",
 
+      // Forgot Password & Reset Password
+      forgotPasswordTitle: "نسيت كلمة المرور؟",
+      forgotPasswordSubtitle:
+        "أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور",
+      emailLabel: "البريد الإلكتروني",
+      emailPlaceholder: "أدخل بريدك الإلكتروني",
+      sendResetLink: "إرسال رابط إعادة التعيين",
+      sending: "جاري الإرسال...",
+      backToLogin: "العودة لتسجيل الدخول",
+      resetLinkSent: "تم إرسال الطلب بنجاح",
+      resetLinkSentDesc:
+        "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني. يرجى التحقق من صندوق الوارد الخاص بك.",
+      checkSpamNote:
+        "ملاحظة: إذا لم تجد البريد الإلكتروني، تحقق من مجلد الرسائل غير المرغوب فيها (Spam).",
+
+      // Reset Password
+      resetPasswordTitle: "إعادة تعيين كلمة المرور",
+      resetPasswordSubtitle: "أدخل كلمة المرور الجديدة",
+      newPassword: "كلمة المرور الجديدة",
+      newPasswordPlaceholder: "أدخل كلمة المرور الجديدة",
+      confirmPassword: "تأكيد كلمة المرور",
+      confirmPasswordPlaceholder: "أعد إدخال كلمة المرور الجديدة",
+      resetPassword: "إعادة تعيين كلمة المرور",
+      resetting: "جاري إعادة التعيين...",
+      backToForgotPassword: "العودة",
+      verifyingLink: "جاري التحقق من الرابط...",
+      passwordResetSuccess: "تم إعادة تعيين كلمة المرور بنجاح",
+      passwordResetSuccessDesc: "يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
+      goToLogin: "تسجيل الدخول",
+
+      // Password Reset Errors
+      invalidResetLink: "رابط إعادة تعيين كلمة المرور غير صحيح",
+      expiredResetLink:
+        "رابط إعادة تعيين كلمة المرور منتهي الصلاحية أو غير صحيح",
+      linkVerificationError: "خطأ في التحقق من الرابط",
+      resetPasswordError: "حدث خطأ أثناء إعادة تعيين كلمة المرور",
+      connectionError: "حدث خطأ في الاتصال",
+
+      // Password Validation
+      passwordMinLength: "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
+      passwordComplexity:
+        "كلمة المرور يجب أن تحتوي على حرف صغير وحرف كبير ورقم واحد على الأقل",
+      passwordsMismatch: "كلمتا المرور غير متطابقتين",
+      invalidEmail: "يرجى إدخال بريد إلكتروني صحيح",
+
+      // Success Messages
+      success: "تم بنجاح",
+      error: "خطأ",
+
+      // Common Actions
+      back: "العودة",
+      loading: "جاري التحميل...",
+
       // Dashboard
       totalRevenue: "إجمالي الإيرادات",
       totalExpenses: "إجمالي المصروفات",
@@ -171,13 +224,12 @@ const resources = {
       date: "التاريخ",
       total: "المجموع",
       actions: "الإجراءات",
-      loading: "جاري التحميل...",
+
       loadingDashboard: "جاري تحميل لوحة التحكم...",
       loadingExpenses: "جاري تحميل المصروفات...",
       loadingPayments: "جاري تحميل المدفوعات...",
       noData: "لا توجد بيانات",
-      success: "تم بنجاح",
-      error: "خطأ",
+
       confirm: "تأكيد",
       close: "إغلاق",
 
@@ -517,6 +569,58 @@ const resources = {
       passwordPlaceholder: "Enter password",
       allRightsReserved: "All rights reserved",
 
+      // Forgot Password & Reset Password
+      forgotPasswordTitle: "Forgot password?",
+      forgotPasswordSubtitle:
+        "Enter your email and we will send you a link to reset your password",
+      emailLabel: "Email",
+      emailPlaceholder: "Enter your email",
+      sendResetLink: "Send Reset Link",
+      sending: "Sending...",
+      backToLogin: "Back to Login",
+      resetLinkSent: "Request sent successfully",
+      resetLinkSentDesc:
+        "A password reset link has been sent to your email. Please check your inbox.",
+      checkSpamNote:
+        "Note: If you don't receive the email, please check your spam folder.",
+
+      // Reset Password
+      resetPasswordTitle: "Reset Password",
+      resetPasswordSubtitle: "Enter new password",
+      newPassword: "New Password",
+      newPasswordPlaceholder: "Enter new password",
+      confirmPassword: "Confirm Password",
+      confirmPasswordPlaceholder: "Re-enter new password",
+      resetPassword: "Reset Password",
+      resetting: "Resetting...",
+      backToForgotPassword: "Back",
+      verifyingLink: "Verifying link...",
+      passwordResetSuccess: "Password reset successfully",
+      passwordResetSuccessDesc: "You can now log in with your new password.",
+      goToLogin: "Login",
+
+      // Password Reset Errors
+      invalidResetLink: "Invalid password reset link",
+      expiredResetLink: "Password reset link expired or invalid",
+      linkVerificationError: "Link verification error",
+      resetPasswordError: "An error occurred while resetting the password",
+      connectionError: "Connection error",
+
+      // Password Validation
+      passwordMinLength: "Password must be at least 8 characters",
+      passwordComplexity:
+        "Password must contain at least one lowercase letter, one uppercase letter, and one number",
+      passwordsMismatch: "Passwords do not match",
+      invalidEmail: "Please provide a valid email address",
+
+      // Success Messages
+      success: "Success",
+      error: "Error",
+
+      // Common Actions
+      back: "Back",
+      loading: "Loading...",
+
       // Dashboard
       totalRevenue: "Total Revenue",
       totalExpenses: "Total Expenses",
@@ -627,13 +731,12 @@ const resources = {
       date: "Date",
       total: "Total",
       actions: "Actions",
-      loading: "Loading...",
+
       loadingDashboard: "Loading dashboard...",
       loadingExpenses: "Loading expenses...",
       loadingPayments: "Loading payments...",
       noData: "No data available",
-      success: "Success",
-      error: "Error",
+
       confirm: "Confirm",
       close: "Close",
 
