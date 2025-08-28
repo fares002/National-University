@@ -368,7 +368,8 @@ export function Dashboard() {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
             <Button
-              className="h-20 flex-col gap-2 bg-gradient-primary hover:opacity-90"
+              className="h-20 flex-col gap-2 "
+              variant="outline"
               onClick={() => navigate("/payments")}
             >
               <CreditCard className="h-6 w-6" />
@@ -376,7 +377,7 @@ export function Dashboard() {
             </Button>
             <Button
               variant="outline"
-              className="h-20 flex-col gap-2"
+              className="h-20 flex-col gap-2 "
               onClick={() => navigate("/expenses")}
             >
               <Receipt className="h-6 w-6" />
