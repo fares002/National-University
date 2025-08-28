@@ -12,7 +12,7 @@ import { httpStatusText } from "../utils/httpStatusText";
 type ExpenseCategory =
   | "Fixed Assets"
   | "Part-time Professors"
-  | "Study Materials & Administration Leaves"
+  | "Rent of study and administrative premises"
   | "Salaries"
   | "Student Fees Refund"
   | "Advances"

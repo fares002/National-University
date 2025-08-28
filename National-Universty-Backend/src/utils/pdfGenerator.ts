@@ -14,9 +14,53 @@ export interface ReportData {
     [key: string]: any;
   };
 }
+
+// Arabic translations for fee types
+function translateFeeType(feeType: string): string {
+  const translations: Record<string, string> = {
+    NEW_YEAR: "رسوم سنة جديدة",
+    SUPPLEMENTARY: "رسوم ملحق",
+    TRAINING: "رسوم تدريب",
+    STUDENT_SERVICES: "رسوم خدمات طلابية",
+    EXAM: "رسوم امتحان",
+    OTHER: "أخرى",
+  };
+  return translations[feeType] || feeType;
+}
+
+// Arabic translations for payment methods
+function translatePaymentMethod(paymentMethod: string): string {
+  const translations: Record<string, string> = {
+    CASH: "نقداً",
+    TRANSFER: "تحويل",
+    CHEQUE: "شيك",
+  };
+  return translations[paymentMethod] || paymentMethod;
+}
+
+// Arabic translations for expense categories
+function translateExpenseCategory(category: string): string {
+  const translations: Record<string, string> = {
+    "Fixed Assets": "أصول ثابتة",
+    "Part-time Professors": "الأساتذه المتعاونون",
+    "Rent of study and administrative premises": "ايجار مقرات الدراسه والادارة",
+    Salaries: "رواتب",
+    "Student Fees Refund": "استرداد رسوم الطلاب",
+    Advances: "سلف",
+    Bonuses: "مكافآت",
+    "General & Administrative Expenses": "مصاريف عامة وإدارية",
+    "Library Supplies": "مستلزمات المكتبة",
+    "Lab Consumables": "مستهلكات المعامل",
+    "Student Training": "تدريب الطلاب",
+    "Saudi-Egyptian Company": "شركة سعودية-مصرية",
+    Other: "آخرى",
+  };
+  return translations[category] || category;
+}
+
 function generateHTML(data: ReportData): string {
   const formatCurrency = (amount: number) =>
-    `${amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} ج.س`;
+    `${amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} م.ج`;
   const formatDate = (date: string | Date) =>
     new Date(date).toLocaleDateString("en-US");
   const formatTime = (date: string | Date) =>
@@ -166,8 +210,10 @@ function generateHTML(data: ReportData): string {
                         <td>${formatTime(payment.paymentDate)}</td>
                         <td>${payment.receiptNumber || "N/A"}</td>
                         <td>${payment.studentName || "N/A"}</td>
-                        <td>${payment.feeType || "N/A"}</td>
-                        <td>${payment.paymentMethod || "N/A"}</td>
+                        <td>${translateFeeType(payment.feeType) || "N/A"}</td>
+                        <td>${
+                          translatePaymentMethod(payment.paymentMethod) || "N/A"
+                        }</td>
                                                 <td class="amount ltr">${formatCurrency(
                                                   Number(payment.amount)
                                                 )}</td>
@@ -211,7 +257,9 @@ function generateHTML(data: ReportData): string {
                     <tr>
                         <td>${formatDate(expense.date)}</td>
                         <td>${formatTime(expense.date)}</td>
-                        <td>${expense.category || "N/A"}</td>
+                        <td>${
+                          translateExpenseCategory(expense.category) || "N/A"
+                        }</td>
                         <td>${expense.vendor || "N/A"}</td>
                         <td>${expense.description || "N/A"}</td>
                                                 <td class="expense-amount ltr">${formatCurrency(

@@ -79,10 +79,7 @@ const categoryKeyMap: Record<string, string> = {
   // Income & Expense shared categories (adjust to your backend list)
   "Fixed Assets": "categories.fixedAssets",
   "Part-time Professors": "categories.partTimeProfessors",
-  "Study Materials and Administration Leaves":
-    "categories.studyMaterialsAdminLeaves",
-  "Study Materials & Administration Leaves":
-    "categories.studyMaterialsAdminLeaves",
+  "Rent of study and administrative premises": "categories.rentStudyPremises",
   Salaries: "categories.salaries",
   "Student Fees Refund": "categories.studentFeesRefund",
   Advances: "categories.advances",
@@ -97,43 +94,6 @@ const categoryKeyMap: Record<string, string> = {
   Other: "categories.other",
 };
 
-const detailedReports = [
-  {
-    id: "1",
-    type: "comprehensiveFinancialReport",
-    date: "2024-01-15",
-    status: "completed",
-    size: "2.5 MB",
-  },
-  {
-    id: "2",
-    type: "incomeByCategoryReport",
-    date: "2024-01-14",
-    status: "completed",
-    size: "1.8 MB",
-  },
-  {
-    id: "3",
-    type: "detailedExpenseReport",
-    date: "2024-01-13",
-    status: "inProgress",
-    size: "2.1 MB",
-  },
-  {
-    id: "4",
-    type: "cashFlowReport",
-    date: "2024-01-12",
-    status: "completed",
-    size: "1.2 MB",
-  },
-  {
-    id: "5",
-    type: "annualComparisonReport",
-    date: "2024-01-11",
-    status: "completed",
-    size: "3.4 MB",
-  },
-];
 
 const chartConfig = {
   income: {
@@ -214,6 +174,7 @@ export function Reports() {
 
   // Use centralized helpers from utils
   const isRTL = i18n.language === "ar" || i18n.dir() === "rtl";
+  const dir = i18n.dir()
 
   const getReportIcon = (type: string) => {
     switch (type) {
@@ -362,7 +323,7 @@ export function Reports() {
     <div className="space-y-6" dir={i18n.dir()}>
       {/* Header Controls */}
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs defaultValue="overview" className="space-y-6" dir={dir}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
           <TabsTrigger value="analytics">{t("analytics")}</TabsTrigger>
@@ -378,14 +339,29 @@ export function Reports() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      {t("totalTransactions")}
+                      {t("totalIncome")}
                     </p>
-                    <p className="text-2xl font-bold text-foreground">
-                      {(yearSummary?.paymentsCount ?? 0) +
-                        (yearSummary?.expensesCount ?? 0)}
+                    <p className="text-2xl font-bold text-success">
+                      {formatCurrency(yearSummary?.payments ?? 0)} {t("sdg")}
                     </p>
                   </div>
-                  <BarChart3 className="h-8 w-8 text-secondary" />
+                  <DollarSign className="h-8 w-8 text-success" />
+                </div>
+              </CardContent>
+            </Card>
+
+                        <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {t("reportsExpenses")}
+                    </p>
+                    <p className="text-2xl font-bold text-destructive">
+                      {formatCurrency(yearSummary?.expenses ?? 0)} {t("sdg")}
+                    </p>
+                  </div>
+                  <TrendingDown className="h-8 w-8 text-destructive" />
                 </div>
               </CardContent>
             </Card>
@@ -411,29 +387,14 @@ export function Reports() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      {t("reportsExpenses")}
+                      {t("totalTransactions")}
                     </p>
-                    <p className="text-2xl font-bold text-destructive">
-                      {formatCurrency(yearSummary?.expenses ?? 0)} {t("sdg")}
-                    </p>
-                  </div>
-                  <TrendingDown className="h-8 w-8 text-destructive" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {t("totalIncome")}
-                    </p>
-                    <p className="text-2xl font-bold text-success">
-                      {formatCurrency(yearSummary?.payments ?? 0)} {t("sdg")}
+                    <p className="text-2xl font-bold text-foreground">
+                      {(yearSummary?.paymentsCount ?? 0) +
+                        (yearSummary?.expensesCount ?? 0)}
                     </p>
                   </div>
-                  <DollarSign className="h-8 w-8 text-success" />
+                  <BarChart3 className="h-8 w-8 text-secondary" />
                 </div>
               </CardContent>
             </Card>
@@ -442,11 +403,9 @@ export function Reports() {
           {/* Quick Reports - Live (Daily/Monthly/Yearly) */}
           <Card>
             <CardHeader
-              className={`flex items-center justify-between ${
-                isRTL ? "flex-row-reverse" : "flex-row"
-              }`}
+              className="flex items-center justify-between flex-row"
             >
-              <CardTitle className={isRTL ? "text-right" : undefined}>
+              <CardTitle >
                 {t("quickReports")}
               </CardTitle>
               <Button
@@ -866,7 +825,7 @@ export function Reports() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-6">
+        <TabsContent value="analytics" className="space-y-6" dir="ltr">
           {/* Charts Section */}
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
@@ -952,7 +911,7 @@ export function Reports() {
             </Card>
           </div>
 
-          {/* Performance Metrics */}
+          {/* Performance Metrics
           <Card>
             <CardHeader>
               <CardTitle>{t("performanceIndicators")}</CardTitle>
@@ -982,10 +941,10 @@ export function Reports() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </TabsContent>
 
-        <TabsContent value="income" className="space-y-6">
+        <TabsContent value="income" className="space-y-6" dir="ltr">
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
@@ -1047,7 +1006,7 @@ export function Reports() {
           </div>
         </TabsContent>
 
-        <TabsContent value="expenses" className="space-y-6">
+        <TabsContent value="expenses" className="space-y-6" dir="ltr">
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>

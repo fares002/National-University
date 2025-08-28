@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { LanguageToggle } from "@/components/ui/language-toggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-
+import logo from "../../public/national.ico"
 // Validation schema
 const loginSchema = z.object({
   email: z
@@ -85,7 +85,7 @@ export function Login() {
     <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Language Toggle */}
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end mb-4 text-slate-300">
           <LanguageToggle />
         </div>
 
@@ -94,8 +94,8 @@ export function Login() {
           {/* University Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <div className="h-16 w-16 bg-gradient-primary rounded-full flex items-center justify-center">
-                <GraduationCap className="h-8 w-8 text-white" />
+              <div className="h-16 w-16 rounded-full flex items-center justify-center">
+                <img src={logo} className="h-16 w-16 " />
               </div>
             </div>
             <h1 className="text-2xl font-bold text-foreground mb-2">

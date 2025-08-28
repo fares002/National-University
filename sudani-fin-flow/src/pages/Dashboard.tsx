@@ -107,9 +107,7 @@ export function Dashboard() {
   const categoryMapping: Record<string, string> = {
     "Fixed Assets": "الأصول الثابتة",
     "Part-time Professors": "الأساتذة المتعاونون",
-    // Support legacy '&' and new 'and' values
-    "Study Materials & Administration Leaves": "مواد دراسية وإجازات إدارية",
-    "Study Materials and Administration Leaves": "مواد دراسية وإجازات إدارية",
+    "Rent of study and administrative premises": "ايجار مقرات الدراسه والادارة",
     Salaries: "الرواتب",
     "Student Fees Refund": "رد رسوم الطلاب",
     Advances: "السلف",

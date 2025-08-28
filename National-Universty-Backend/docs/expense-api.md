@@ -556,7 +556,7 @@ The system supports the following predefined expense categories:
 
 - Fixed Assets
 - Part-time Professors
-- Study Materials & Administration Leaves
+- Rent of study and administrative premises
 - Salaries
 - Student Fees Refund
 - Advances

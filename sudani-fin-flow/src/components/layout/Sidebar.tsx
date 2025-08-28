@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import image from "../../../public/national.ico"
 
 const navigation = [
   { name: "dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -31,8 +32,8 @@ export function Sidebar() {
     <div className="flex h-full w-64 flex-col bg-gradient-primary shadow-strong">
       {/* University Header */}
       <div className="flex h-16 items-center gap-3 border-b border-white/10 px-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
-          <GraduationCap className="h-6 w-6 text-white" />
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
+          <img src={image} className="h-8 w-8 "/>
         </div>
         <div className="text-white">
           <h1 className="text-sm font-bold">{t("universityFullName")}</h1>

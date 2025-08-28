@@ -35,6 +35,7 @@ import {
 import { userService } from "@/services/userService";
 import { UserForm, UserFormData } from "@/components/forms/UserForm";
 import i18n from "@/lib/i18n";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type Role = "admin" | "auditor";
 
@@ -50,6 +51,7 @@ export function Settings() {
     open: boolean;
     id?: string;
   }>({ open: false });
+  const { dir } = useLanguage();
 
   const isAdmin = user?.role === "admin";
 
@@ -161,7 +163,7 @@ export function Settings() {
         </Badge>
       </div>
 
-      <Tabs defaultValue="users" className="space-y-6">
+      <Tabs defaultValue="users" className="space-y-6" dir={dir}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="users">{t("usersManagement")}</TabsTrigger>
           <TabsTrigger value="permissions">{t("permissionsTab")}</TabsTrigger>
@@ -177,7 +179,7 @@ export function Settings() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-start mb-4">
+              <div className="flex justify-end mb-4">
                 <Dialog open={addOpen} onOpenChange={setAddOpen}>
                   <DialogTrigger asChild>
                     <Button

@@ -18,7 +18,8 @@ const resources = {
       categories: {
         fixedAssets: "الأصول الثابتة",
         partTimeProfessors: "الأساتذة المتعاونون",
-        studyMaterialsAdminLeaves: "مواد دراسية وإجازات إدارية",
+        // removed legacy key per rename to canonical label
+        rentStudyPremises: "ايجار مقرات الدراسه والادارة",
         salaries: "الرواتب",
         studentFeesRefund: "رد رسوم الطلاب",
         advances: "السلف",
@@ -38,6 +39,12 @@ const resources = {
       reports: "التقارير",
       settings: "الإعدادات",
       logout: "تسجيل الخروج",
+
+      // Payment Dialog Titles/Descriptions
+      addPaymentTitle: "تسجيل دفعة جديدة",
+      editPaymentTitle: "تعديل دفعة",
+      addPaymentDesc: "قم بإدخال بيانات الدفعة الجديدة وإصدار الإيصال",
+      editPaymentDesc: "قم بتحديث بيانات الدفعة",
 
       // Authentication
       login: "تسجيل الدخول",
@@ -527,7 +534,7 @@ const resources = {
       categories: {
         fixedAssets: "Fixed Assets",
         partTimeProfessors: "Part-time Professors",
-        studyMaterialsAdminLeaves: "Study Materials and Administration Leaves",
+        rentStudyPremises: "Rent of study and administrative premises",
         salaries: "Salaries",
         studentFeesRefund: "Student Fees Refund",
         advances: "Advances",
@@ -547,6 +554,12 @@ const resources = {
       reports: "Reports",
       settings: "Settings",
       logout: "Logout",
+
+      // Payment Dialog Titles/Descriptions
+      addPaymentTitle: "Add New Payment",
+      editPaymentTitle: "Edit Payment",
+      addPaymentDesc: "Enter the new payment details and issue the receipt.",
+      editPaymentDesc: "Update the payment details.",
 
       // Authentication
       login: "Login",
@@ -699,7 +712,7 @@ const resources = {
       // Expense Categories - Full list
       categoryFixedAssets: "Fixed Assets",
       categoryPartTimeProfessors: "Part-time Professors",
-      categoryStudyMaterials: "Study Materials & Administration Leaves",
+      categoryStudyMaterials: "Rent of study and administrative premises",
       categorySalaries: "Salaries",
       categoryStudentFeesRefund: "Student Fees Refund",
       categoryAdvances: "Advances",

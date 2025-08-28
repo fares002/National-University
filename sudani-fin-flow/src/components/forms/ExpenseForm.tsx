@@ -41,29 +41,9 @@ import {
   RECEIPT_URL_MAX,
   EXPENSE_AMOUNT_MAX,
 } from "./validation";
+import { dir } from "i18next";
 
-// Expense categories with localized labels
-const expenseCategories: { value: ExpenseCategory; label: string }[] = [
-  { value: "Fixed Assets", label: "categories.fixedAssets" },
-  { value: "Part-time Professors", label: "categories.partTimeProfessors" },
-  {
-    value: "Study Materials and Administration Leaves",
-    label: "categories.studyMaterialsAdminLeaves",
-  },
-  { value: "Salaries", label: "categories.salaries" },
-  { value: "Student Fees Refund", label: "categories.studentFeesRefund" },
-  { value: "Advances", label: "categories.advances" },
-  { value: "Bonuses", label: "categories.bonuses" },
-  {
-    value: "General and Administrative Expenses",
-    label: "categories.generalAdminExpenses",
-  },
-  { value: "Library Supplies", label: "categories.librarySupplies" },
-  { value: "Lab Consumables", label: "categories.labConsumables" },
-  { value: "Student Training", label: "categories.studentTraining" },
-  { value: "Saudi-Egyptian Company", label: "categories.saudiEgyptianCompany" },
-  { value: "other", label: "categories.other" },
-];
+// Expense categories with localized labels will be created inside the component
 
 const buildExpenseSchema = (t: any) =>
   z.object({
@@ -75,7 +55,7 @@ const buildExpenseSchema = (t: any) =>
       [
         "Fixed Assets",
         "Part-time Professors",
-        "Study Materials and Administration Leaves",
+        "Rent of study and administrative premises",
         "Salaries",
         "Student Fees Refund",
         "Advances",
@@ -85,7 +65,7 @@ const buildExpenseSchema = (t: any) =>
         "Lab Consumables",
         "Student Training",
         "Saudi-Egyptian Company",
-        "other"
+        "other",
       ] as const,
       {
         required_error: t("validation.categoryRequired"),
@@ -167,6 +147,32 @@ export function ExpenseForm({
 }: ExpenseFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { t } = useTranslation();
+
+  // Expense categories with localized labels
+  const expenseCategories: { value: ExpenseCategory; label: string }[] = [
+    { value: "Fixed Assets", label: "categories.fixedAssets" },
+    { value: "Part-time Professors", label: "categories.partTimeProfessors" },
+    {
+      value: "Rent of study and administrative premises",
+      label: "categories.rentStudyPremises",
+    },
+    { value: "Salaries", label: "categories.salaries" },
+    { value: "Student Fees Refund", label: "categories.studentFeesRefund" },
+    { value: "Advances", label: "categories.advances" },
+    { value: "Bonuses", label: "categories.bonuses" },
+    {
+      value: "General and Administrative Expenses",
+      label: "categories.generalAdminExpenses",
+    },
+    { value: "Library Supplies", label: "categories.librarySupplies" },
+    { value: "Lab Consumables", label: "categories.labConsumables" },
+    { value: "Student Training", label: "categories.studentTraining" },
+    {
+      value: "Saudi-Egyptian Company",
+      label: "categories.saudiEgyptianCompany",
+    },
+    { value: "other", label: "categories.other" },
+  ];
 
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(buildExpenseSchema(t)),

@@ -385,7 +385,13 @@ export function Payments() {
                 onOpenChange={setIsPaymentDialogOpen}
               >
                 <DialogTrigger asChild>
-                  <Button className="bg-gradient-primary hover:opacity-90">
+                  <Button
+                    className="bg-gradient-primary hover:opacity-90"
+                    onClick={() => {
+                      setEditingPayment(null);
+                      setIsPaymentDialogOpen(true);
+                    }}
+                  >
                     <Plus className="mr-2 h-4 w-4" />
                     {t("addPayment")}
                   </Button>
@@ -393,12 +399,14 @@ export function Payments() {
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>
-                      {editingPayment ? "تعديل دفعة" : "تسجيل دفعة جديدة"}
+                      {editingPayment
+                        ? t("editPaymentTitle")
+                        : t("addPaymentTitle")}
                     </DialogTitle>
                     <DialogDescription>
                       {editingPayment
-                        ? "قم بتحديث بيانات الدفعة"
-                        : "قم بإدخال بيانات الدفعة الجديدة وإصدار الإيصال"}
+                        ? t("editPaymentDesc")
+                        : t("addPaymentDesc")}
                     </DialogDescription>
                   </DialogHeader>
                   <PaymentForm

@@ -64,8 +64,8 @@ const expenseCategories: { value: ExpenseCategory; label: string }[] = [
   { value: "Fixed Assets", label: "categories.fixedAssets" },
   { value: "Part-time Professors", label: "categories.partTimeProfessors" },
   {
-    value: "Study Materials and Administration Leaves",
-    label: "categories.studyMaterialsAdminLeaves",
+    value: "Rent of study and administrative premises",
+    label: "categories.rentStudyPremises",
   },
   { value: "Salaries", label: "categories.salaries" },
   { value: "Student Fees Refund", label: "categories.studentFeesRefund" },
@@ -86,11 +86,9 @@ const expenseCategories: { value: ExpenseCategory; label: string }[] = [
 const categoryKeyMap: Record<string, string> = {
   "Fixed Assets": "categories.fixedAssets",
   "Part-time Professors": "categories.partTimeProfessors",
-  // Support both legacy '&' and new 'and'
-  "Study Materials and Administration Leaves":
-    "categories.studyMaterialsAdminLeaves",
-  "Study Materials & Administration Leaves":
-    "categories.studyMaterialsAdminLeaves",
+
+  // New canonical label used across app
+  "Rent of study and administrative premises": "categories.rentStudyPremises",
   Salaries: "categories.salaries",
   "Student Fees Refund": "categories.studentFeesRefund",
   Advances: "categories.advances",
@@ -273,7 +271,7 @@ export function Expenses() {
     const colors: Record<string, string> = {
       "Fixed Assets": "bg-green-100 text-green-800",
       "Part-time Professors": "bg-blue-100 text-blue-800",
-      "Study Materials and Administration Leaves":
+      "Rent of study and administrative premises":
         "bg-orange-100 text-orange-800",
       Salaries: "bg-purple-100 text-purple-800",
       "Student Fees Refund": "bg-yellow-100 text-yellow-800",

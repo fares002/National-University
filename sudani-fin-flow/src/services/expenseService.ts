@@ -4,7 +4,7 @@ import api from "@/lib/api";
 export type ExpenseCategory =
   | "Fixed Assets"
   | "Part-time Professors"
-  | "Study Materials and Administration Leaves"
+  | "Rent of study and administrative premises"
   | "Salaries"
   | "Student Fees Refund"
   | "Advances"
