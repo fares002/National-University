@@ -121,6 +121,7 @@ export function Login() {
               <Input
                 id="email"
                 type="email"
+                autoComplete="username"
                 {...register("email")}
                 className="h-11"
                 placeholder={t("emailPlaceholder")}
@@ -138,6 +139,7 @@ export function Login() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   {...register("password")}
                   className="h-11 pr-10"
                   placeholder={t("passwordPlaceholder")}
