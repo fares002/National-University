@@ -123,7 +123,7 @@ export function Expenses() {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   // Debounce search query to avoid excessive API calls
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const debouncedSearchQuery = useDebounce(searchQuery, 1500);
 
   // Check if user can edit (admin only)
   const canEdit = user?.role === "admin";

@@ -8,6 +8,9 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import ReceiptVerification from "./pages/ReceiptVerification";
 
 import { Payments } from "./pages/Payments";
 import { Expenses } from "./pages/Expenses";
@@ -29,14 +32,23 @@ const App = () => (
           <LanguageProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route
+                path="/verify-receipt/:receiptNumber"
+                element={<ReceiptVerification />}
+              />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }>
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
                 <Route path="dashboard" element={<Dashboard />} />
-                
+
                 <Route path="payments" element={<Payments />} />
                 <Route path="expenses" element={<Expenses />} />
                 <Route path="reports" element={<Reports />} />

@@ -23,6 +23,10 @@ authRouter.route("/login").post(loginValidator, validate, login);
 
 authRouter.route("/signup").post(registerValidator, validate, register);
 
+authRouter.route("/logout").post(logout);
+
+authRouter.route("/me").get(verifyToken, getCurrentUser);
+
 /**
  * POST /api/auth/forgot-password
  * Send password reset email
@@ -44,8 +48,5 @@ authRouter.post("/reset-password", resetPassword);
  */
 authRouter.get("/verify-reset-token/:token", verifyResetToken);
 
-authRouter.route("/logout").post(logout);
-
-authRouter.route("/me").get(verifyToken, getCurrentUser);
 
 export default authRouter;

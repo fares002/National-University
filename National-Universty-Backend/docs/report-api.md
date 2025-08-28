@@ -629,3 +629,23 @@ Example:
 GET http://localhost:3000/api/v1/reports/yearly/2025/pdf
 Cookie: token=YOUR_JWT_TOKEN
 ```
+
+### d) Custom Date Range Report PDF
+
+**GET** `/api/v1/reports/custom/pdf?from=YYYY-MM-DD&to=YYYY-MM-DD`
+
+- Description: Download a financial report as a PDF for a custom date range.
+- Query Parameters:
+  - `from` (required): Start date (YYYY-MM-DD)
+  - `to` (required): End date (YYYY-MM-DD)
+- Response:
+  - Content-Type: `application/pdf`
+  - Content-Disposition: `attachment; filename="custom-report-YYYY-MM-DD_to_YYYY-MM-DD.pdf"`
+  - Status: `200` on success; errors: `400`, `401`, `403`, `500`
+
+Example:
+
+```
+GET http://localhost:3000/api/v1/reports/custom/pdf?from=2025-08-01&to=2025-08-15
+Cookie: token=YOUR_JWT_TOKEN
+```

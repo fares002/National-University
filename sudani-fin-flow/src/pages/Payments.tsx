@@ -103,7 +103,7 @@ export function Payments() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-    }, 500);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, [searchTerm]);

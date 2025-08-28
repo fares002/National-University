@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { LanguageToggle } from "@/components/ui/language-toggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import logo from "../../public/national.ico"
+
 // Validation schema
 const loginSchema = z.object({
   email: z
@@ -95,7 +95,7 @@ export function Login() {
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <div className="h-16 w-16 rounded-full flex items-center justify-center">
-                <img src={logo} className="h-16 w-16 " />
+                <img src="/national.ico" className="h-16 w-16 " />
               </div>
             </div>
             <h1 className="text-2xl font-bold text-foreground mb-2">
@@ -164,18 +164,6 @@ export function Login() {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="remember"
-                  checked={rememberMe}
-                  onCheckedChange={(checked) =>
-                    setValue("rememberMe", checked as boolean)
-                  }
-                />
-                <Label htmlFor="remember" className="text-sm">
-                  {t("rememberMe")}
-                </Label>
-              </div>
 
               <Button
                 variant="link"
@@ -199,7 +187,7 @@ export function Login() {
         {/* Footer */}
         <div className="text-center mt-6 text-white/80 text-sm">
           <p>
-            © 2024 {t("universityName")} - {t("allRightsReserved")}
+            © 2025 {t("universityName")} - {t("allRightsReserved")}
           </p>
         </div>
       </div>
