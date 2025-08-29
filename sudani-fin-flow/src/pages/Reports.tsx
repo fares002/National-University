@@ -887,6 +887,7 @@ export function Reports() {
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
+                        label={({ name, value }) => `${t(categoryKeyMap[name] || name)}: ${value}%`}
                       >
                         {incomeByCategory.map((_, index) => (
                           <Cell
@@ -1044,7 +1045,7 @@ export function Reports() {
                 <CardTitle>{t("monthlyExpenseComparison")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChartContainer config={chartConfig} className="h-[250px]">
+                <ChartContainer config={chartConfig} className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={monthlyData}>
                       <CartesianGrid strokeDasharray="3 3" />
