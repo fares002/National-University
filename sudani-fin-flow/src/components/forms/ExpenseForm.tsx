@@ -343,6 +343,8 @@ export function ExpenseForm({
                         return date > new Date() || date < tenYearsAgo;
                       }}
                       initialFocus
+                      showOutsideDays={false}
+                      className="h-[350px]"
                     />
                   </PopoverContent>
                 </Popover>
