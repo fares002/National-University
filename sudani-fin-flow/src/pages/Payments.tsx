@@ -65,8 +65,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Pencil, Trash2, Printer } from "lucide-react";
+import { Pencil, Trash2, Printer, AlertTriangle } from "lucide-react";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+
+// NOTE: Requires i18n keys: appliedRate, amountUSD, usd. Ensure they are added in i18n resources.
 
 export function Payments() {
   const { t } = useTranslation();
@@ -276,55 +278,62 @@ export function Payments() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
+        {/* Daily Total (EGP & USD) */}
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gradient-success flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-white" />
-              </div>
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg font-bold text-foreground">
-                  {formatCurrency(stats?.daily.totalAmount ?? 0)} {t("sdg")}
-                </p>
                 <p className="text-sm text-muted-foreground">
                   {t("todayTotal")}
                 </p>
+                <p className="text-lg font-bold text-success">
+                  {formatCurrency(stats?.daily.totalAmount ?? 0)} {t("sdg")}
+                </p>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                  {formatCurrency((stats?.daily as any)?.totalAmountUSD ?? 0)}{" "}
+                  {t("usd")}
+                </p>
               </div>
+              <DollarSign className="h-8 w-8 text-success" />
             </div>
           </CardContent>
         </Card>
+        {/* Daily Operations Count */}
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <Receipt className="h-5 w-5 text-white" />
-              </div>
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-lg font-bold text-foreground">
-                  {stats?.daily.operationsCount ?? 0}
-                </p>
                 <p className="text-sm text-muted-foreground">
                   {t("todayOperations")}
                 </p>
+                <p className="text-lg font-bold text-foreground">
+                  {stats?.daily.operationsCount ?? 0}
+                </p>
               </div>
+              <Receipt className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
+        {/* Monthly Average Daily Income */}
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gradient-secondary flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-white" />
-              </div>
+            <div className="flex items-center justify-between">
               <div>
+                <p className="text-sm text-muted-foreground">
+                  {t("averageDailyIncome")}
+                </p>
                 <p className="text-lg font-bold text-foreground">
                   {formatCurrency(stats?.monthly.averageDailyIncome ?? 0)}{" "}
                   {t("sdg")}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {t("averageDailyIncome")}
+                <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                  {formatCurrency(
+                    (stats?.monthly as any)?.averageTransactionAmountUSD ?? 0
+                  )}{" "}
+                  {t("usd")}
                 </p>
               </div>
+              <Calendar className="h-8 w-8 text-secondary" />
             </div>
           </CardContent>
         </Card>
@@ -494,6 +503,12 @@ export function Payments() {
                     {t("amount")}
                   </TableHead>
                   <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("appliedRate")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("amountUSD")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
                     {t("paymentMethod")}
                   </TableHead>
                   <TableHead className={isArabic ? "text-right" : "text-left"}>
@@ -526,6 +541,16 @@ export function Payments() {
                     <TableCell>{getFeeTypeBadge(payment.feeType)}</TableCell>
                     <TableCell className="font-bold text-success">
                       {formatCurrency(payment.amount)} {t("sdg")}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {payment.usdAppliedRate !== undefined
+                        ? Number(payment.usdAppliedRate).toFixed(2)
+                        : "-"}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {payment.amountUSD !== undefined
+                        ? `${formatCurrency(payment.amountUSD)} ${t("usd")}`
+                        : "-"}
                     </TableCell>
                     <TableCell>
                       <div>
@@ -578,38 +603,56 @@ export function Payments() {
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    تأكيد الحذف
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    هل أنت متأكد أنك تريد حذف هذه الدفعة؟ لا
-                                    يمكن التراجع عن هذا الإجراء.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={async () => {
-                                      try {
-                                        await paymentService.deletePayment(
-                                          payment.id
-                                        );
-                                        toast({ title: "تم حذف الدفعة" });
-                                        fetchPayments();
-                                      } catch (e: any) {
-                                        toast({
-                                          title: "فشل حذف الدفعة",
-                                          description: e?.message,
-                                          variant: "destructive",
-                                        });
-                                      }
-                                    }}
-                                  >
-                                    حذف
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
+                              <AlertDialogContent className="sm:max-w-[430px] p-6 bg-background border border-destructive/20 shadow-lg">
+                                <div className="flex items-start gap-4">
+                                  <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
+                                    <AlertTriangle className="h-7 w-7 text-destructive" />
+                                  </div>
+                                  <div className="space-y-3 w-full">
+                                    <AlertDialogHeader className="space-y-2 p-0">
+                                      <AlertDialogTitle className="text-xl font-bold text-destructive">
+                                        {t("deletePaymentTitle")}
+                                      </AlertDialogTitle>
+                                      <AlertDialogDescription className="text-muted-foreground leading-relaxed text-sm">
+                                        {t("deletePaymentDescription")}
+                                        <span className="block mt-3 text-foreground font-medium text-xs sm:text-sm">
+                                          {t("receiptNumber")}:{" "}
+                                          {payment.receiptNumber} —{" "}
+                                          {t("amount")}:{" "}
+                                          {formatCurrency(payment.amount)}{" "}
+                                          {t("sdg")}
+                                        </span>
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter className="pt-1 flex sm:justify-end gap-2">
+                                      <AlertDialogCancel className="mt-0">
+                                        إلغاء
+                                      </AlertDialogCancel>
+                                      <AlertDialogAction
+                                        className="bg-destructive hover:bg-destructive/90 focus-visible:ring-destructive"
+                                        onClick={async () => {
+                                          try {
+                                            await paymentService.deletePayment(
+                                              payment.id
+                                            );
+                                            toast({
+                                              title: t("paymentDeleteSuccess"),
+                                            });
+                                            fetchPayments();
+                                          } catch (e: any) {
+                                            toast({
+                                              title: t("paymentDeleteFailure"),
+                                              description: e?.message,
+                                              variant: "destructive",
+                                            });
+                                          }
+                                        }}
+                                      >
+                                        {t("deletePermanently")}
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </div>
+                                </div>
                               </AlertDialogContent>
                             </AlertDialog>
                           </>

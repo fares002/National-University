@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Users, Shield, Trash2, Plus } from "lucide-react";
+import {
+  Users,
+  Shield,
+  Trash2,
+  Plus,
+  DollarSign,
+  History,
+  RefreshCw,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,7 +39,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
+import { currencyService } from "@/services/currencyService";
 import { userService } from "@/services/userService";
 import { UserForm, UserFormData } from "@/components/forms/UserForm";
 import i18n from "@/lib/i18n";
@@ -44,13 +55,26 @@ export function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<
-    { id: string; username: string; email: string; role: Role; lastLoginAt:string }[]
+    {
+      id: string;
+      username: string;
+      email: string;
+      role: Role;
+      lastLoginAt: string;
+    }[]
   >([]);
   const [addOpen, setAddOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{
     open: boolean;
     id?: string;
   }>({ open: false });
+  // Currency state
+  const [currentRate, setCurrentRate] = useState<number | null>(null);
+  const [rateUpdatedAt, setRateUpdatedAt] = useState<string | null>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [loadingRate, setLoadingRate] = useState(false);
+  const [newRate, setNewRate] = useState("");
+  const [rateDialogOpen, setRateDialogOpen] = useState(false);
   const { dir } = useLanguage();
 
   const isAdmin = user?.role === "admin";
@@ -60,7 +84,7 @@ export function Settings() {
     try {
       const res = await userService.getAll(1, 100);
       setUsers(res.users as any);
-      console.log(users)
+      console.log(users);
     } catch (e: any) {
       toast({
         title: t("error"),
@@ -74,6 +98,63 @@ export function Settings() {
     loadUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  useEffect(() => {
+    loadUsers();
+    if (isAdmin) {
+      fetchCurrencyData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchCurrencyData = async () => {
+    try {
+      setLoadingRate(true);
+      const rate = await currencyService.getCurrent();
+      setCurrentRate(rate.rate);
+      setRateUpdatedAt(rate.updatedAt || rate.createdAt);
+      const hist = await currencyService.getHistory(15);
+      setHistory(hist);
+    } catch (e: any) {
+      toast({
+        title: t("error"),
+        description: e.message || String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingRate(false);
+    }
+  };
+
+  const handleSetRate = async () => {
+    if (!newRate) return;
+    const parsed = Number(newRate);
+    if (isNaN(parsed) || parsed <= 0) {
+      toast({
+        title: t("error"),
+        description: t("setRateError"),
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      setLoadingRate(true);
+      const updated = await currencyService.setRate(parsed);
+      toast({ title: t("setRateSuccess") });
+      setCurrentRate(updated.rate);
+      setRateUpdatedAt(updated.updatedAt || updated.createdAt);
+      setNewRate("");
+      fetchCurrencyData();
+      setRateDialogOpen(false);
+    } catch (e: any) {
+      toast({
+        title: t("error"),
+        description: t("setRateError"),
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingRate(false);
+    }
+  };
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -125,16 +206,16 @@ export function Settings() {
   };
 
   const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat("en", {
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  }).format(date);
-};
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("en", {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }).format(date);
+  };
 
   if (!isAdmin) {
     return (
@@ -164,11 +245,188 @@ export function Settings() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-6" dir={dir}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="users">{t("usersManagement")}</TabsTrigger>
           <TabsTrigger value="permissions">{t("permissionsTab")}</TabsTrigger>
           <TabsTrigger value="system">{t("systemTab")}</TabsTrigger>
+          <TabsTrigger value="currency">{t("currencyTab")}</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="currency" className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-4">
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5" /> {t("currencyTab")}
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchCurrencyData}
+                  disabled={loadingRate}
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 mr-1 ${
+                      loadingRate ? "animate-spin" : ""
+                    }`}
+                  />
+                  {t("refresh")}
+                </Button>
+                {isAdmin && (
+                  <Dialog
+                    open={rateDialogOpen}
+                    onOpenChange={setRateDialogOpen}
+                  >
+                    <DialogTrigger asChild>
+                      <Button
+                        className="bg-gradient-primary hover:opacity-90"
+                        size="sm"
+                      >
+                        {t("updateRate")}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>{t("updateRate")}</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={newRate}
+                          onChange={(e) => setNewRate(e.target.value)}
+                          placeholder={t("newRatePlaceholder") || ""}
+                        />
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              disabled={!newRate}
+                              className="bg-destructive hover:bg-destructive/90"
+                            >
+                              {t("confirmSetRate")}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {t("confirmSetRate")}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t("confirmSetRateDesc")}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>
+                                {t("cancelBtn")}
+                              </AlertDialogCancel>
+                              <AlertDialogAction onClick={handleSetRate}>
+                                {t("updateRate")}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="p-4 border rounded-lg bg-muted/40 flex flex-col">
+                  <span className="text-sm text-muted-foreground">
+                    {t("currentRate")}
+                  </span>
+                  <span className="text-2xl font-bold mt-1">
+                    {currentRate ? currentRate.toFixed(2) : "--"} {t("sdg")} / 1{" "}
+                    {t("usd")}
+                  </span>
+                </div>
+                <div className="p-4 border rounded-lg bg-muted/40 flex flex-col">
+                  <span className="text-sm text-muted-foreground">
+                    {t("lastUpdated")}
+                  </span>
+                  <span className="text-sm font-medium mt-1">
+                    {rateUpdatedAt ? formatDate(rateUpdatedAt) : "--"}
+                  </span>
+                </div>
+                <div className="p-4 border rounded-lg bg-muted/40 flex flex-col">
+                  <span className="text-sm text-muted-foreground">
+                    {t("rateHistory")}
+                  </span>
+                  <span className="text-sm font-medium mt-1">
+                    {history.length}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <History className="h-4 w-4" /> {t("rateHistory")}
+                </h3>
+                <div className="overflow-auto border rounded-lg">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="p-2 text-right font-medium">#</th>
+                        <th className="p-2 text-right font-medium">
+                          {t("rate")}
+                        </th>
+                        <th className="p-2 text-right font-medium">
+                          {t("validFrom")}
+                        </th>
+                        <th className="p-2 text-right font-medium">
+                          {t("lastUpdated")}
+                        </th>
+                        <th className="p-2 text-right font-medium">
+                          {t("status")}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {history.length === 0 && (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="p-4 text-center text-muted-foreground"
+                          >
+                            {t("noHistory")}
+                          </td>
+                        </tr>
+                      )}
+                      {history.map((r, idx) => (
+                        <tr key={r.id} className="border-t hover:bg-muted/30">
+                          <td className="p-2 align-middle">{idx + 1}</td>
+                          <td className="p-2 align-middle font-medium">
+                            {Number(r.rate).toFixed(2)}
+                          </td>
+                          <td className="p-2 align-middle">
+                            {formatDate(r.validFrom)}
+                          </td>
+                          <td className="p-2 align-middle">
+                            {formatDate(r.updatedAt || r.createdAt)}
+                          </td>
+                          <td className="p-2 align-middle">
+                            {r.isActive ? (
+                              <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700">
+                                {t("active")}
+                              </span>
+                            ) : (
+                              <span className="px-2 py-1 text-xs rounded bg-gray-100 text-gray-600">
+                                {t("inactive")}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="users" className="space-y-6">
           <Card>
@@ -240,9 +498,9 @@ export function Settings() {
                           {user.email}
                         </p>
                         <p className="text-sm text-muted-foreground flex">
-                          
-                          {user.lastLoginAt ? formatDate(user.lastLoginAt) : t("neverLoggedIn")}
-                          
+                          {user.lastLoginAt
+                            ? formatDate(user.lastLoginAt)
+                            : t("neverLoggedIn")}
                         </p>
                       </div>
                     </div>

@@ -7,11 +7,13 @@ import {
   Receipt,
   DollarSign,
   Calendar,
-  Building,
   Eye,
-  Loader2,
-  RefreshCw,
   ExternalLink,
+  Pencil,
+  Trash2,
+  ListChecks,
+  BarChart2,
+  AlertTriangle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Loading from "@/components/common/Loading";
@@ -57,7 +59,15 @@ import {
   ExpenseSubmissionData,
 } from "@/components/forms/ExpenseForm";
 import i18n from "@/lib/i18n";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 // Expense categories that match the API categories, labels are localized via i18n
 const expenseCategories: { value: ExpenseCategory; label: string }[] = [
@@ -120,6 +130,7 @@ export function Expenses() {
   const [totalPages, setTotalPages] = useState(1);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [operation, setOperation] = useState("");
+  const isArabic = i18n.language === "ar";
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   // Debounce search query to avoid excessive API calls
@@ -267,24 +278,11 @@ export function Expenses() {
 
   // Use centralized helpers for numbers/currency
 
-  const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
-      "Fixed Assets": "bg-green-100 text-green-800",
-      "Part-time Professors": "bg-blue-100 text-blue-800",
-      "Rent of study and administrative premises":
-        "bg-orange-100 text-orange-800",
-      Salaries: "bg-purple-100 text-purple-800",
-      "Student Fees Refund": "bg-yellow-100 text-yellow-800",
-      Advances: "bg-indigo-100 text-indigo-800",
-      Bonuses: "bg-pink-100 text-pink-800",
-      "General and Administrative Expenses": "bg-red-100 text-red-800",
-      "Library Supplies": "bg-cyan-100 text-cyan-800",
-      "Lab Consumables": "bg-teal-100 text-teal-800",
-      "Student Training": "bg-lime-100 text-lime-800",
-      "Saudi-Egyptian Company": "bg-amber-100 text-amber-800",
-    };
-    return colors[category] || "bg-gray-100 text-gray-800";
-  };
+  const categoryBadge = (category: string) => (
+    <Badge variant="outline" className="font-normal">
+      {getCategoryLabel(category)}
+    </Badge>
+  );
 
   const getCategoryLabel = (category: string) => {
     const key = categoryKeyMap[category as ExpenseCategory];
@@ -306,164 +304,170 @@ export function Expenses() {
 
   return (
     <div className="space-y-6">
-      {/* Header Stats */}
+      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
+        {/* Daily Total (EGP & USD) with original simple icon style */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {t("todayExpensesTotal")}
                 </p>
-                <p className="text-2xl font-bold text-destructive">
-                  {statistics?.daily.totalAmount
-                    ? `${formatCurrency(statistics.daily.totalAmount)} ${t(
-                        "sdg"
-                      )}`
-                    : `0 ${t("sdg")}`}
+                <p className="text-lg font-bold text-destructive">
+                  {formatCurrency(statistics?.daily.totalAmount ?? 0)}{" "}
+                  {t("sdg")}
+                </p>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                  {formatCurrency(
+                    (statistics?.daily as any)?.totalAmountUSD ?? 0
+                  )}{" "}
+                  {t("usd")}
                 </p>
               </div>
               <DollarSign className="h-8 w-8 text-destructive" />
             </div>
           </CardContent>
         </Card>
-
+        {/* Operations Count aligned like first card */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {t("expensesCount")}
                 </p>
-                <p className="text-2xl font-bold text-foreground">
-                  {statistics?.daily.operationsCount || 0}
+                <p className="text-lg font-bold text-foreground">
+                  {statistics?.daily.operationsCount ?? 0}
                 </p>
               </div>
-              <Receipt className="h-8 w-8 text-primary" />
+              <ListChecks className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
-
+        {/* Average Daily Expenditure aligned like first card */}
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {t("averageExpense")}
                 </p>
-                <p className="text-2xl font-bold text-foreground">
-                  {statistics?.monthly.averageDailyExpenditure
-                    ? `${formatCurrency(
-                        statistics.monthly.averageDailyExpenditure
-                      )} ${t("sdg")}`
-                    : `0 ${t("sdg")}`}
+                <p className="text-lg font-bold text-foreground">
+                  {formatCurrency(
+                    statistics?.monthly.averageDailyExpenditure ?? 0
+                  )}{" "}
+                  {t("sdg")}
+                </p>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                  {formatCurrency(
+                    (statistics?.monthly as any)?.averageDailyExpenditureUSD ??
+                      0
+                  )}{" "}
+                  {t("usd")}
                 </p>
               </div>
-              <Calendar className="h-8 w-8 text-secondary" />
+              <BarChart2 className="h-8 w-8 text-secondary" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-1 gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder={t("search")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+      {/* Filters & Add */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-1 gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder={t("search")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder={t("filter")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("allCategories")}</SelectItem>
+                  {expenseCategories.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {t(c.label)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {canEdit && (
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    className="bg-gradient-primary hover:opacity-90"
+                    onClick={() => {
+                      setEditingExpense(null);
+                      setIsAddDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t("addExpense")}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingExpense ? t("editExpense") : t("addExpense")}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <ExpenseForm
+                    onSubmit={(data) =>
+                      editingExpense
+                        ? handleEditExpense(editingExpense.id, data)
+                        : handleAddExpense(data)
+                    }
+                    onCancel={() => {
+                      setIsAddDialogOpen(false);
+                      setEditingExpense(null);
+                    }}
+                    initialValues={
+                      editingExpense
+                        ? {
+                            description: editingExpense.description,
+                            category:
+                              editingExpense.category as ExpenseCategory,
+                            amount: String(editingExpense.amount),
+                            vendor: editingExpense.vendor,
+                            receiptUrl: editingExpense.receiptUrl,
+                            date: editingExpense.date.slice(0, 10),
+                          }
+                        : undefined
+                    }
+                    isEdit={Boolean(editingExpense)}
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
+            {!canEdit && (
+              <Badge variant="outline" className="text-muted-foreground">
+                <Eye className="mr-1 h-3 w-3" />
+                {t("viewOnly")}
+              </Badge>
+            )}
           </div>
+        </CardContent>
+      </Card>
 
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-48">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder={t("filter")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("allCategories")}</SelectItem>
-              {expenseCategories.map((category) => (
-                <SelectItem key={category.value} value={category.value}>
-                  {t(category.label)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw
-              className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-            />
-            {t("refresh")}
-          </Button>
-        </div>
-
-        {canEdit && (
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-primary hover:opacity-90">
-                <Plus className="h-4 w-4 mr-2" />
-                {t("addExpense")}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingExpense ? t("editExpense") : t("addExpense")}
-                </DialogTitle>
-              </DialogHeader>
-              <ExpenseForm
-                onSubmit={(data) =>
-                  editingExpense
-                    ? handleEditExpense(editingExpense.id, data)
-                    : handleAddExpense(data)
-                }
-                onCancel={() => {
-                  setIsAddDialogOpen(false);
-                  setEditingExpense(null);
-                }}
-                initialValues={
-                  editingExpense
-                    ? {
-                        description: editingExpense.description,
-                        category: editingExpense.category as ExpenseCategory,
-                        amount: String(editingExpense.amount),
-                        vendor: editingExpense.vendor,
-                        receiptUrl: editingExpense.receiptUrl,
-                        // Provide formatted date string (yyyy-MM-dd) to match form submission type
-                        date: editingExpense.date.slice(0, 10),
-                      }
-                    : undefined
-                }
-                isEdit={Boolean(editingExpense)}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
-
-        {!canEdit && (
-          <Badge variant="outline" className="text-muted-foreground">
-            <Eye className="mr-1 h-3 w-3" />
-            {t("viewOnly")}
-          </Badge>
-        )}
-      </div>
-
-      {/* Pagination */}
+      {/* Pagination above table (optional if many pages) */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>
             {t("pageOf", { current: currentPage, total: totalPages })}
-          </div>
+          </span>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -485,120 +489,173 @@ export function Expenses() {
         </div>
       )}
 
-      {/* Expenses List */}
+      {/* Expenses Table */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-primary" />
-            {t("expenseRecords")}
-            {operation && (
-              <Badge variant="outline" className="ml-auto">
-                {operation}
-              </Badge>
-            )}
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>
+            {t("expenseRecords")} ({operation})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {expenses.map((expense) => (
-              <div
-                key={expense.id}
-                className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-medium text-sm">
-                      {expense.description}
-                    </h3>
-                    <Badge className={getCategoryColor(expense.category)}>
-                      {getCategoryLabel(expense.category)}
-                    </Badge>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Building className="h-3 w-3" />
-                      {expense.vendor || t("noData")}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
+          <div className="overflow-auto">
+            <Table>
+              <TableHeader className={isArabic ? "text-right" : "text-left"}>
+                <TableRow>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("description")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("category")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("vendor")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("amount")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("appliedRate")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("amountUSD")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("date")}
+                  </TableHead>
+                  <TableHead className={isArabic ? "text-right" : "text-left"}>
+                    {t("employee")}
+                  </TableHead>
+                  <TableHead className="text-center">{t("actions")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {expenses.map((expense) => (
+                  <TableRow key={expense.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex flex-col gap-1">
+                        <span>{expense.description || t("noData")}</span>
+                        {expense.receiptUrl && (
+                          <a
+                            href={expense.receiptUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary inline-flex items-center gap-1 hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3" />{" "}
+                            {t("viewReceipt")}
+                          </a>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{categoryBadge(expense.category)}</TableCell>
+                    <TableCell className="text-sm">
+                      {expense.vendor || "-"}
+                    </TableCell>
+                    <TableCell className="font-bold text-destructive">
+                      {formatCurrency(expense.amount)} {t("sdg")}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {expense.usdAppliedRate !== undefined &&
+                      expense.usdAppliedRate !== null
+                        ? Number(expense.usdAppliedRate).toFixed(2)
+                        : "-"}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {expense.amountUSD !== undefined &&
+                      expense.amountUSD !== null
+                        ? `${formatCurrency(expense.amountUSD)} ${t("usd")}`
+                        : "-"}
+                    </TableCell>
+                    <TableCell className="text-sm">
                       {formatDate(expense.date)}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                    {expense.receiptUrl && (
-                      <a
-                        href={expense.receiptUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-primary hover:underline"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        {t("viewReceipt")}
-                      </a>
-                    )}
-                    <span>•</span>
-                    <span>{expense.creator.username}</span>
-                  </div>
-                </div>
-                <div className="text-left">
-                  <p className="text-lg font-bold text-destructive">
-                    -{formatCurrency(expense.amount)} {t("sdg")}
-                  </p>
-                  {canEdit && (
-                    <div className="flex gap-2 justify-end mt-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-warning"
-                        onClick={() => {
-                          setEditingExpense(expense);
-                          setIsAddDialogOpen(true);
-                        }}
-                      >
-                        {t("edit")}
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {expense.creator.username}
+                    </TableCell>
+                    <TableCell>
+                      {canEdit ? (
+                        <div className="flex items-center gap-2 justify-center">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-destructive"
+                            className="text-warning"
+                            onClick={() => {
+                              setEditingExpense(expense);
+                              setIsAddDialogOpen(true);
+                            }}
+                            title={t("edit") || ""}
                           >
-                            {t("delete")}
+                            <Pencil className="h-4 w-4" />
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              {t("confirmDeleteTitle")}
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              {t("confirmDeleteDescription")}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>
-                              {t("cancelBtn")}
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => confirmDeleteExpense(expense.id)}
-                            >
-                              {t("delete")}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {expenses.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                {t("noData")}
-              </div>
-            )}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive"
+                                title={t("delete") || ""}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="sm:max-w-[430px] p-6 bg-background border border-destructive/20 shadow-lg">
+                              <div className="flex items-start gap-4">
+                                <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center shrink-0">
+                                  <AlertTriangle className="h-7 w-7 text-destructive" />
+                                </div>
+                                <div className="space-y-3 w-full">
+                                  <AlertDialogHeader className="space-y-2 p-0">
+                                    <AlertDialogTitle className="text-xl font-bold text-destructive">
+                                      {t("confirmDeleteTitle")}
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription className="text-muted-foreground leading-relaxed text-sm">
+                                      {t("confirmDeleteDescription")}
+                                      <span className="block mt-3 text-foreground font-medium text-xs sm:text-sm">
+                                        {t("amount")}:{" "}
+                                        {formatCurrency(expense.amount)}{" "}
+                                        {t("sdg")} — {t("description")}:{" "}
+                                        {expense.description || t("noData")}
+                                      </span>
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter className="pt-1 flex sm:justify-end gap-2">
+                                    <AlertDialogCancel className="mt-0">
+                                      {t("cancelBtn")}
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      className="bg-destructive hover:bg-destructive/90 focus-visible:ring-destructive"
+                                      onClick={() =>
+                                        confirmDeleteExpense(expense.id)
+                                      }
+                                    >
+                                      {t("delete")}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </div>
+                              </div>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">
+                          {t("viewOnly")}
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {expenses.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={9}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      {t("noData")}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>

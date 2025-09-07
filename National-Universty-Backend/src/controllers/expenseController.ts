@@ -7,6 +7,7 @@ import redis, {
 } from "../utils/redis";
 import AppError from "../utils/AppError";
 import { httpStatusText } from "../utils/httpStatusText";
+import { convertToUSD, getLatestRate } from "../utils/currencyUtils";
 
 // Define allowed categories as a TypeScript Union Type
 type ExpenseCategory =
@@ -166,7 +167,19 @@ const getAllExpenses = asyncWrapper(
         orderBy: {
           date: "desc",
         },
-        include: {
+        select: {
+          id: true,
+          amount: true,
+          currency: true,
+          amountUSD: true,
+          usdAppliedRate: true,
+          description: true,
+          category: true,
+          vendor: true,
+          receiptUrl: true,
+          date: true,
+          createdAt: true,
+          updatedAt: true,
           creator: {
             select: {
               id: true,
@@ -218,6 +231,7 @@ const getAllExpenses = asyncWrapper(
         },
         _sum: {
           amount: true,
+          amountUSD: true,
         },
         _count: {
           id: true,
@@ -234,6 +248,7 @@ const getAllExpenses = asyncWrapper(
         },
         _sum: {
           amount: true,
+          amountUSD: true,
         },
         _count: {
           id: true,
@@ -251,6 +266,7 @@ const getAllExpenses = asyncWrapper(
       const statistics = {
         daily: {
           totalAmount: Number(dailyExpensesQuery._sum.amount || 0),
+          totalAmountUSD: Number(dailyExpensesQuery._sum.amountUSD || 0),
           operationsCount: dailyExpensesQuery._count.id || 0,
           date: today.toISOString().split("T")[0], // Today's date in YYYY-MM-DD format
         },
@@ -258,6 +274,15 @@ const getAllExpenses = asyncWrapper(
           totalAmount: Number(totalMonthlyAmount),
           operationsCount: monthlyExpensesQuery._count.id || 0,
           averageDailyExpenditure: Number(averageDailyExpenditure.toFixed(2)),
+          averageDailyExpenditureUSD:
+            (monthlyExpensesQuery._count.id || 0) > 0
+              ? Number(
+                  (
+                    Number(monthlyExpensesQuery._sum.amountUSD || 0) /
+                    daysInMonth
+                  ).toFixed(2)
+                )
+              : 0,
           month: `${today.getFullYear()}-${String(
             today.getMonth() + 1
           ).padStart(2, "0")}`,
@@ -346,8 +371,22 @@ const searchExpenses = asyncWrapper(
         skip,
         take: limit,
         orderBy: { date: "desc" },
-        include: {
-          creator: { select: { id: true, username: true, email: true } },
+        select: {
+          id: true,
+          amount: true,
+          currency: true,
+          amountUSD: true,
+          usdAppliedRate: true,
+          description: true,
+          category: true,
+          vendor: true,
+          receiptUrl: true,
+          date: true,
+          createdAt: true,
+          updatedAt: true,
+          creator: {
+            select: { id: true, username: true, email: true },
+          },
         },
       }),
       prisma.expense.count({ where }),
@@ -382,7 +421,19 @@ const getExpenseById = asyncWrapper(
 
     const expense = await prisma.expense.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        amount: true,
+        currency: true,
+        amountUSD: true,
+        usdAppliedRate: true,
+        description: true,
+        category: true,
+        vendor: true,
+        receiptUrl: true,
+        date: true,
+        createdAt: true,
+        updatedAt: true,
         creator: {
           select: {
             id: true,
@@ -423,9 +474,16 @@ const createExpense = asyncWrapper(
     }: CreateExpenseBody = req.body;
     const userId = (req as any).currentUser.id;
 
+    // Convert amount to USD
+    const numericAmount = parseFloat(amount);
+    const { amountUSD, usdAppliedRate } = await convertToUSD(numericAmount);
+
     const expense = await prisma.expense.create({
       data: {
-        amount: parseFloat(amount),
+        amount: numericAmount,
+        currency: "EGP",
+        amountUSD,
+        usdAppliedRate,
         description,
         category,
         vendor: vendor || null,
@@ -512,7 +570,25 @@ const updateExpense = asyncWrapper(
 
     // Build update data object
     const updateData: any = {};
-    if (amount !== undefined) updateData.amount = parseFloat(amount);
+    if (amount !== undefined) {
+      const numericAmount = parseFloat(amount);
+      updateData.amount = numericAmount;
+      // Keep historical rate if already stored
+      let appliedRate = existingExpense.usdAppliedRate
+        ? Number(existingExpense.usdAppliedRate)
+        : null;
+      if (!appliedRate) {
+        const latestRateRecord = await getLatestRate();
+        appliedRate = latestRateRecord ? Number(latestRateRecord.rate) : null;
+      }
+      if (appliedRate) {
+        updateData.usdAppliedRate = appliedRate;
+        updateData.amountUSD = Number((numericAmount / appliedRate).toFixed(2));
+      } else {
+        updateData.usdAppliedRate = null;
+        updateData.amountUSD = null;
+      }
+    }
     if (description !== undefined) updateData.description = description;
     if (category !== undefined) updateData.category = category;
     if (vendor !== undefined) updateData.vendor = vendor || null;

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Invoice #INV-2025-001 - Node Company for Software Solution</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      :root {
+        --primary: #0d47a1;
+        --primary-accent: #1976d2;
+        --bg: #f5f7fa;
+        --line: #e2e8f0;
+        --danger: #d32f2f;
+        --success: #2e7d32;
+        --gray-700: #334155;
+        --gray-500: #64748b;
+        --radius: 10px;
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont,
+          "Cairo", "Noto Sans", Arial, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: #111;
+        padding: 32px 20px;
+      }
+      .invoice-wrapper {
+        max-width: 960px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: center;
+        padding: 32px 40px 24px;
+        background: linear-gradient(
+          135deg,
+          var(--primary),
+          var(--primary-accent)
+        );
+        color: #fff;
+        position: relative;
+      }
+      header:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at 85% 15%,
+          rgba(255, 255, 255, 0.18),
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+      .brand {
+        flex: 1 1 300px;
+      }
+      .brand h1 {
+        margin: 0 0 6px;
+        font-size: 26px;
+        letter-spacing: 0.5px;
+      }
+      .brand .tagline {
+        font-size: 13px;
+        font-weight: 500;
+        opacity: 0.9;
+        letter-spacing: 0.5px;
+      }
+      .invoice-meta {
+        text-align: right;
+        flex: 1 1 220px;
+        font-size: 13px;
+      }
+      .invoice-meta h2 {
+        margin: 0 0 8px;
+        font-size: 18px;
+        letter-spacing: 1px;
+      }
+      .invoice-meta table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .invoice-meta td {
+        padding: 2px 0;
+      }
+      section {
+        padding: 28px 40px;
+      }
+      h3.section-title {
+        margin: 0 0 12px;
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.75px;
+        color: var(--gray-700);
+      }
+      .parties {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 32px;
+        margin-bottom: 24px;
+      }
+      .party {
+        flex: 1 1 300px;
+        background: #f1f5f9;
+        padding: 18px 20px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        position: relative;
+      }
+      .party h4 {
+        margin: 0 0 10px;
+        font-size: 14px;
+        letter-spacing: 0.5px;
+        color: var(--primary);
+      }
+      .party address {
+        font-style: normal;
+        line-height: 1.5;
+        font-size: 13px;
+        color: var(--gray-700);
+      }
+      .party .label {
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--gray-500);
+        display: block;
+        margin-bottom: 4px;
+      }
+      table.line-items {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+        font-size: 14px;
+      }
+      table.line-items thead th {
+        background: #0f172a;
+        color: #fff;
+        text-align: left;
+        padding: 12px 14px;
+        font-size: 12px;
+        letter-spacing: 0.75px;
+        font-weight: 600;
+        text-transform: uppercase;
+        border-top: 1px solid #0f172a;
+      }
+      table.line-items tbody td {
+        padding: 14px;
+        vertical-align: top;
+        border-bottom: 1px solid var(--line);
+      }
+      table.line-items tbody tr:last-child td {
+        border-bottom: 1px solid #0f172a33;
+      }
+      table.line-items td.desc {
+        width: 50%;
+      }
+      table.line-items td.amount,
+      table.line-items th.amount {
+        text-align: right;
+        white-space: nowrap;
+      }
+      .pill {
+        display: inline-block;
+        padding: 2px 10px 3px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        background: #e0f2fe;
+        color: #0369a1;
+        margin-right: 6px;
+      }
+      .totals {
+        width: 100%;
+        max-width: 420px;
+        margin-left: auto;
+        margin-top: 30px;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      .totals td {
+        padding: 6px 0;
+      }
+      .totals td.label {
+        color: var(--gray-700);
+      }
+      .totals tr.subtotal td {
+        border-top: 1px solid var(--line);
+      }
+      .totals tr.grand-total td {
+        border-top: 2px solid #0f172a;
+        font-weight: 700;
+        font-size: 16px;
+        padding-top: 10px;
+      }
+      .badge-new {
+        background: #e3fcef;
+        color: #1b7f38;
+      }
+      .notes {
+        margin-top: 36px;
+        background: #f8fafc;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px 22px;
+        font-size: 13px;
+        line-height: 1.55;
+        color: var(--gray-700);
+      }
+      .notes h4 {
+        margin: 0 0 10px;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--primary);
+      }
+      footer {
+        padding: 20px 40px 32px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--gray-500);
+        background: #fff;
+      }
+      .watermark {
+        position: absolute;
+        top: 12px;
+        right: 16px;
+        font-size: 48px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.08);
+        letter-spacing: 3px;
+        pointer-events: none;
+      }
+      @media print {
+        body {
+          background: #fff;
+          padding: 0;
+        }
+        .invoice-wrapper {
+          box-shadow: none;
+          border: 0;
+        }
+        header {
+          border-radius: 0;
+        }
+        .notes {
+          page-break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="invoice-wrapper">
+      <header>
+        <div class="brand">
+          <h1>Node Company for Software Solution</h1>
+          <div class="tagline">
+            Custom Software Development • Web Platforms • FinTech Solutions
+          </div>
+        </div>
+        <div class="invoice-meta">
+          <h2>INVOICE</h2>
+          <table>
+            <tr>
+              <td><strong>No:</strong></td>
+              <td>INV-2025-0025</td>
+            </tr>
+            <tr>
+              <td><strong>Date:</strong></td>
+              <td>
+                <script>
+                  document.write(new Date().toLocaleDateString());
+                </script>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Due:</strong></td>
+              <td>Net 7 Days</td>
+            </tr>
+            <tr>
+              <td><strong>Currency:</strong></td>
+              <td>USD</td>
+            </tr>
+          </table>
+        </div>
+        <div class="watermark">INVOICE</div>
+      </header>
+
+      <section>
+        <div class="parties">
+          <div class="party">
+            <span class="label">Bill From</span>
+            <h4>Fares Osama</h4>
+            <address>
+              7 Mahmoud Ghonime, Nasr City<br />
+              Cairo, Egypt<br />
+              Email:
+              <a href="mailto:faresosama002@gmail.com"
+                >faresosama002@gmail.com</a
+              ><br />
+              Phone / WhatsApp: +20 155 763 6517
+            </address>
+          </div>
+          <div class="party">
+            <span class="label">Bill To</span>
+            <h4>National University</h4>
+            <address>
+              Egypt, Cairo<br />
+              Attn: Finance / Administration Department
+            </address>
+          </div>
+        </div>
+
+        <h3 class="section-title">Scope & Line Items</h3>
+        <table class="line-items">
+          <thead>
+            <tr>
+              <th style="width: 42%">Description</th>
+              <th style="width: 16%">Category</th>
+              <th style="width: 17%">Details / Deliverables</th>
+              <th class="amount" style="width: 15%">Amount (USD)</th>
+              <th class="amount" style="width: 10%">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="desc">
+                <strong>UI/UX & Frontend Development</strong><br />
+                Complete interface architecture, responsive views, design
+                system, component abstraction, accessibility, and performance
+                optimization.
+              </td>
+              <td>
+                <span class="pill">Frontend</span>
+                <span class="pill">UX</span>
+              </td>
+              <td>
+                All application screens implemented, layout engine, reusable UI
+                kit, theming, dashboard, reporting pages, forms, validation, PDF
+                triggers.
+              </td>
+              <td class="amount">$1,500.00</td>
+              <td class="amount">$1,500.00</td>
+            </tr>
+            <tr>
+              <td class="desc">
+                <strong>Backend Development & Testing</strong><br />
+                Node.js (Express + TypeScript) API, Prisma data layer,
+                authentication & authorization, reporting engine, PDF
+                generation, caching & performance.
+              </td>
+              <td>
+                <span class="pill">Backend</span>
+                <span class="pill">API</span>
+              </td>
+              <td>
+                Secure auth, role management, financial reports
+                (daily/monthly/yearly/dashboard), PDF exports, validation,
+                automated tests, database migrations.
+              </td>
+              <td class="amount">$2,000.00</td>
+              <td class="amount">$2,000.00</td>
+            </tr>
+            <tr>
+              <td class="desc">
+                <strong>Post-Delivery Enhancements</strong><br />
+                Change requests after initial delivery: historical FX rate
+                control, USD calculation pipeline (amountUSD, appliedRate
+                preservation), enhanced PDF columns & dual-currency summaries.
+              </td>
+              <td>
+                <span class="pill">Enhancement</span>
+                <span class="pill">Support</span>
+              </td>
+              <td>
+                Currency rate administration module, immutable rate logic,
+                dashboard & reports USD totals, extended PDF templates, summary
+                USD metrics.
+              </td>
+              <td class="amount">$300.00</td>
+              <td class="amount">$300.00</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <table class="totals">
+          <tr>
+            <td class="label">Subtotal</td>
+            <td class="amount" style="text-align: right">$3,800.00</td>
+          </tr>
+          <tr>
+            <td class="label">Discount</td>
+            <td class="amount" style="text-align: right">$0.00</td>
+          </tr>
+          <tr>
+            <td class="label">Tax (0%)</td>
+            <td class="amount" style="text-align: right">$0.00</td>
+          </tr>
+          <tr class="grand-total">
+            <td class="label">Total Due</td>
+            <td class="amount" style="text-align: right">$3,800.00</td>
+          </tr>
+        </table>
+
+        <div class="notes">
+          <h4>Notes & Payment Terms</h4>
+          <ul style="margin: 6px 0 12px 18px; padding: 0">
+            <li>
+              Payment due within 7 calendar days of invoice date unless
+              otherwise agreed.
+            </li>
+            <li>
+              Bank transfer or approved digital payment channels accepted (USD).
+            </li>
+            <li>
+              Scope covers completed features & documented enhancements listed
+              above.
+            </li>
+            <li>Further change requests will be estimated separately.</li>
+            <li>
+              Source code, migrations, and deployment guidance included here
+            </li>
+          </ul>
+        </div>
+      </section>
+      <footer>
+        Thank you for your business – engineered with quality & scalability in
+        mind.<br />
+        Node Company for Software Solution ©
+        <script>
+          document.write(new Date().getFullYear());
+        </script>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -6,25 +6,31 @@ export interface DashboardData {
     currentMonth: {
       payments: {
         total: number;
+        totalUSD?: number;
         count: number;
       };
       expenses: {
         total: number;
+        totalUSD?: number;
         count: number;
       };
       netProfit: number;
+      netProfitUSD?: number;
       totalTransactions: number;
     };
     previousMonth: {
       payments: {
         total: number;
+        totalUSD?: number;
         count: number;
       };
       expenses: {
         total: number;
+        totalUSD?: number;
         count: number;
       };
       netProfit: number;
+      netProfitUSD?: number;
     };
     comparison: {
       paymentChange: number;

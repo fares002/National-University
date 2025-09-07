@@ -60,6 +60,9 @@ studentId      String
 studentName    String
 feeType        FeeType
 amount         Decimal  @db.Decimal(15, 2)
+currency       String   @default("EGP")
+amountUSD      Decimal? @db.Decimal(15, 2)
+usdAppliedRate    Decimal? @db.Decimal(10, 6)
 receiptNumber  String   @unique
 paymentMethod  PaymentMethod
 paymentDate    DateTime
@@ -92,6 +95,9 @@ updatedAt      DateTime @updatedAt
 model Expense {
 id          String   @id @default(cuid()) 
 amount      Decimal  @db.Decimal(15, 2)
+currency    String   @default("EGP")
+amountUSD   Decimal? @db.Decimal(15, 2)
+usdAppliedRate Decimal? @db.Decimal(10, 6)
 description String   @db.Text
 category    String   @db.VarChar(100)
 vendor      String?  @db.VarChar(255)
@@ -116,4 +122,16 @@ creator User @relation(fields: [createdBy], references: [id])
 @@map("expenses")
 }
 
+model CurrencyRate {
+id        String   @id @default(cuid()) 
+currency  String   @default("USD")
+rate      Decimal  @db.Decimal(10, 6)
+validFrom DateTime @default(now())
+isActive  Boolean  @default(true)
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 
+@@index([currency, isActive])
+@@index([validFrom])
+@@map("currency_rates")
+}

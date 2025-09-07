@@ -11,17 +11,20 @@ interface DailyReportData {
   date: string;
   payments: {
     total: number;
+    totalUSD: number;
     count: number;
     byFeeType: Record<string, { count: number; total: number }>;
     byPaymentMethod: Record<string, { count: number; total: number }>;
   };
   expenses: {
     total: number;
+    totalUSD: number;
     count: number;
     byCategory: Record<string, { count: number; total: number }>;
     topVendors: Array<{ vendor: string; total: number; count: number }>;
   };
   netIncome: number;
+  netIncomeUSD: number;
 }
 
 interface MonthlyReportData {
@@ -30,6 +33,7 @@ interface MonthlyReportData {
   monthName: string;
   payments: {
     total: number;
+    totalUSD: number;
     count: number;
     byFeeType: Record<string, { count: number; total: number }>;
     byPaymentMethod: Record<string, { count: number; total: number }>;
@@ -41,6 +45,7 @@ interface MonthlyReportData {
   };
   expenses: {
     total: number;
+    totalUSD: number;
     count: number;
     byCategory: Record<string, { count: number; total: number }>;
     topVendors: Array<{ vendor: string; total: number; count: number }>;
@@ -51,6 +56,7 @@ interface MonthlyReportData {
     }>;
   };
   netIncome: number;
+  netIncomeUSD: number;
   comparison: {
     previousMonth: {
       paymentsChange: number;
@@ -87,6 +93,8 @@ const getDailyReport = asyncWrapper(
         },
         select: {
           amount: true,
+          amountUSD: true,
+          usdAppliedRate: true,
           feeType: true,
           paymentMethod: true,
           studentName: true,
@@ -104,6 +112,8 @@ const getDailyReport = asyncWrapper(
         },
         select: {
           amount: true,
+          amountUSD: true,
+          usdAppliedRate: true,
           category: true,
           vendor: true,
           description: true,
@@ -113,6 +123,10 @@ const getDailyReport = asyncWrapper(
       // Calculate payment statistics
       const paymentTotal = payments.reduce(
         (sum, p) => sum + Number(p.amount),
+        0
+      );
+      const paymentTotalUSD = payments.reduce(
+        (sum, p) => sum + (p.amountUSD ? Number(p.amountUSD) : 0),
         0
       );
       const paymentsByFeeType: Record<
@@ -141,6 +155,10 @@ const getDailyReport = asyncWrapper(
       // Calculate expense statistics
       const expenseTotal = expenses.reduce(
         (sum, e) => sum + Number(e.amount),
+        0
+      );
+      const expenseTotalUSD = expenses.reduce(
+        (sum, e) => sum + (e.amountUSD ? Number(e.amountUSD) : 0),
         0
       );
       const expensesByCategory: Record<
@@ -175,22 +193,26 @@ const getDailyReport = asyncWrapper(
 
       // Calculate net income
       const netIncome = paymentTotal - expenseTotal;
+      const netIncomeUSD = paymentTotalUSD - expenseTotalUSD;
 
       const reportData: DailyReportData = {
         date: targetDate.toISOString().split("T")[0],
         payments: {
           total: paymentTotal,
+          totalUSD: Number(paymentTotalUSD.toFixed(2)),
           count: payments.length,
           byFeeType: paymentsByFeeType,
           byPaymentMethod: paymentsByMethod,
         },
         expenses: {
           total: expenseTotal,
+          totalUSD: Number(expenseTotalUSD.toFixed(2)),
           count: expenses.length,
           byCategory: expensesByCategory,
           topVendors,
         },
         netIncome,
+        netIncomeUSD: Number(netIncomeUSD.toFixed(2)),
       };
 
       return res.status(200).json({
@@ -248,6 +270,8 @@ const getMonthlyReport = asyncWrapper(
             },
             select: {
               amount: true,
+              amountUSD: true,
+              usdAppliedRate: true,
               feeType: true,
               paymentMethod: true,
               paymentDate: true,
@@ -262,6 +286,8 @@ const getMonthlyReport = asyncWrapper(
             },
             select: {
               amount: true,
+              amountUSD: true,
+              usdAppliedRate: true,
               category: true,
               vendor: true,
               date: true,
@@ -292,11 +318,20 @@ const getMonthlyReport = asyncWrapper(
         (sum, p) => sum + Number(p.amount),
         0
       );
+      const paymentTotalUSD = payments.reduce(
+        (sum, p) => sum + (p.amountUSD ? Number(p.amountUSD) : 0),
+        0
+      );
       const expenseTotal = expenses.reduce(
         (sum, e) => sum + Number(e.amount),
         0
       );
+      const expenseTotalUSD = expenses.reduce(
+        (sum, e) => sum + (e.amountUSD ? Number(e.amountUSD) : 0),
+        0
+      );
       const netIncome = paymentTotal - expenseTotal;
+      const netIncomeUSD = paymentTotalUSD - expenseTotalUSD;
 
       // Calculate previous month totals for comparison
       const previousPaymentTotal = previousPayments.reduce(
@@ -424,6 +459,7 @@ const getMonthlyReport = asyncWrapper(
         monthName: monthNames[targetMonth - 1],
         payments: {
           total: paymentTotal,
+          totalUSD: Number(paymentTotalUSD.toFixed(2)),
           count: payments.length,
           byFeeType: paymentsByFeeType,
           byPaymentMethod: paymentsByMethod,
@@ -431,12 +467,14 @@ const getMonthlyReport = asyncWrapper(
         },
         expenses: {
           total: expenseTotal,
+          totalUSD: Number(expenseTotalUSD.toFixed(2)),
           count: expenses.length,
           byCategory: expensesByCategory,
           topVendors,
           dailyBreakdown: expensesDailyBreakdown,
         },
         netIncome,
+        netIncomeUSD: Number(netIncomeUSD.toFixed(2)),
         comparison: {
           previousMonth: {
             paymentsChange: Math.round(paymentsChange * 100) / 100,
@@ -489,6 +527,8 @@ const getYearlyReport = asyncWrapper(
             },
             select: {
               amount: true,
+              amountUSD: true,
+              usdAppliedRate: true,
               feeType: true,
               paymentMethod: true,
               paymentDate: true,
@@ -503,6 +543,8 @@ const getYearlyReport = asyncWrapper(
             },
             select: {
               amount: true,
+              amountUSD: true,
+              usdAppliedRate: true,
               category: true,
               vendor: true,
               date: true,
@@ -533,11 +575,20 @@ const getYearlyReport = asyncWrapper(
         (sum, p) => sum + Number(p.amount),
         0
       );
+      const paymentTotalUSD = payments.reduce(
+        (sum, p) => sum + (p.amountUSD ? Number(p.amountUSD) : 0),
+        0
+      );
       const expenseTotal = expenses.reduce(
         (sum, e) => sum + Number(e.amount),
         0
       );
+      const expenseTotalUSD = expenses.reduce(
+        (sum, e) => sum + (e.amountUSD ? Number(e.amountUSD) : 0),
+        0
+      );
       const netIncome = paymentTotal - expenseTotal;
+      const netIncomeUSD = paymentTotalUSD - expenseTotalUSD;
 
       const previousPaymentTotal = previousPayments.reduce(
         (sum, p) => sum + Number(p.amount),
@@ -658,17 +709,20 @@ const getYearlyReport = asyncWrapper(
         summary: {
           payments: {
             total: paymentTotal,
+            totalUSD: Number(paymentTotalUSD.toFixed(2)),
             count: payments.length,
             byFeeType: paymentsByFeeType,
             byPaymentMethod: paymentsByMethod,
           },
           expenses: {
             total: expenseTotal,
+            totalUSD: Number(expenseTotalUSD.toFixed(2)),
             count: expenses.length,
             byCategory: expensesByCategory,
             topVendors,
           },
           netIncome,
+          netIncomeUSD: Number(netIncomeUSD.toFixed(2)),
         },
         monthlyBreakdown,
         comparison: {
@@ -779,7 +833,12 @@ const getDashboardReport = asyncWrapper(
               lte: endOfCurrentMonth,
             },
           },
-          select: { amount: true, paymentDate: true },
+          select: {
+            amount: true,
+            amountUSD: true,
+            usdAppliedRate: true,
+            paymentDate: true,
+          },
         }),
         // Current month expenses
         prisma.expense.findMany({
@@ -789,7 +848,12 @@ const getDashboardReport = asyncWrapper(
               lte: endOfCurrentMonth,
             },
           },
-          select: { amount: true, date: true },
+          select: {
+            amount: true,
+            amountUSD: true,
+            usdAppliedRate: true,
+            date: true,
+          },
         }),
         // Previous month payments
         prisma.payment.findMany({
@@ -799,7 +863,7 @@ const getDashboardReport = asyncWrapper(
               lte: endOfPreviousMonth,
             },
           },
-          select: { amount: true },
+          select: { amount: true, amountUSD: true },
         }),
         // Previous month expenses
         prisma.expense.findMany({
@@ -809,7 +873,7 @@ const getDashboardReport = asyncWrapper(
               lte: endOfPreviousMonth,
             },
           },
-          select: { amount: true },
+          select: { amount: true, amountUSD: true },
         }),
         // Last payment (most recent)
         prisma.payment.findFirst({
@@ -862,20 +926,38 @@ const getDashboardReport = asyncWrapper(
         (sum, p) => sum + Number(p.amount),
         0
       );
+      const currentMonthPaymentTotalUSD = currentMonthPayments.reduce(
+        (sum, p) => sum + (p.amountUSD ? Number(p.amountUSD) : 0),
+        0
+      );
       const currentMonthExpenseTotal = currentMonthExpenses.reduce(
         (sum, e) => sum + Number(e.amount),
         0
       );
+      const currentMonthExpenseTotalUSD = currentMonthExpenses.reduce(
+        (sum, e) => sum + (e.amountUSD ? Number(e.amountUSD) : 0),
+        0
+      );
       const currentMonthNetProfit =
         currentMonthPaymentTotal - currentMonthExpenseTotal;
+      const currentMonthNetProfitUSD =
+        currentMonthPaymentTotalUSD - currentMonthExpenseTotalUSD;
 
       // Calculate previous month totals
       const previousMonthPaymentTotal = previousMonthPayments.reduce(
         (sum, p) => sum + Number(p.amount),
         0
       );
+      const previousMonthPaymentTotalUSD = previousMonthPayments.reduce(
+        (sum, p) => sum + (p.amountUSD ? Number(p.amountUSD) : 0),
+        0
+      );
       const previousMonthExpenseTotal = previousMonthExpenses.reduce(
         (sum, e) => sum + Number(e.amount),
+        0
+      );
+      const previousMonthExpenseTotalUSD = previousMonthExpenses.reduce(
+        (sum, e) => sum + (e.amountUSD ? Number(e.amountUSD) : 0),
         0
       );
 
@@ -971,26 +1053,36 @@ const getDashboardReport = asyncWrapper(
           currentMonth: {
             payments: {
               total: currentMonthPaymentTotal,
+              totalUSD: Number(currentMonthPaymentTotalUSD.toFixed(2)),
               count: currentMonthPayments.length,
             },
             expenses: {
               total: currentMonthExpenseTotal,
+              totalUSD: Number(currentMonthExpenseTotalUSD.toFixed(2)),
               count: currentMonthExpenses.length,
             },
             netProfit: currentMonthNetProfit,
+            netProfitUSD: Number(currentMonthNetProfitUSD.toFixed(2)),
             totalTransactions:
               currentMonthPayments.length + currentMonthExpenses.length,
           },
           previousMonth: {
             payments: {
               total: previousMonthPaymentTotal,
+              totalUSD: Number(previousMonthPaymentTotalUSD.toFixed(2)),
               count: previousMonthPayments.length,
             },
             expenses: {
               total: previousMonthExpenseTotal,
+              totalUSD: Number(previousMonthExpenseTotalUSD.toFixed(2)),
               count: previousMonthExpenses.length,
             },
             netProfit: previousMonthPaymentTotal - previousMonthExpenseTotal,
+            netProfitUSD: Number(
+              (
+                previousMonthPaymentTotalUSD - previousMonthExpenseTotalUSD
+              ).toFixed(2)
+            ),
           },
           comparison: {
             paymentChange: Math.round(paymentChange * 100) / 100,
@@ -1124,64 +1216,87 @@ const getFinancialSummary = asyncWrapper(
           where: {
             paymentDate: { gte: startOfThisMonth, lte: endOfThisMonth },
           },
-          select: { amount: true },
+          select: { amount: true, amountUSD: true },
         }),
         prisma.expense.findMany({
           where: { date: { gte: startOfThisMonth, lte: endOfThisMonth } },
-          select: { amount: true },
+          select: { amount: true, amountUSD: true },
         }),
         // This quarter
         prisma.payment.findMany({
           where: { paymentDate: { gte: startOfQuarter, lte: endOfQuarter } },
-          select: { amount: true },
+          select: { amount: true, amountUSD: true },
         }),
         prisma.expense.findMany({
           where: { date: { gte: startOfQuarter, lte: endOfQuarter } },
-          select: { amount: true },
+          select: { amount: true, amountUSD: true },
         }),
         // This year
         prisma.payment.findMany({
           where: { paymentDate: { gte: startOfYear, lte: endOfYear } },
-          select: { amount: true },
+          select: { amount: true, amountUSD: true },
         }),
         prisma.expense.findMany({
           where: { date: { gte: startOfYear, lte: endOfYear } },
-          select: { amount: true },
+          select: { amount: true, amountUSD: true },
         }),
       ]);
 
+      const calc = (arr: any[]) =>
+        arr.reduce((s, x) => s + Number(x.amount), 0);
+      const calcUSD = (arr: any[]) =>
+        arr.reduce((s, x) => s + (x.amountUSD ? Number(x.amountUSD) : 0), 0);
+
+      const monthPaymentsTotal = calc(monthPayments);
+      const monthPaymentsTotalUSD = calcUSD(monthPayments);
+      const monthExpensesTotal = calc(monthExpenses);
+      const monthExpensesTotalUSD = calcUSD(monthExpenses);
+
+      const quarterPaymentsTotal = calc(quarterPayments);
+      const quarterPaymentsTotalUSD = calcUSD(quarterPayments);
+      const quarterExpensesTotal = calc(quarterExpenses);
+      const quarterExpensesTotalUSD = calcUSD(quarterExpenses);
+
+      const yearPaymentsTotal = calc(yearPayments);
+      const yearPaymentsTotalUSD = calcUSD(yearPayments);
+      const yearExpensesTotal = calc(yearExpenses);
+      const yearExpensesTotalUSD = calcUSD(yearExpenses);
+
       const summary = {
         thisMonth: {
-          payments: monthPayments.reduce((sum, p) => sum + Number(p.amount), 0),
-          expenses: monthExpenses.reduce((sum, e) => sum + Number(e.amount), 0),
-          netIncome:
-            monthPayments.reduce((sum, p) => sum + Number(p.amount), 0) -
-            monthExpenses.reduce((sum, e) => sum + Number(e.amount), 0),
+          payments: monthPaymentsTotal,
+          paymentsUSD: Number(monthPaymentsTotalUSD.toFixed(2)),
+          expenses: monthExpensesTotal,
+          expensesUSD: Number(monthExpensesTotalUSD.toFixed(2)),
+          netIncome: monthPaymentsTotal - monthExpensesTotal,
+          netIncomeUSD: Number(
+            (monthPaymentsTotalUSD - monthExpensesTotalUSD).toFixed(2)
+          ),
           paymentsCount: monthPayments.length,
           expensesCount: monthExpenses.length,
         },
         thisQuarter: {
-          payments: quarterPayments.reduce(
-            (sum, p) => sum + Number(p.amount),
-            0
+          payments: quarterPaymentsTotal,
+          paymentsUSD: Number(quarterPaymentsTotalUSD.toFixed(2)),
+          expenses: quarterExpensesTotal,
+          expensesUSD: Number(quarterExpensesTotalUSD.toFixed(2)),
+          netIncome: quarterPaymentsTotal - quarterExpensesTotal,
+          netIncomeUSD: Number(
+            (quarterPaymentsTotalUSD - quarterExpensesTotalUSD).toFixed(2)
           ),
-          expenses: quarterExpenses.reduce(
-            (sum, e) => sum + Number(e.amount),
-            0
-          ),
-          netIncome:
-            quarterPayments.reduce((sum, p) => sum + Number(p.amount), 0) -
-            quarterExpenses.reduce((sum, e) => sum + Number(e.amount), 0),
           paymentsCount: quarterPayments.length,
           expensesCount: quarterExpenses.length,
           quarter: currentQuarter,
         },
         thisYear: {
-          payments: yearPayments.reduce((sum, p) => sum + Number(p.amount), 0),
-          expenses: yearExpenses.reduce((sum, e) => sum + Number(e.amount), 0),
-          netIncome:
-            yearPayments.reduce((sum, p) => sum + Number(p.amount), 0) -
-            yearExpenses.reduce((sum, e) => sum + Number(e.amount), 0),
+          payments: yearPaymentsTotal,
+          paymentsUSD: Number(yearPaymentsTotalUSD.toFixed(2)),
+          expenses: yearExpensesTotal,
+          expensesUSD: Number(yearExpensesTotalUSD.toFixed(2)),
+          netIncome: yearPaymentsTotal - yearExpensesTotal,
+          netIncomeUSD: Number(
+            (yearPaymentsTotalUSD - yearExpensesTotalUSD).toFixed(2)
+          ),
           paymentsCount: yearPayments.length,
           expensesCount: yearExpenses.length,
           year: currentYear,
@@ -1230,6 +1345,8 @@ const downloadDailyReportPDF = asyncWrapper(
           select: {
             id: true,
             amount: true,
+            amountUSD: true,
+            usdAppliedRate: true,
             feeType: true,
             paymentMethod: true,
             studentName: true,
@@ -1251,6 +1368,8 @@ const downloadDailyReportPDF = asyncWrapper(
           select: {
             id: true,
             amount: true,
+            amountUSD: true,
+            usdAppliedRate: true,
             category: true,
             vendor: true,
             description: true,
@@ -1267,11 +1386,20 @@ const downloadDailyReportPDF = asyncWrapper(
         (sum, p) => sum + Number(p.amount),
         0
       );
+      const totalPaymentsUSD = payments.reduce(
+        (sum, p) => sum + (p.amountUSD ? Number(p.amountUSD) : 0),
+        0
+      );
       const totalExpenses = expenses.reduce(
         (sum, e) => sum + Number(e.amount),
         0
       );
+      const totalExpensesUSD = expenses.reduce(
+        (sum, e) => sum + (e.amountUSD ? Number(e.amountUSD) : 0),
+        0
+      );
       const netIncome = totalPayments - totalExpenses;
+      const netIncomeUSD = totalPaymentsUSD - totalExpensesUSD;
 
       // Prepare report data
       const reportData: ReportData = {
@@ -1286,8 +1414,11 @@ const downloadDailyReportPDF = asyncWrapper(
         expenses,
         summary: {
           totalPayments,
+          totalPaymentsUSD: Number(totalPaymentsUSD.toFixed(2)),
           totalExpenses,
+          totalExpensesUSD: Number(totalExpensesUSD.toFixed(2)),
           netIncome,
+          netIncomeUSD: Number(netIncomeUSD.toFixed(2)),
           paymentCount: payments.length,
           expenseCount: expenses.length,
         },
@@ -1337,6 +1468,8 @@ const downloadMonthlyReportPDF = asyncWrapper(
           select: {
             id: true,
             amount: true,
+            amountUSD: true,
+            usdAppliedRate: true,
             feeType: true,
             paymentMethod: true,
             studentName: true,
@@ -1358,6 +1491,8 @@ const downloadMonthlyReportPDF = asyncWrapper(
           select: {
             id: true,
             amount: true,
+            amountUSD: true,
+            usdAppliedRate: true,
             category: true,
             vendor: true,
             description: true,
@@ -1374,11 +1509,20 @@ const downloadMonthlyReportPDF = asyncWrapper(
         (sum, p) => sum + Number(p.amount),
         0
       );
+      const totalPaymentsUSD = payments.reduce(
+        (sum, p) => sum + (p.amountUSD ? Number(p.amountUSD) : 0),
+        0
+      );
       const totalExpenses = expenses.reduce(
         (sum, e) => sum + Number(e.amount),
         0
       );
+      const totalExpensesUSD = expenses.reduce(
+        (sum, e) => sum + (e.amountUSD ? Number(e.amountUSD) : 0),
+        0
+      );
       const netIncome = totalPayments - totalExpenses;
+      const netIncomeUSD = totalPaymentsUSD - totalExpensesUSD;
 
       // Calculate additional statistics
       const paymentsByFeeType = payments.reduce((acc, payment) => {
@@ -1425,8 +1569,11 @@ const downloadMonthlyReportPDF = asyncWrapper(
         expenses,
         summary: {
           totalPayments,
+          totalPaymentsUSD: Number(totalPaymentsUSD.toFixed(2)),
           totalExpenses,
+          totalExpensesUSD: Number(totalExpensesUSD.toFixed(2)),
           netIncome,
+          netIncomeUSD: Number(netIncomeUSD.toFixed(2)),
           paymentCount: payments.length,
           expenseCount: expenses.length,
           paymentsByFeeType,
@@ -1478,6 +1625,8 @@ const downloadYearlyReportPDF = asyncWrapper(
           select: {
             id: true,
             amount: true,
+            amountUSD: true,
+            usdAppliedRate: true,
             feeType: true,
             paymentMethod: true,
             studentName: true,
@@ -1499,6 +1648,8 @@ const downloadYearlyReportPDF = asyncWrapper(
           select: {
             id: true,
             amount: true,
+            amountUSD: true,
+            usdAppliedRate: true,
             category: true,
             vendor: true,
             description: true,
@@ -1515,11 +1666,20 @@ const downloadYearlyReportPDF = asyncWrapper(
         (sum, p) => sum + Number(p.amount),
         0
       );
+      const totalPaymentsUSD = payments.reduce(
+        (sum, p) => sum + (p.amountUSD ? Number(p.amountUSD) : 0),
+        0
+      );
       const totalExpenses = expenses.reduce(
         (sum, e) => sum + Number(e.amount),
         0
       );
+      const totalExpensesUSD = expenses.reduce(
+        (sum, e) => sum + (e.amountUSD ? Number(e.amountUSD) : 0),
+        0
+      );
       const netIncome = totalPayments - totalExpenses;
+      const netIncomeUSD = totalPaymentsUSD - totalExpensesUSD;
 
       // Calculate additional statistics
       const paymentsByFeeType = payments.reduce((acc, payment) => {
@@ -1584,8 +1744,11 @@ const downloadYearlyReportPDF = asyncWrapper(
         expenses,
         summary: {
           totalPayments,
+          totalPaymentsUSD: Number(totalPaymentsUSD.toFixed(2)),
           totalExpenses,
+          totalExpensesUSD: Number(totalExpensesUSD.toFixed(2)),
           netIncome,
+          netIncomeUSD: Number(netIncomeUSD.toFixed(2)),
           paymentCount: payments.length,
           expenseCount: expenses.length,
           paymentsByFeeType,
@@ -1642,6 +1805,8 @@ const downloadRangeReportPDF = asyncWrapper(
           orderBy: { paymentDate: "asc" },
           select: {
             amount: true,
+            amountUSD: true,
+            usdAppliedRate: true,
             studentName: true,
             feeType: true,
             paymentMethod: true,
@@ -1659,6 +1824,8 @@ const downloadRangeReportPDF = asyncWrapper(
           orderBy: { date: "asc" },
           select: {
             amount: true,
+            amountUSD: true,
+            usdAppliedRate: true,
             category: true,
             vendor: true,
             description: true,
@@ -1668,8 +1835,17 @@ const downloadRangeReportPDF = asyncWrapper(
       ]);
 
       const totalPayments = payments.reduce((s, p) => s + Number(p.amount), 0);
+      const totalPaymentsUSD = payments.reduce(
+        (s, p) => s + (p.amountUSD ? Number(p.amountUSD) : 0),
+        0
+      );
       const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
+      const totalExpensesUSD = expenses.reduce(
+        (s, e) => s + (e.amountUSD ? Number(e.amountUSD) : 0),
+        0
+      );
       const netIncome = totalPayments - totalExpenses;
+      const netIncomeUSD = totalPaymentsUSD - totalExpensesUSD;
 
       const data: ReportData = {
         title: "تقرير النطاق الزمني المخصص",
@@ -1679,8 +1855,11 @@ const downloadRangeReportPDF = asyncWrapper(
         expenses: expenses as any[],
         summary: {
           totalPayments,
+          totalPaymentsUSD: Number(totalPaymentsUSD.toFixed(2)),
           totalExpenses,
+          totalExpensesUSD: Number(totalExpensesUSD.toFixed(2)),
           netIncome,
+          netIncomeUSD: Number(netIncomeUSD.toFixed(2)),
           paymentCount: payments.length,
           expenseCount: expenses.length,
         },

@@ -8,7 +8,7 @@ const resources = {
       toDate: "الي تاريخ",
       pickADate: "اختر تاريخ",
       // Misc additions
-      averageExpense: "متوسط المصروف",
+      averageExpense: "  متوسط المصروف اليومي",
       expensesCount: "عدد المصروفات",
       todayExpensesTotal: "إجمالي المصروفات اليوم",
       refresh: "تحديث",
@@ -34,7 +34,7 @@ const resources = {
       // Navigation
       dashboard: "لوحة التحكم",
       students: "الطلاب",
-      payments: "المدفوعات",
+      payments: "الإيرادات",
       expenses: "المصروفات",
       reports: "التقارير",
       settings: "الإعدادات",
@@ -126,7 +126,7 @@ const resources = {
       netProfit: "صافي الربح",
       dailyTransactions: "المعاملات اليومية",
       monthlyTransactionsCount: "عدد معاملات الشهر",
-      recentPayments: "المدفوعات الأخيرة",
+      recentPayments: "الإيرادات الأخيرة",
       recentExpenses: "المصروفات الأخيرة",
       viewAll: "عرض الكل",
 
@@ -143,7 +143,7 @@ const resources = {
       status: "الحالة",
 
       // Payments
-      paymentManagement: "إدارة المدفوعات",
+      paymentManagement: "إدارة الإيرادات",
       addPayment: "تسجيل دفعة",
       feeType: "نوع الرسوم",
       amount: "المبلغ",
@@ -219,7 +219,7 @@ const resources = {
       yearlyReport: "التقرير السنوي",
       cashFlowReport: "تقرير التدفق النقدي",
       expenseReport: "تقرير المصروفات",
-      studentPaymentReport: "تقرير مدفوعات الطلاب",
+      studentPaymentReport: "تقرير إيرادات الطلاب",
 
       // Common
       save: "حفظ",
@@ -234,7 +234,7 @@ const resources = {
 
       loadingDashboard: "جاري تحميل لوحة التحكم...",
       loadingExpenses: "جاري تحميل المصروفات...",
-      loadingPayments: "جاري تحميل المدفوعات...",
+      loadingPayments: "جاري تحميل الإيرادات...",
       noData: "لا توجد بيانات",
 
       confirm: "تأكيد",
@@ -246,6 +246,28 @@ const resources = {
       confirmDeleteTitle: "تأكيد الحذف",
       confirmDeleteDescription:
         "هل أنت متأكد من حذف هذا السجل؟ لا يمكن التراجع عن هذا الإجراء.",
+      // Currency management
+      currencyTab: "إدارة سعر الصرف",
+      currentRate: "السعر الحالي",
+      lastUpdated: "آخر تحديث",
+      updateRate: "تحديث السعر",
+      newRatePlaceholder: "أدخل سعر جديد (جنيه لكل 1 دولار)",
+      rateHistory: "سجل الأسعار",
+      noHistory: "لا يوجد سجل متاح",
+      rate: "السعر",
+      validFrom: "ساري من",
+      setRateSuccess: "تم تحديث سعر الصرف",
+      setRateError: "فشل تحديث سعر الصرف",
+      initializeRate: "تهيئة السعر",
+      confirmSetRate: "تأكيد التحديث",
+      confirmSetRateDesc: "سيتم تطبيق السعر الجديد لجميع العمليات المستقبلية.",
+      // Specific payment deletion dialog (new)
+      deletePaymentTitle: "حذف الدفعة؟",
+      deletePaymentDescription:
+        "سيتم حذف هذه الدفعة نهائياً ولا يمكن التراجع عن هذا الإجراء.",
+      paymentDeleteSuccess: "تم حذف الدفعة",
+      paymentDeleteFailure: "فشل حذف الدفعة",
+      deletePermanently: "حذف نهائياً",
 
       // Dashboard specific
       welcomeMessage: "مرحباً بك في النظام المالي",
@@ -254,7 +276,7 @@ const resources = {
       fromLastMonth: "من الشهر الماضي",
       lastPayment: "آخر دفعة",
       lastExpense: "آخر مصروف",
-      viewAllPayments: "عرض جميع المدفوعات",
+      viewAllPayments: "عرض جميع الإيرادات",
       viewAllExpenses: "عرض جميع المصروفات",
       quickActions: "إجراءات سريعة",
       registerPayment: "تسجيل دفعة",
@@ -264,7 +286,7 @@ const resources = {
       viewCashFlow: "التدفق النقدي",
 
       // Payments specific
-      paymentRecords: "سجل المدفوعات",
+      paymentRecords: "سجل الإيرادات",
       receiptNumber: "رقم الإيصال",
       studentData: "بيانات الطالب",
       paymentEmployee: "الموظف",
@@ -433,6 +455,9 @@ const resources = {
 
       // Forms common
       sdg: "ج.م",
+      usd: "دولار",
+      appliedRate: "السعر المطبق",
+      amountUSD: "المبلغ بالدولار",
       chooseDate: "اختر التاريخ",
       cancelBtn: "إلغاء",
 
@@ -524,7 +549,7 @@ const resources = {
       toDate: "To Date",
       pickADate: "Pick Date",
       // Misc additions
-      averageExpense: "Average Expense",
+      averageExpense: "Average daily Expense",
       expensesCount: "Expenses Count",
       todayExpensesTotal: "Today's Total Expenses",
       refresh: "Refresh",
@@ -752,6 +777,32 @@ const resources = {
 
       confirm: "Confirm",
       close: "Close",
+      // Deletion confirmations (English)
+      confirmDeleteTitle: "Confirm Deletion",
+      confirmDeleteDescription:
+        "Are you sure you want to delete this record? This action cannot be undone.",
+      // Specific payment deletion dialog (new)
+      deletePaymentTitle: "Delete Payment?",
+      deletePaymentDescription:
+        "This payment will be permanently deleted. This action cannot be undone.",
+      paymentDeleteSuccess: "Payment deleted successfully",
+      paymentDeleteFailure: "Failed to delete payment",
+      deletePermanently: "Delete Permanently",
+      // Currency management
+      currencyTab: "Currency Rate",
+      currentRate: "Current Rate",
+      lastUpdated: "Last Updated",
+      updateRate: "Update Rate",
+      newRatePlaceholder: "Enter new rate (EGP per 1 USD)",
+      rateHistory: "Rate History",
+      noHistory: "No history available",
+      rate: "Rate",
+      validFrom: "Valid From",
+      setRateSuccess: "Currency rate updated",
+      setRateError: "Failed to update currency rate",
+      initializeRate: "Initialize Rate",
+      confirmSetRate: "Confirm Update",
+      confirmSetRateDesc: "The new rate will apply to future transactions.",
 
       // Dashboard specific
       welcomeMessage: "Welcome to the Financial System",
@@ -941,6 +992,9 @@ const resources = {
 
       // Forms common
       sdg: "Egp",
+      usd: "USD",
+      appliedRate: "Applied Rate",
+      amountUSD: "Amount (USD)",
       chooseDate: "Choose date",
       cancelBtn: "Cancel",
 

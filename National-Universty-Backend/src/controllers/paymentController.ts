@@ -8,6 +8,7 @@ import redis, {
 import AppError from "../utils/AppError";
 import { httpStatusText } from "../utils/httpStatusText";
 import { generatePaymentReceiptPDF } from "../utils/paymentReceiptPdf";
+import { convertToUSD, getLatestRate } from "../utils/currencyUtils";
 
 // Types for request validation
 interface CreatePaymentBody {
@@ -135,6 +136,9 @@ const getAllPayments = asyncWrapper(
           studentName: true,
           feeType: true,
           amount: true,
+          currency: true,
+          amountUSD: true,
+          usdAppliedRate: true,
           receiptNumber: true,
           paymentMethod: true,
           paymentDate: true,
@@ -190,7 +194,7 @@ const getAllPayments = asyncWrapper(
             lte: endOfToday,
           },
         },
-        _sum: { amount: true },
+        _sum: { amount: true, amountUSD: true },
         _count: { id: true },
       }),
       prisma.payment.aggregate({
@@ -200,7 +204,7 @@ const getAllPayments = asyncWrapper(
             lte: endOfMonth,
           },
         },
-        _sum: { amount: true },
+        _sum: { amount: true, amountUSD: true  },
         _count: { id: true },
       }),
     ]);
@@ -212,6 +216,7 @@ const getAllPayments = asyncWrapper(
     const statistics = {
       daily: {
         totalAmount: Number(dailyAgg._sum.amount || 0),
+        totalAmountUSD: Number(dailyAgg._sum.amountUSD || 0),
         operationsCount: dailyAgg._count.id || 0,
         date: startOfToday.toISOString().slice(0, 10),
       },
@@ -219,6 +224,15 @@ const getAllPayments = asyncWrapper(
         totalAmount: monthlyTotal,
         operationsCount: monthlyAgg._count.id || 0,
         averageDailyIncome,
+        averageTransactionAmountUSD:
+          (monthlyAgg._count.id || 0) > 0
+            ? Number(
+                (
+                  Number(monthlyAgg._sum.amountUSD || 0) /
+                  daysInMonth
+                ).toFixed(2)
+              )
+            : 0,
         month: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
           2,
           "0"
@@ -303,6 +317,9 @@ const searchPayments = asyncWrapper(
           studentName: true,
           feeType: true,
           amount: true,
+          currency: true,
+          amountUSD: true,
+          usdAppliedRate: true,
           receiptNumber: true,
           paymentMethod: true,
           paymentDate: true,
@@ -353,6 +370,9 @@ const getPaymentById = asyncWrapper(
         studentName: true,
         feeType: true,
         amount: true,
+        currency: true,
+        amountUSD: true,
+        usdAppliedRate: true,
         receiptNumber: true,
         paymentMethod: true,
         paymentDate: true,
@@ -416,13 +436,20 @@ const createPayment = asyncWrapper(
       );
     }
 
+    // Convert amount to USD
+    const numericAmount = parseFloat(amount);
+    const { amountUSD, usdAppliedRate } = await convertToUSD(numericAmount);
+
     // Create payment
     const payment = await prisma.payment.create({
       data: {
         studentId: studentId.trim(),
         studentName: studentName.trim(),
         feeType,
-        amount: parseFloat(amount),
+        amount: numericAmount,
+        currency: "EGP",
+        amountUSD,
+        usdAppliedRate,
         receiptNumber: receiptNumber.trim(),
         paymentMethod,
         paymentDate: new Date(paymentDate),
@@ -435,6 +462,9 @@ const createPayment = asyncWrapper(
         studentName: true,
         feeType: true,
         amount: true,
+        currency: true,
+        amountUSD: true,
+        usdAppliedRate: true,
         receiptNumber: true,
         paymentMethod: true,
         paymentDate: true,
@@ -535,7 +565,23 @@ const updatePayment = asyncWrapper(
     }
 
     if (amount !== undefined) {
-      updateData.amount = parseFloat(amount);
+      const numericAmount = parseFloat(amount);
+      updateData.amount = numericAmount;
+      // Keep original applied rate if it exists to protect historical valuation
+      let appliedRate = existingPayment.usdAppliedRate
+        ? Number(existingPayment.usdAppliedRate)
+        : null;
+      if (!appliedRate) {
+        const latestRateRecord = await getLatestRate();
+        appliedRate = latestRateRecord ? Number(latestRateRecord.rate) : null;
+      }
+      if (appliedRate) {
+        updateData.usdAppliedRate = appliedRate;
+        updateData.amountUSD = Number((numericAmount / appliedRate).toFixed(2));
+      } else {
+        updateData.usdAppliedRate = null;
+        updateData.amountUSD = null;
+      }
     }
 
     if (receiptNumber !== undefined) {
@@ -582,6 +628,9 @@ const updatePayment = asyncWrapper(
         studentName: true,
         feeType: true,
         amount: true,
+        currency: true,
+        amountUSD: true,
+        usdAppliedRate: true,
         receiptNumber: true,
         paymentMethod: true,
         paymentDate: true,
@@ -781,6 +830,9 @@ const getPaymentByReceiptNumber = asyncWrapper(
         studentName: true,
         feeType: true,
         amount: true,
+        currency: true,
+        amountUSD: true,
+        usdAppliedRate: true,
         receiptNumber: true,
         paymentMethod: true,
         paymentDate: true,

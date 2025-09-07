@@ -14,6 +14,8 @@ export interface Payment {
     | "EXAM"
     | "TRINING";
   amount: number;
+  amountUSD?: number;
+  usdAppliedRate?: number;
   receiptNumber: string;
   paymentMethod: "CASH" | "TRANSFER" | "CHEQUE";
   paymentDate: string;

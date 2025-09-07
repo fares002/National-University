@@ -20,6 +20,8 @@ export type ExpenseCategory =
 export interface Expense {
   id: string;
   amount: string;
+  amountUSD?: number | null;
+  usdAppliedRate?: number | null;
   description: string;
   category: string; // Changed from ExpenseCategory to string to handle API responses
   vendor?: string;

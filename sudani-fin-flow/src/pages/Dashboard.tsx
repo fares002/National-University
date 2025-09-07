@@ -21,6 +21,7 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 function StatsCard({
   title,
   value,
+  valueUSD,
   icon: Icon,
   trend,
   trendValue,
@@ -30,6 +31,7 @@ function StatsCard({
 }: {
   title: string;
   value: number;
+  valueUSD?: number;
   icon: React.ElementType;
   trend: "up" | "down";
   trendValue?: string;
@@ -52,6 +54,11 @@ function StatsCard({
               {title}
             </p>
             <p className="text-2xl font-bold text-foreground">{display}</p>
+            {valueUSD !== undefined && formatType === "currency" && (
+              <p className="text-xs font-medium text-muted-foreground mt-0.5">
+                {formatCurrency(valueUSD)} {t("usd")}
+              </p>
+            )}
             {showTrend && (
               <div className="flex items-center mt-2">
                 {trend === "up" ? (
@@ -125,20 +132,12 @@ export function Dashboard() {
     TRANSFER: "تحويل",
     CHEQUE: "شيك",
   };
-
-  // Helper functions to get Arabic translations
-  const getFeeTypeInArabic = (feeType: string) => {
-    return feeTypeMap[feeType] || feeType;
-  };
-
-  const getCategoryInArabic = (category: string) => {
-    return categoryMapping[category] || category;
-  };
-
-  const getPaymentMethodInArabic = (paymentMethod: string) => {
-    return paymentMethodMap[paymentMethod] || paymentMethod;
-  };
-
+  const getFeeTypeInArabic = (feeType: string) =>
+    feeTypeMap[feeType] || feeType;
+  const getCategoryInArabic = (category: string) =>
+    categoryMapping[category] || category;
+  const getPaymentMethodInArabic = (paymentMethod: string) =>
+    paymentMethodMap[paymentMethod] || paymentMethod;
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -152,6 +151,9 @@ export function Dashboard() {
       } finally {
         setLoading(false);
       }
+    };
+    const getPaymentMethodInArabic = (paymentMethod: string) => {
+      return paymentMethodMap[paymentMethod] || paymentMethod;
     };
 
     fetchDashboardData();
@@ -187,6 +189,7 @@ export function Dashboard() {
         <StatsCard
           title={t("totalRevenue")}
           value={dashboardData.overview.currentMonth.payments.total}
+          valueUSD={dashboardData.overview.currentMonth.payments.totalUSD}
           icon={TrendingUp}
           trend={
             dashboardData.overview.comparison.paymentTrend === "increase"
@@ -201,6 +204,7 @@ export function Dashboard() {
         <StatsCard
           title={t("totalExpenses")}
           value={dashboardData.overview.currentMonth.expenses.total}
+          valueUSD={dashboardData.overview.currentMonth.expenses.totalUSD}
           icon={TrendingDown}
           trend={
             dashboardData.overview.comparison.expenseTrend === "increase"
@@ -215,6 +219,7 @@ export function Dashboard() {
         <StatsCard
           title={t("netProfit")}
           value={dashboardData.overview.currentMonth.netProfit}
+          valueUSD={dashboardData.overview.currentMonth.netProfitUSD}
           icon={DollarSign}
           trend={
             dashboardData.overview.currentMonth.netProfit >

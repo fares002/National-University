@@ -7,8 +7,11 @@ export interface ReportData {
   expenses: any[];
   summary: {
     totalPayments: number;
+    totalPaymentsUSD?: number;
     totalExpenses: number;
+    totalExpensesUSD?: number;
     netIncome: number;
+    netIncomeUSD?: number;
     paymentCount: number;
     expenseCount: number;
     [key: string]: any;
@@ -61,6 +64,8 @@ function translateExpenseCategory(category: string): string {
 function generateHTML(data: ReportData): string {
   const formatCurrency = (amount: number) =>
     `${amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} م.ج`;
+  const formatCurrencyUSD = (amount: number) =>
+    `${amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} $`;
   const formatDate = (date: string | Date) =>
     new Date(date).toLocaleDateString("en-US");
   const formatTime = (date: string | Date) =>
@@ -198,7 +203,9 @@ function generateHTML(data: ReportData): string {
                         <th>اسم الطالب</th>
                         <th>نوع الرسوم</th>
                         <th>طريقة الدفع</th>
-                                                <th>المبلغ</th>
+                        <th>سعر الدولار</th>
+                        <th>المبلغ (م.ج)</th>
+                        <th>المبلغ (دولار)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -214,9 +221,20 @@ function generateHTML(data: ReportData): string {
                         <td>${
                           translatePaymentMethod(payment.paymentMethod) || "N/A"
                         }</td>
-                                                <td class="amount ltr">${formatCurrency(
-                                                  Number(payment.amount)
-                                                )}</td>
+                        <td class="ltr">${
+                          payment.usdAppliedRate
+                            ? Number(payment.usdAppliedRate).toFixed(2)
+                            : "-"
+                        }</td>
+                        <td class="amount ltr">${formatCurrency(
+                          Number(payment.amount)
+                        )}</td>
+                        <td class="amount ltr">${
+                          payment.amountUSD !== undefined &&
+                          payment.amountUSD !== null
+                            ? formatCurrencyUSD(Number(payment.amountUSD))
+                            : "-"
+                        }</td>
                     </tr>
                     `
                       )
@@ -247,7 +265,9 @@ function generateHTML(data: ReportData): string {
                         <th>الفئة</th>
                         <th>المورد</th>
                         <th>الوصف</th>
-                                                <th>المبلغ</th>
+                        <th>سعر الدولار</th>
+                        <th>المبلغ (م.ج)</th>
+                        <th>المبلغ (دولار)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -262,9 +282,20 @@ function generateHTML(data: ReportData): string {
                         }</td>
                         <td>${expense.vendor || "N/A"}</td>
                         <td>${expense.description || "N/A"}</td>
-                                                <td class="expense-amount ltr">${formatCurrency(
-                                                  Number(expense.amount)
-                                                )}</td>
+                        <td class="ltr">${
+                          expense.usdAppliedRate
+                            ? Number(expense.usdAppliedRate).toFixed(2)
+                            : "-"
+                        }</td>
+                        <td class="expense-amount ltr">${formatCurrency(
+                          Number(expense.amount)
+                        )}</td>
+                        <td class="expense-amount ltr">${
+                          expense.amountUSD !== undefined &&
+                          expense.amountUSD !== null
+                            ? formatCurrencyUSD(Number(expense.amountUSD))
+                            : "-"
+                        }</td>
                     </tr>
                     `
                       )
@@ -282,55 +313,114 @@ function generateHTML(data: ReportData): string {
         <div class="summary-card">
                         <h3>تحليل المدفوعات</h3>
             <div class="summary-item">
-                <span class="summary-label">إجمالي الإيرادات:</span>
-                                <span class="summary-value ltr">${formatCurrency(
-                                  data.summary.totalPayments
-                                )}</span>
+                <span class="summary-label">إجمالي الإيرادات (م.ج):</span>
+                <span class="summary-value ltr">${formatCurrency(
+                  data.summary.totalPayments
+                )}</span>
             </div>
+            ${
+              {}.hasOwnProperty.call(data.summary, "totalPaymentsUSD") &&
+              data.summary.totalPaymentsUSD !== undefined
+                ? `
+            <div class="summary-item">
+                <span class="summary-label">إجمالي الإيرادات (دولار):</span>
+                <span class="summary-value ltr">${formatCurrencyUSD(
+                  data.summary.totalPaymentsUSD || 0
+                )}</span>
+            </div>`
+                : ""
+            }
             <div class="summary-item">
                 <span class="summary-label">عدد المعاملات:</span>
                 <span class="summary-value">${data.summary.paymentCount}</span>
             </div>
             <div class="summary-item">
-                <span class="summary-label">متوسط الدفعة:</span>
-                                <span class="summary-value ltr">${formatCurrency(
-                                  data.summary.paymentCount > 0
-                                    ? data.summary.totalPayments /
-                                        data.summary.paymentCount
-                                    : 0
-                                )}</span>
+                <span class="summary-label">متوسط الدفعة (م.ج):</span>
+                <span class="summary-value ltr">${formatCurrency(
+                  data.summary.paymentCount > 0
+                    ? data.summary.totalPayments / data.summary.paymentCount
+                    : 0
+                )}</span>
             </div>
+            ${
+              {}.hasOwnProperty.call(data.summary, "totalPaymentsUSD") &&
+              data.summary.totalPaymentsUSD !== undefined
+                ? `
+            <div class="summary-item">
+                <span class="summary-label">متوسط الدفعة (دولار):</span>
+                <span class="summary-value ltr">${formatCurrencyUSD(
+                  data.summary.paymentCount > 0
+                    ? (data.summary.totalPaymentsUSD || 0) /
+                        data.summary.paymentCount
+                    : 0
+                )}</span>
+            </div>`
+                : ""
+            }
         </div>
         
         <div class="summary-card">
             <h3>تحليل المصروفات</h3>
             <div class="summary-item">
-                <span class="summary-label">إجمالي المصروفات:</span>
-                                <span class="summary-value ltr">${formatCurrency(
-                                  data.summary.totalExpenses
-                                )}</span>
+                <span class="summary-label">إجمالي المصروفات (م.ج):</span>
+                <span class="summary-value ltr">${formatCurrency(
+                  data.summary.totalExpenses
+                )}</span>
             </div>
+            ${
+              {}.hasOwnProperty.call(data.summary, "totalExpensesUSD") &&
+              data.summary.totalExpensesUSD !== undefined
+                ? `
+            <div class="summary-item">
+                <span class="summary-label">إجمالي المصروفات (دولار):</span>
+                <span class="summary-value ltr">${formatCurrencyUSD(
+                  data.summary.totalExpensesUSD || 0
+                )}</span>
+            </div>`
+                : ""
+            }
             <div class="summary-item">
                 <span class="summary-label">عدد المعاملات:</span>
                 <span class="summary-value">${data.summary.expenseCount}</span>
             </div>
             <div class="summary-item">
-                <span class="summary-label">متوسط المصروف:</span>
-                                <span class="summary-value ltr">${formatCurrency(
-                                  data.summary.expenseCount > 0
-                                    ? data.summary.totalExpenses /
-                                        data.summary.expenseCount
-                                    : 0
-                                )}</span>
+                <span class="summary-label">متوسط المصروف (م.ج):</span>
+                <span class="summary-value ltr">${formatCurrency(
+                  data.summary.expenseCount > 0
+                    ? data.summary.totalExpenses / data.summary.expenseCount
+                    : 0
+                )}</span>
             </div>
+            ${
+              {}.hasOwnProperty.call(data.summary, "totalExpensesUSD") &&
+              data.summary.totalExpensesUSD !== undefined
+                ? `
+            <div class="summary-item">
+                <span class="summary-label">متوسط المصروف (دولار):</span>
+                <span class="summary-value ltr">${formatCurrencyUSD(
+                  data.summary.expenseCount > 0
+                    ? (data.summary.totalExpensesUSD || 0) /
+                        data.summary.expenseCount
+                    : 0
+                )}</span>
+            </div>`
+                : ""
+            }
         </div>
     </div>
     
     <div class="net-income">
         <h3>صافي الدخل</h3>
-                <div class="value ltr">${formatCurrency(
-                  data.summary.netIncome
-                )}</div>
+        <div style="display:flex; flex-direction:column; gap:8px; align-items:center;">
+          <div class="value ltr">${formatCurrency(data.summary.netIncome)}</div>
+          ${
+            data.summary.netIncomeUSD !== undefined
+              ? `<div class="value ltr">${formatCurrencyUSD(
+                  data.summary.netIncomeUSD || 0
+                )}</div>`
+              : ""
+          }
+        </div>
     </div>
     
         <div class="footer">
