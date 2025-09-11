@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Software Development Agreement</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      :root {
+        --primary: #0d47a1;
+        --accent: #1976d2;
+        --bg: #f5f7fa;
+        --border: #e2e8f0;
+        --gray700: #334155;
+        --gray500: #64748b;
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        padding: 0;
+        color: #111;
+      }
+      .doc {
+        min-height: 100vh;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: center;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: #fff;
+        padding: 32px 40px 24px;
+        position: relative;
+      }
+      .trade-watermark {
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.6);
+        pointer-events: none;
+        text-transform: uppercase;
+      }
+      header:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at 85% 15%,
+          rgba(255, 255, 255, 0.18),
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+      .brand {
+        flex: 1 1 300px;
+      }
+      .brand h1 {
+        margin: 0 0 6px;
+        font-size: 26px;
+        letter-spacing: 0.5px;
+      }
+      .brand .tagline {
+        font-size: 13px;
+        font-weight: 500;
+        opacity: 0.9;
+        letter-spacing: 0.5px;
+      }
+      .invoice-meta {
+        text-align: right;
+        flex: 1 1 240px;
+        font-size: 13px;
+      }
+      .invoice-meta h2 {
+        margin: 0 0 8px;
+        font-size: 18px;
+        letter-spacing: 1px;
+      }
+      .invoice-meta table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .invoice-meta td {
+        padding: 2px 0;
+      }
+      section {
+        padding: 28px 40px;
+      }
+      h2.sec {
+        margin: 32px 0 12px;
+        font-size: 18px;
+        letter-spacing: 0.5px;
+        color: var(--primary);
+      }
+      h3.clause {
+        margin: 24px 0 8px;
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.75px;
+        color: var(--gray700);
+      }
+      p,
+      li {
+        line-height: 1.6;
+        font-size: 14px;
+        color: var(--gray700);
+      }
+      ul {
+        margin: 8px 0 16px 20px;
+        padding: 0;
+      }
+      table.meta {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        font-size: 13px;
+      }
+      table.meta td {
+        padding: 4px 6px;
+        vertical-align: top;
+      }
+      table.meta td.label {
+        font-weight: 600;
+        width: 160px;
+        color: var(--gray700);
+      }
+      .signature-blocks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        margin: 40px 0 50px;
+      }
+      .sig {
+        flex: 1 1 320px;
+        min-width: 260px;
+      }
+      .sig-box {
+        height: 110px;
+        border: 1px dashed #94a3b8;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #64748b;
+        background: #f8fafc;
+      }
+      .sig-lines {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--gray700);
+        line-height: 1.5;
+      }
+      footer {
+        padding: 18px 40px 30px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--gray500);
+        background: #fff;
+      }
+      .watermark {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        font-size: 40px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.08);
+        letter-spacing: 2px;
+      }
+      @page {
+        margin: 0;
+      }
+      @media print {
+        body {
+          background: #fff;
+          padding: 0;
+        }
+        .doc {
+          box-shadow: none;
+        }
+        header {
+          border-radius: 0;
+          height: 100vh;
+          page-break-after: always;
+          display: flex;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="doc">
+      <header>
+          <div class="brand">
+            <div class="trade-watermark">FARIS OSAMA TRADING AS</div>
+          <h1>
+            Node Company
+            for Software Solution
+          </h1>
+          <div class="tagline">
+            Custom Software Development • Web Platforms • FinTech Solutions
+          </div>
+        </div>
+        <div class="invoice-meta">
+          <h2>CONTRACT</h2>
+          <table>
+            <tr>
+              <td><strong>No:</strong></td>
+              <td>CON-00025</td>
+            </tr>
+            <tr>
+              <td><strong>Effective:</strong></td>
+              <td>
+                <script>
+                  document.write(new Date().toLocaleDateString());
+                </script>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Total:</strong></td>
+              <td>$3,000</td>
+            </tr>
+            <tr>
+              <td><strong>Payments:</strong></td>
+              <td>$1,500 + $1,500</td>
+            </tr>
+            <tr>
+              <td><strong>Currency:</strong></td>
+              <td>USD</td>
+            </tr>
+          </table>
+        </div>
+        <div class="watermark">CONTRACT</div>
+      </header>
+
+      <section>
+        <h2 class="sec">1. Project Scope</h2>
+        <p>
+          The Company designed, developed, and delivered a financial management
+          system (frontend + backend) including: authentication, role-based
+          access, payments & expenses modules, reporting dashboard
+          (daily/monthly/yearly), PDF exports, currency rate management, and
+          deployment guidance.
+        </p>
+
+        <h2 class="sec">2. Deliverables</h2>
+        <ul>
+          <li>Complete source code (frontend & backend) in TypeScript.</li>
+          <li>Database schema & migrations (Prisma).</li>
+          <li>API documentation & example environment file.</li>
+          <li>Automated PDF generation Engine.</li>
+          <li>Deployment & configuration instructions.</li>
+        </ul>
+
+        <h2 class="sec">3. Payment Terms</h2>
+        <p>
+          Total price: USD $3,000. Client shall pay $1,500 upfront and $1,500
+          after successful installation & configuration on the Client's local
+          environment/device. Deployment includes database migration,
+          environment setup, and verification of core features (login, currency
+          update, payments, expenses, reporting).
+        </p>
+
+        <h2 class="sec">4. Change Requests</h2>
+        <p>
+          Any new features or material scope changes not explicitly listed are
+          billed separately under a new written quotation approved by the Client
+          prior to implementation.
+        </p>
+
+        <h2 class="sec">5. Intellectual Property</h2>
+        <p>
+          Upon receipt of full payment, all custom source code and related
+          assets developed specifically for this project are assigned to the
+          Client. The Company retains the right to reuse generic components,
+          utilities, and non‑proprietary patterns.
+        </p>
+
+        <h2 class="sec">6. Confidentiality</h2>
+        <p>
+          Both parties agree to keep confidential all non‑public technical,
+          business, and financial information received during the project. This
+          obligation survives termination.
+        </p>
+
+        <h2 class="sec">7. Warranty & Support</h2>
+        <p>
+          The Company provides a 30‑day defect remediation period after final
+          delivery covering bugs that materially impair core functionality
+          (payments, expenses, reports, auth). Enhancements or new modules are
+          excluded.
+        </p>
+
+        <h2 class="sec">8. Deployment & Acceptance</h2>
+        <p>
+          Final payment becomes due when the system is deployed locally and the
+          Client verifies: (a) login works, (b) currency rate can be updated,
+          (c) a payment and an expense can be added and appear in reports, (d)
+          PDFs generate successfully.
+        </p>
+
+        <h2 class="sec">9. Liability</h2>
+        <p>
+          Maximum aggregate liability of the Company for claims arising out of
+          this Agreement shall not exceed the total fees actually paid. No party
+          is liable for indirect or consequential damages.
+        </p>
+
+        <h2 class="sec">10. Governing Law</h2>
+        <p>
+          This Agreement is governed by and construed in accordance with
+          applicable international commercial principles and, where relevant,
+          the laws of the Company’s jurisdiction unless otherwise mutually
+          agreed in writing.
+        </p>
+
+        <h2 class="sec">11. Entire Agreement</h2>
+        <p>
+          This document constitutes the entire agreement and supersedes all
+          prior discussions. Amendments must be in writing and signed by both
+          parties.
+        </p>
+
+        <h2 class="sec">12. Third‑Party Modifications</h2>
+        <p>
+          The Client acknowledges that any alteration, refactoring, reverse
+          engineering, partial extraction, or modification of the delivered
+          source code by any third‑party developer or service provider without
+          the Company’s prior written consent immediately voids all warranties,
+          maintenance obligations, and implied assurances of performance or
+          security. The Client (and any third party it engages) assumes full
+          responsibility for defects, instability, data loss, or security
+          vulnerabilities introduced after such unauthorized changes. The
+          Company has no obligation to audit, repair, or support a modified
+          codebase except under a new, separately scoped and priced written
+          agreement. The Client agrees not to grant repository or server access
+          to external parties unless they are bound by confidentiality terms at
+          least as strict as those in this Agreement and the Company is notified
+          in advance.
+        </p>
+
+        <div class="signature-blocks">
+          <div class="sig">
+            <div class="sig-box">Company Signature</div>
+            <div class="sig-lines">
+              Name: ____________________________<br />Title:
+              _____________________________<br />Date:
+              ______________________________
+            </div>
+          </div>
+          <div class="sig">
+            <div class="sig-box">Client Signature</div>
+            <div class="sig-lines">
+              Name: ____________________________<br />Title:
+              _____________________________<br />Date:
+              ______________________________
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        Software Development Agreement ©
+        <script>
+          document.write(new Date().getFullYear());
+        </script>
+      </footer>
+    </div>
+  </body>
+</html>

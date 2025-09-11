@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>اتفاقية عدم إفشاء متبادلة</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      :root {
+        --primary: #0d47a1;
+        --accent: #1976d2;
+        --bg: #f5f7fa;
+        --gray700: #334155;
+        --gray500: #64748b;
+        font-family: "Cairo", "Noto Kufi Arabic", Arial, sans-serif;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        padding: 0;
+        color: #111;
+      }
+      .doc {
+        min-height: 100vh;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: center;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: #fff;
+        padding: 32px 40px 24px;
+        position: relative;
+      }
+      header:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at 15% 15%,
+          rgba(255, 255, 255, 0.18),
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+      .brand {
+        flex: 1 1 320px;
+      }
+      .brand h1 {
+        margin: 0 0 6px;
+        font-size: 26px;
+        letter-spacing: 0.5px;
+      }
+      .brand .tagline {
+        font-size: 13px;
+        font-weight: 500;
+        opacity: 0.9;
+        letter-spacing: 0.5px;
+      }
+      .meta {
+        text-align: left;
+        flex: 1 1 240px;
+        font-size: 13px;
+      }
+      .meta h2 {
+        margin: 0 0 8px;
+        font-size: 18px;
+        letter-spacing: 1px;
+      }
+      .meta table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .meta td {
+        padding: 2px 0;
+      }
+      h2.sec {
+        margin: 30px 0 10px;
+        font-size: 18px;
+        color: var(--primary);
+        letter-spacing: 0.5px;
+      }
+      p,
+      li {
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--gray700);
+      }
+      ul {
+        margin: 8px 0 16px 22px;
+        padding: 0;
+      }
+      section {
+        padding: 28px 40px;
+      }
+      .signature-blocks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        margin: 42px 0 40px;
+      }
+      .sig {
+        flex: 1 1 320px;
+        min-width: 260px;
+      }
+      .sig-box {
+        height: 110px;
+        border: 1px dashed #94a3b8;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #64748b;
+        background: #f8fafc;
+      }
+      .sig-lines {
+        margin-top: 8px;
+        font-size: 12px;
+        line-height: 1.6;
+        color: var(--gray700);
+      }
+      footer {
+        padding: 18px 40px 24px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--gray500);
+        background: #fff;
+      }
+      .watermark {
+        position: absolute;
+        top: 14px;
+        left: 16px;
+        font-size: 38px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.08);
+        letter-spacing: 2px;
+      }
+      .trade-watermark {
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.6);
+        pointer-events: none;
+        text-transform: uppercase;
+      }
+      @page {
+        margin: 0;
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        .doc {
+          box-shadow: none;
+        }
+        header {
+          height: 100vh;
+          page-break-after: always;
+          display: flex;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="doc">
+      <header>
+        <div class="brand">
+          <div class="trade-watermark">FARIS OSAMA TRADING AS</div>
+          <h1>شركه نود للحلول البرمجيه</h1>
+          <div class="tagline">
+            تطوير برمجيات مخصصة • منصات ويب • حلول تقنية مالية
+          </div>
+        </div>
+        <div class="meta">
+          <h2>اتفاقية عدم إفشاء</h2>
+          <table>
+            <tr>
+              <td><strong>الرقم:</strong></td>
+              <td>NDA-00025</td>
+            </tr>
+            <tr>
+              <td><strong>التاريخ:</strong></td>
+              <td>
+                <script>
+                  document.write(new Date().toLocaleDateString("ar-EG"));
+                </script>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>الإصدار:</strong></td>
+              <td>1.0</td>
+            </tr>
+          </table>
+        </div>
+        <div class="watermark">سرّي</div>
+      </header>
+
+      <section>
+        <h2 class="sec">1. الأطراف</h2>
+        <p>
+          هذه الاتفاقية المتبادلة لعدم الإفشاء ("الاتفاقية") مبرمة بين شركة نود
+          لحلول البرمجيات ("الشركة") والعميل أو الشريك الموقّع ("المستلم").
+          ويُشار إلى كلٍ منهما بـ "طرف" وإلى كليهما بـ "الطرفان".
+        </p>
+
+        <h2 class="sec">2. تعريف المعلومات السرّية</h2>
+        <p>
+          يقصد بعبارة "المعلومات السرّية" جميع البيانات غير العامة بأي شكل
+          (مكتوبة، شفهية، إلكترونية، مرئية، نماذج) بما في ذلك الشفرة المصدرية،
+          الخطط التقنية، البنى، بيانات الأعمال، النماذج المالية، كلمات المرور،
+          مخططات قواعد البيانات، التسعير، المعرفة الفنية، وبيانات الزبائن.
+        </p>
+
+        <h2 class="sec">3. الاستثناءات</h2>
+        <p>
+          لا تشمل المعلومات السرّية ما: (أ) أصبح عاماً دون خرق؛ (ب) تم استلامه
+          من طرف ثالث دون التزام سرية؛ (ج) تم تطويره استقلالياً دون الرجوع
+          لمصادر الطرف الآخر؛ (د) كان معروفاً بشكل مشروع قبل الإفشاء.
+        </p>
+
+        <h2 class="sec">4. حدود الاستخدام</h2>
+        <p>
+          يلتزم المستلم باستخدام المعلومات السرّية فقط لأغراض التقييم أو التكامل
+          أو التعاون المباشر في نطاق العلاقة بين الطرفين ولا يُستخدم لأي غرض
+          آخر.
+        </p>
+
+        <h2 class="sec">5. عدم الإفشاء والحماية</h2>
+        <p>
+          يتعهد المستلم بـ (1) حمايتها بذات العناية المطبقة على بياناته الحساسة
+          (وبحد أدنى رعاية معقولة)، (2) حصر الاطلاع على من لديهم حاجة عملية
+          فعلية، (3) عدم النسخ أو التفكيك أو الهندسة العكسية أو الاشتقاق إلا
+          بموافقة خطية.
+        </p>
+
+        <h2 class="sec">6. الأمان وسلامة الشفرة</h2>
+        <p>
+          أي محاولة لتعديل أو إعادة هيكلة أو تفكيك أو استخراج أجزاء من الشفرة
+          المقدمة بموجب عقد تطوير منفصل دون إذن خطي تُبطل أي ضمانات أو التزامات
+          صيانة من جانب الشركة.
+        </p>
+
+        <h2 class="sec">7. الإرجاع أو الإتلاف</h2>
+        <p>
+          عند الطلب الخطي أو انتهاء التعاون، يعيد المستلم أو يتلف بأمان كل
+          المعلومات السرّية وأي ملاحظات مشتقة، ويُقدّم تأكيداً خطياً عند الطلب.
+        </p>
+        <h2 class="sec">8. عدم منح تراخيص</h2>
+        <p>
+          لا تُمنح أي حقوق ملكية فكرية صراحةً أو ضمناً بموجب هذه الاتفاقية
+          باستثناء حق محدود للاستخدام الداخلي بغرض التقييم.
+        </p>
+        <h2 class="sec">9. القانون الحاكم</h2>
+        <p>
+          تُحكم هذه الاتفاقية بذات أحكام القانون الحاكم المذكورة في عقد التطوير
+          ما لم يُتفق خطياً بخلاف ذلك.
+        </p>
+        <h2 class="sec">10. عدم إفشاء الشفرة المصدرية من قبل الشركة</h2>
+        <p>
+          تلتزم الشركة بعدم مشاركة أو تسليم الشفرة المصدرية للمشروع إلى أي طرف
+          ثالث (بما في ذلك المتعاقدون من الباطن) دون موافقة خطية مسبقة من
+          العميل، باستثناء الموظفين الداخليين المرتبطين بالتزامات سرية مكافئة
+          وبالقدر اللازم لتنفيذ الخدمات المتفق عليها. أي طرف خارجي معتمد يجب أن
+          يخضع لالتزامات سرية لا تقل حماية عن هذه الاتفاقية.
+        </p>
+        <h2 class="sec">11. الاتفاق الكامل</h2>
+        <p>
+          تمثل هذه الوثيقة كامل التفاهم بخصوص السرية وتلغي أي نقاشات سابقة. لا
+          تسري أي تعديلات إلا إذا كانت مكتوبة وموقعة.
+        </p>
+
+        <div class="signature-blocks">
+          <div class="sig">
+            <div class="sig-box">توقيع الشركة</div>
+            <div class="sig-lines">
+              الاسم: ____________________________<br />الصفة:
+              _____________________________<br />التاريخ:
+              ______________________________
+            </div>
+          </div>
+          <div class="sig">
+            <div class="sig-box">توقيع المستلم</div>
+            <div class="sig-lines">
+              الاسم: ____________________________<br />الصفة:
+              _____________________________<br />التاريخ:
+              ______________________________
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        اتفاقية عدم إفشاء ©
+        <script>
+          document.write(new Date().getFullYear());
+        </script>
+      </footer>
+    </div>
+  </body>
+</html>

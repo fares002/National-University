@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Invoice #INV-2025-001 - Node Company for Software Solution</title>
+    <title>
+      Payment Request #INV-00025 - Faris Osama, Freelance Software Developer,
+      trading as “Node Company for Software Solution”
+    </title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <style>
       :root {
@@ -26,13 +29,11 @@
         margin: 0;
         background: var(--bg);
         color: #111;
-        padding: 32px 20px;
+        padding: 0;
       }
       .invoice-wrapper {
-        max-width: 960px;
-        margin: 0 auto;
+        min-height: 100vh;
         background: #fff;
-        border-radius: var(--radius);
         box-shadow: var(--shadow);
         overflow: hidden;
       }
@@ -49,6 +50,18 @@
         );
         color: #fff;
         position: relative;
+      }
+      .trade-watermark {
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.6);
+        pointer-events: none;
+        text-transform: uppercase;
       }
       header:after {
         content: "";
@@ -252,6 +265,10 @@
         }
         header {
           border-radius: 0;
+          height: 100vh;
+          page-break-after: always;
+          display: flex;
+          align-items: center;
         }
         .notes {
           page-break-inside: avoid;
@@ -263,6 +280,7 @@
     <div class="invoice-wrapper">
       <header>
         <div class="brand">
+          <div class="trade-watermark">FARIS OSAMA TRADING AS</div>
           <h1>Node Company for Software Solution</h1>
           <div class="tagline">
             Custom Software Development • Web Platforms • FinTech Solutions
@@ -273,7 +291,7 @@
           <table>
             <tr>
               <td><strong>No:</strong></td>
-              <td>INV-2025-0025</td>
+              <td>INV-00025</td>
             </tr>
             <tr>
               <td><strong>Date:</strong></td>
@@ -300,7 +318,7 @@
         <div class="parties">
           <div class="party">
             <span class="label">Bill From</span>
-            <h4>Fares Osama</h4>
+            <h4>Fares Osama Abdelsamie</h4>
             <address>
               7 Mahmoud Ghonime, Nasr City<br />
               Cairo, Egypt<br />
@@ -312,12 +330,9 @@
             </address>
           </div>
           <div class="party">
-            <span class="label">Bill To</span>
-            <h4>National University</h4>
-            <address>
-              Egypt, Cairo<br />
-              Attn: Finance / Administration Department
-            </address>
+            <span class="label">Bill To Mr</span>
+            <h4>Ahmed Mohmed Awad Alkarem</h4>
+            <address>Egypt, Cairo<br /></address>
           </div>
         </div>
 
@@ -349,8 +364,8 @@
                 kit, theming, dashboard, reporting pages, forms, validation, PDF
                 triggers.
               </td>
-              <td class="amount">$1,500.00</td>
-              <td class="amount">$1,500.00</td>
+              <td class="amount">$1,000.00</td>
+              <td class="amount">$1,000.00</td>
             </tr>
             <tr>
               <td class="desc">
@@ -371,32 +386,13 @@
               <td class="amount">$2,000.00</td>
               <td class="amount">$2,000.00</td>
             </tr>
-            <tr>
-              <td class="desc">
-                <strong>Post-Delivery Enhancements</strong><br />
-                Change requests after initial delivery: historical FX rate
-                control, USD calculation pipeline (amountUSD, appliedRate
-                preservation), enhanced PDF columns & dual-currency summaries.
-              </td>
-              <td>
-                <span class="pill">Enhancement</span>
-                <span class="pill">Support</span>
-              </td>
-              <td>
-                Currency rate administration module, immutable rate logic,
-                dashboard & reports USD totals, extended PDF templates, summary
-                USD metrics.
-              </td>
-              <td class="amount">$300.00</td>
-              <td class="amount">$300.00</td>
-            </tr>
           </tbody>
         </table>
 
         <table class="totals">
           <tr>
             <td class="label">Subtotal</td>
-            <td class="amount" style="text-align: right">$3,800.00</td>
+            <td class="amount" style="text-align: right">$3,000.00</td>
           </tr>
           <tr>
             <td class="label">Discount</td>
@@ -406,9 +402,19 @@
             <td class="label">Tax (0%)</td>
             <td class="amount" style="text-align: right">$0.00</td>
           </tr>
+          <tr class="subtotal">
+            <td class="label">Total Amount</td>
+            <td class="amount" style="text-align: right">$3,000.00</td>
+          </tr>
+          <tr>
+            <td class="label">Amount Paid</td>
+            <td class="amount" style="text-align: right; color: #2e7d32">
+              $1,500.00
+            </td>
+          </tr>
           <tr class="grand-total">
-            <td class="label">Total Due</td>
-            <td class="amount" style="text-align: right">$3,800.00</td>
+            <td class="label">Balance Due</td>
+            <td class="amount" style="text-align: right">$1,500.00</td>
           </tr>
         </table>
 
@@ -431,6 +437,57 @@
               Source code, migrations, and deployment guidance included here
             </li>
           </ul>
+        </div>
+      </section>
+      <section style="padding: 0 40px 10px 40px">
+        <h3 class="section-title" style="margin-top: 0">Signatures</h3>
+        <div
+          style="display: flex; flex-wrap: wrap; gap: 40px; margin-top: 20px"
+        >
+          <div style="flex: 1 1 300px; min-width: 260px">
+            <div
+              style="
+                height: 90px;
+                border: 1px dashed #94a3b8;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                color: #64748b;
+                background: #f8fafc;
+              "
+            >
+              Company Representative Signature
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; color: #334155">
+              Name: ____________________________<br />
+              Title: _____________________________<br />
+              Date: ______________________________
+            </div>
+          </div>
+          <div style="flex: 1 1 300px; min-width: 260px">
+            <div
+              style="
+                height: 90px;
+                border: 1px dashed #94a3b8;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                color: #64748b;
+                background: #f8fafc;
+              "
+            >
+              Client Representative Signature
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; color: #334155">
+              Name: ____________________________<br />
+              Title: _____________________________<br />
+              Date: ______________________________
+            </div>
+          </div>
         </div>
       </section>
       <footer>

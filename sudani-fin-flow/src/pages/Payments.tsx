@@ -82,7 +82,7 @@ export function Payments() {
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 10,
+    limit: 50,
     totalCount: 0,
     totalPages: 0,
     hasNextPage: false,

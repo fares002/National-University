@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>عقد تطوير برمجيات</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      :root {
+        --primary: #0d47a1;
+        --accent: #1976d2;
+        --bg: #f5f7fa;
+        --border: #e2e8f0;
+        --gray700: #334155;
+        --gray500: #64748b;
+        font-family: "Cairo", "Noto Kufi Arabic", Arial, sans-serif;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        padding: 0;
+        color: #111;
+      }
+      .doc {
+        min-height: 100vh;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: center;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: #fff;
+        padding: 32px 40px 24px;
+        position: relative;
+      }
+      header:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at 15% 15%,
+          rgba(255, 255, 255, 0.18),
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+      .brand {
+        flex: 1 1 320px;
+      }
+      .brand h1 {
+        margin: 0 0 6px;
+        font-size: 26px;
+        letter-spacing: 0.5px;
+      }
+      .brand .tagline {
+        font-size: 13px;
+        font-weight: 500;
+        opacity: 0.9;
+        letter-spacing: 0.5px;
+      }
+      .invoice-meta {
+        text-align: left;
+        flex: 1 1 240px;
+        font-size: 13px;
+      }
+      .invoice-meta h2 {
+        margin: 0 0 8px;
+        font-size: 18px;
+        letter-spacing: 1px;
+      }
+      .invoice-meta table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .invoice-meta td {
+        padding: 2px 0;
+      }
+      section {
+        padding: 28px 40px;
+      }
+      h2.sec {
+        margin: 32px 0 12px;
+        font-size: 18px;
+        letter-spacing: 0.5px;
+        color: var(--primary); /* match English version styling */
+      }
+      h3.clause {
+        margin: 24px 0 8px;
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.75px;
+        color: var(--gray700);
+      }
+      p,
+      li {
+        line-height: 1.8;
+        font-size: 14px;
+        color: var(--gray700);
+      }
+      ul {
+        margin: 8px 0 16px 20px;
+        padding: 0;
+      }
+      table.meta {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        font-size: 13px;
+      }
+      table.meta td {
+        padding: 4px 6px;
+        vertical-align: top;
+      }
+      table.meta td.label {
+        font-weight: 600;
+        width: 180px;
+        color: #fff;
+      }
+      .signature-blocks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        margin: 40px 0 50px;
+      }
+      .sig {
+        flex: 1 1 320px;
+        min-width: 260px;
+      }
+      .sig-box {
+        height: 110px;
+        border: 1px dashed #94a3b8;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #64748b;
+        background: #f8fafc;
+      }
+      .sig-lines {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--gray700);
+        line-height: 1.7;
+      }
+      footer {
+        padding: 18px 40px 30px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--gray500);
+        background: #fff;
+      }
+      .watermark {
+        position: absolute;
+        top: 14px;
+        left: 16px;
+        font-size: 40px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.08);
+        letter-spacing: 2px;
+      }
+      .trade-watermark {
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.6);
+        pointer-events: none;
+        text-transform: uppercase;
+      }
+      @page {
+        margin: 0;
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        .doc {
+          box-shadow: none;
+          border-radius: 0;
+        }
+        header {
+          border-radius: 0;
+          height: 100vh;
+          page-break-after: always;
+          display: flex;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="doc">
+      <header>
+          <div class="brand">
+            <div class="trade-watermark">FARIS OSAMA TRADING AS</div>
+          <h1>شركه نود للحلول البرمجيه</h1>
+          <div class="tagline">
+            تطوير برمجيات مخصصة • منصات ويب • حلول تقنية مالية
+          </div>
+        </div>
+        <div class="invoice-meta">
+          <h2>عقد</h2>
+          <table>
+            <tr>
+              <td><strong>الرقم:</strong></td>
+              <td>CON-00025</td>
+            </tr>
+            <tr>
+              <td><strong>السريان:</strong></td>
+              <td>
+                <script>
+                  document.write(new Date().toLocaleDateString("ar-EG"));
+                </script>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>الإجمالي:</strong></td>
+              <td>3000 دولار</td>
+            </tr>
+            <tr>
+              <td><strong>الدفعات:</strong></td>
+              <td>1500 + 1500</td>
+            </tr>
+            <tr>
+              <td><strong>العملة:</strong></td>
+              <td>دولار أمريكي</td>
+            </tr>
+          </table>
+        </div>
+        <div class="watermark">عقد</div>
+      </header>
+
+      <section>
+        <h2 class="sec">1. نطاق المشروع</h2>
+        <p>
+            قامت الشركة بتصميم وتطوير وتسليم نظام إدارة مالي (واجهة أمامية
+          وخلفية) يشمل: تسجيل الإيرادات والمصروفات، إدارة المستخدمين والصلاحيات،
+          تحديث سعر الصرف، التقارير اليومية والشهرية والسنوية، توليد ملفات PDF،
+          وإرشادات النشر.
+        </p>
+
+        <h2 class="sec">2. المخرجات</h2>
+        <ul>
+          <li>
+            الشفرة المصدرية المتكاملة (Frontend + Backend) بلغة TypeScript.
+          </li>
+          <li>مخطط قاعدة البيانات والهجرات (Prisma).</li>
+          <li>توثيق واجهات البرمجة وملف بيئة افتراضي.</li>
+          <li>مولد PDF اتوماتيكي للتقارير</li>
+          <li>تعليمات الإعداد والنشر.</li>
+        </ul>
+
+        <h2 class="sec">3. شروط الدفع</h2>
+        <p>
+          السعر الإجمالي: 3000 دولار. يدفع العميل 1500 دولار مقدماً و 1500 دولار
+          بعد الإعداد والتشغيل بنجاح على جهازه المحلي (بما يشمل تهيئة البيئة
+          وقاعدة البيانات والتحقق من الوظائف الأساسية).
+        </p>
+
+        <h2 class="sec">4. التغييرات</h2>
+        <p>
+          أي ميزات إضافية أو تغييرات جوهرية غير مذكورة صراحةً تُقيم وتُنفذ بعقد
+          منفصل وتوقيع مسبق من العميل.
+        </p>
+
+        <h2 class="sec">5. الملكية الفكرية</h2>
+        <p>
+          بعد استلام كامل المستحقات المالية تنتقل ملكية الشفرة المصدرية المخصصة
+          وما يرتبط بها من أصول طورّت خصيصاً لهذا المشروع إلى العميل. تحتفظ
+          الشركة بحق إعادة استخدام المكوّنات أو الأدوات العامة غير الخاصة.
+        </p>
+
+        <h2 class="sec">6. السرية</h2>
+        <p>
+          يلتزم الطرفان بالحفاظ على سرية جميع المعلومات الفنية أو التجارية أو
+          المالية غير المتاحة للعامة والتي يتم تبادلها أثناء المشروع. يظل هذا
+          الالتزام سارياً بعد انتهاء العقد.
+        </p>
+
+        <h2 class="sec">7. الضمان والدعم</h2>
+        <p>
+          تقدم الشركة فترة معالجة أخطاء لمدة 30 يوماً بعد التسليم النهائي
+          للأخطاء التي تؤثر جوهرياً على الوظائف الأساسية (الإيرادات، المصروفات،
+          التقارير، الدخول). لا يشمل ذلك التطويرات أو الميزات الجديدة.
+        </p>
+
+        <h2 class="sec">8. النشر والقبول</h2>
+        <p>
+          تستحق الدفعة النهائية عند تثبيت النظام محلياً لدى العميل والتحقق من:
+          (أ) نجاح تسجيل الدخول، (ب) إمكانية تحديث سعر الصرف، (ج) إضافة دفعة
+          ومصروف وظهورهما في التقارير، (د) توليد PDF بنجاح.
+        </p>
+
+        <h2 class="sec">9. المسؤولية</h2>
+        <p>
+          الحد الأقصى لمسؤولية الشركة عن أي مطالبات متعلقة بهذا العقد لا يتجاوز
+          إجمالي الرسوم المدفوعة فعلياً. لا يتحمل أي طرف أضراراً تبعية أو غير
+          مباشرة.
+        </p>
+
+        <h2 class="sec">10. القانون الحاكم</h2>
+        <p>
+          يخضع هذا العقد ويُفسر وفقاً للمبادئ التجارية الدولية العامة وما يلزم
+          من القوانين ذات الصلة بمقر الشركة ما لم يتم الاتفاق كتابياً على خلاف
+          ذلك.
+        </p>
+
+        <h2 class="sec">11. الاتفاق الكامل</h2>
+        <p>
+          يمثل هذا المستند الاتفاق الكامل ويلغي ما سبقه من تفاهمات. لا تُعد أي
+          تعديلات نافذة إلا إذا كانت مكتوبة وموقعة من الطرفين.
+        </p>
+
+        <h2 class="sec">12. عدم تعديل الشفرة بواسطة طرف ثالث</h2>
+        <p>
+          يقرّ العميل بأن أي تعديل أو إعادة هيكلة أو تفكيك أو استخراج جزئي أو
+          دمج للشفرة المصدرية المُسَلَّمة بواسطة أي مطوّر أو مزوّد خدمة خارجي
+          (أو موظف سابق لم يعد مخولاً) بدون موافقة خطية مسبقة وصريحة من الشركة
+          يُبطل مباشرةً (1) أي ضمانات صريحة أو ضمنية، (2) أي التزامات صيانة أو
+          دعم، (3) أي تعهّدات متعلقة بالأداء أو الأمان أو سلامة البيانات. ويتحمل
+          العميل وأي طرف ثالث متدخل كامل المسؤولية عن الأخطاء أو الثغرات أو
+          فقدان البيانات أو التدهور في الأداء الناشئ بعد ذلك. لا تكون الشركة
+          ملزمة بمراجعة أو إصلاح أو دعم قاعدة شفرة معدّلة خارج نطاق التسليم
+          الأصلي إلا بموجب اتفاق جديد مكتوب ومُسَعَّر بشكل منفصل. كما يتعهد
+          العميل بعدم منح وصول إلى المستودعات أو الخوادم إلا لأفراد خاضعين
+          لالتزامات سرية لا تقل حمايةً عن الواردة في هذا العقد، مع إخطار الشركة
+          مسبقاً بأي نية لإشراك طرف ثالث قبل منحه أي صلاحيات وصول.
+        </p>
+
+        <div class="signature-blocks">
+          <div class="sig">
+            <div class="sig-box">توقيع الشركة</div>
+            <div class="sig-lines">
+              الاسم: ____________________________<br />الصفة:
+              _____________________________<br />التاريخ:
+              ____________________________
+            </div>
+          </div>
+          <div class="sig">
+            <div class="sig-box">توقيع العميل</div>
+            <div class="sig-lines">
+              الاسم: ____________________________<br />الصفة:
+              _____________________________<br />التاريخ:
+              ____________________________
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        عقد تطوير برمجيات ©
+        <script>
+          document.write(new Date().getFullYear());
+        </script>
+      </footer>
+    </div>
+  </body>
+</html>

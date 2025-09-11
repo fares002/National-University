@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mutual Non-Disclosure Agreement (NDA)</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      :root {
+        --primary: #0d47a1;
+        --accent: #1976d2;
+        --bg: #f5f7fa;
+        --gray700: #334155;
+        --gray500: #64748b;
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        padding: 0;
+        color: #111;
+      }
+      .doc {
+        min-height: 100vh;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: center;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: #fff;
+        padding: 32px 40px 24px;
+        position: relative;
+      }
+      .trade-watermark {
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.6);
+        pointer-events: none;
+        text-transform: uppercase;
+      }
+      header:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at 85% 15%,
+          rgba(255, 255, 255, 0.18),
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+      .brand {
+        flex: 1 1 300px;
+      }
+      .brand h1 {
+        margin: 0 0 6px;
+        font-size: 26px;
+        letter-spacing: 0.5px;
+      }
+      .brand .tagline {
+        font-size: 13px;
+        font-weight: 500;
+        opacity: 0.9;
+        letter-spacing: 0.5px;
+      }
+      .meta {
+        text-align: right;
+        flex: 1 1 240px;
+        font-size: 13px;
+      }
+      .meta h2 {
+        margin: 0 0 8px;
+        font-size: 18px;
+        letter-spacing: 1px;
+      }
+      .meta table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .meta td {
+        padding: 2px 0;
+      }
+      h2.sec {
+        margin: 30px 0 10px;
+        font-size: 18px;
+        color: var(--primary);
+        letter-spacing: 0.5px;
+      }
+      p,
+      li {
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--gray700);
+      }
+      ul {
+        margin: 8px 0 16px 22px;
+        padding: 0;
+      }
+      section {
+        padding: 28px 40px;
+      }
+      .signature-blocks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        margin: 42px 0 40px;
+      }
+      .sig {
+        flex: 1 1 320px;
+        min-width: 260px;
+      }
+      .sig-box {
+        height: 110px;
+        border: 1px dashed #94a3b8;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #64748b;
+        background: #f8fafc;
+      }
+      .sig-lines {
+        margin-top: 8px;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--gray700);
+      }
+      footer {
+        padding: 18px 40px 24px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--gray500);
+        background: #fff;
+      }
+      .watermark {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        font-size: 38px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.08);
+        letter-spacing: 2px;
+      }
+      @page {
+        margin: 0;
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        .doc {
+          box-shadow: none;
+        }
+        header {
+          height: 100vh;
+          page-break-after: always;
+          display: flex;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="doc">
+      <header>
+        <div class="brand">
+          <div class="trade-watermark">FARIS OSAMA TRADING AS</div>
+          <h1>Node Company for Software Solution</h1>
+          <div class="tagline">
+            Custom Software Development • Web Platforms • FinTech Solutions
+          </div>
+        </div>
+        <div class="meta">
+          <h2>NDA</h2>
+          <table>
+            <tr>
+              <td><strong>No:</strong></td>
+              <td>NDA-00025</td>
+            </tr>
+            <tr>
+              <td><strong>Date:</strong></td>
+              <td>
+                <script>
+                  document.write(new Date().toLocaleDateString());
+                </script>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Version:</strong></td>
+              <td>1.0</td>
+            </tr>
+          </table>
+        </div>
+        <div class="watermark">NDA</div>
+      </header>
+
+      <section>
+        <h2 class="sec">1. Parties</h2>
+        <p>
+          This Mutual Non-Disclosure Agreement ("Agreement") is entered into
+          between Node Company for Software Solution ("Company") and the
+          counter‑signing client or partner ("Recipient"). Each may be referred
+          to as a "Party" and collectively the "Parties".
+        </p>
+
+        <h2 class="sec">2. Definition of Confidential Information</h2>
+        <p>
+          “Confidential Information” means all non‑public information disclosed
+          in any form (written, oral, electronic, visual, demonstrative,
+          samples) including but not limited to source code, product roadmaps,
+          data models, business processes, financial data, credentials,
+          architectural diagrams, customer information, analytics, pricing, and
+          technical know‑how.
+        </p>
+
+        <h2 class="sec">3. Exclusions</h2>
+        <p>
+          Confidential Information does not include information that (a) becomes
+          public through no breach; (b) is received from a third party without
+          duty of confidentiality; (c) was independently developed without
+          reference to the other Party’s information; or (d) was rightfully
+          known prior to disclosure.
+        </p>
+
+        <h2 class="sec">4. Purpose Limitation</h2>
+        <p>
+          Recipient shall use Confidential Information solely for evaluation,
+          integration, or collaboration directly related to the business
+          relationship between the Parties and for no other purpose.
+        </p>
+
+        <h2 class="sec">5. Non‑Disclosure & Protection</h2>
+        <p>
+          Recipient agrees to: (i) protect Confidential Information with at
+          least the same care used for its own sensitive data (and not less than
+          reasonable care); (ii) restrict access to personnel with a strict
+          need‑to‑know; (iii) not copy, reverse engineer, decompile,
+          disassemble, or create derivative works except as explicitly
+          authorized in writing.
+        </p>
+
+        <h2 class="sec">6. Security & Code Integrity</h2>
+        <p>
+          Any attempt to modify, patch, refactor, extract, or partially reuse
+          source code provided under a separate Software Development Agreement
+          without written authorization voids any implied warranties,
+          maintenance obligations, or service commitments by the Company.
+        </p>
+
+        <h2 class="sec">7. Return / Destruction</h2>
+        <p>
+          Upon written request or termination of discussions, Recipient shall
+          promptly return or securely destroy all Confidential Information,
+          including derived notes or summaries, and certify completion in
+          writing upon request.
+        </p>
+        <h2 class="sec">8. No License</h2>
+        <p>
+          No intellectual property rights are granted or implied by this
+          Agreement except the limited right to evaluate and internally use
+          Confidential Information for the stated Purpose.
+        </p>
+        <h2 class="sec">9. Governing Law</h2>
+        <p>
+          This Agreement is governed by the same governing law provision
+          referenced in the Software Development Agreement unless otherwise
+          specified in writing.
+        </p>
+        <h2 class="sec">10. Non-Disclosure of Source Code by Company</h2>
+        <p>
+          The Company shall not disclose or provide copies of the project source
+          code to any third party (including subcontractors) without the
+          Client's prior written consent, except for internal personnel under
+          binding confidentiality obligations strictly necessary to perform
+          agreed services. Any approved external recipient must be subject to
+          confidentiality terms no less protective than this Agreement.
+        </p>
+        <h2 class="sec">11. Entire Agreement</h2>
+        <p>
+          This NDA constitutes the entire understanding regarding
+          confidentiality between the Parties and supersedes prior
+          confidentiality discussions. Amendments must be in a signed writing.
+        </p>
+
+        <div class="signature-blocks">
+          <div class="sig">
+            <div class="sig-box">Company Signature</div>
+            <div class="sig-lines">
+              Name: ____________________________<br />Title:
+              _____________________________<br />Date:
+              ______________________________
+            </div>
+          </div>
+          <div class="sig">
+            <div class="sig-box">Recipient Signature</div>
+            <div class="sig-lines">
+              Name: ____________________________<br />Title:
+              _____________________________<br />Date:
+              ______________________________
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        Mutual NDA ©
+        <script>
+          document.write(new Date().getFullYear());
+        </script>
+      </footer>
+    </div>
+  </body>
+</html>

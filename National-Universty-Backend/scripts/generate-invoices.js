@@ -8,42 +8,6 @@ const fs = require("fs");
 const path = require("path");
 const puppeteer = require("puppeteer");
 
-async function htmlToPdf(inputPath, outputPath, options = {}) {
-  const browser = await puppeteer.launch({
-    headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
-  const page = await browser.newPage();
-
-  // Wider viewport & higher device scale for crisper rendering
-  await page.setViewport({ width: 1300, height: 1800, deviceScaleFactor: 2 });
-
-  const fileUrl = "file://" + inputPath.replace(/\\/g, "/");
-  await page.goto(fileUrl, { waitUntil: "networkidle0" });
-
-  // Wait for custom fonts (if any) to finish loading
-  try {
-    await page.evaluate(() => document.fonts && document.fonts.ready);
-  } catch {}
-
-  // Use screen styles (keeps shadows / gradients) unless explicitly forcing print styles
-  if (!process.env.PRINT_MEDIA) {
-    await page.emulateMediaType("screen");
-  }
-
-  // Optional class hook if you want to target PDF-only tweaks
-  await page.evaluate(() => document.body.classList.add("pdf-export"));
-
-  await page.pdf({
-    path: outputPath,
-    format: "A4",
-    printBackground: true,
-    preferCSSPageSize: false,
-    margin: { top: "18mm", right: "14mm", bottom: "18mm", left: "14mm" },
-    ...options,
-  });
-  await browser.close();
-}
 async function htmlToFullPagePdf(inputPath, outputPath) {
   const browser = await puppeteer.launch({
     headless: "new",
@@ -64,7 +28,7 @@ async function htmlToFullPagePdf(inputPath, outputPath) {
       document.body.offsetHeight
     ),
     bodyWidth:
-      document.querySelector(".invoice-wrapper")?.offsetWidth ||
+      document.querySelector(".invoice-wrapper, .doc")?.offsetWidth ||
       document.body.offsetWidth ||
       960,
   }));
@@ -96,6 +60,22 @@ async function htmlToFullPagePdf(inputPath, outputPath) {
         in: path.join(projectRoot, "invoice-ar.html"),
         out: path.join(outDir, "invoice-ar.pdf"),
       },
+      {
+        in: path.join(projectRoot, "contract.html"),
+        out: path.join(outDir, "contract.pdf"),
+      },
+      {
+        in: path.join(projectRoot, "contract-ar.html"),
+        out: path.join(outDir, "contract-ar.pdf"),
+      },
+      {
+        in: path.join(projectRoot, "nda.html"),
+        out: path.join(outDir, "nda.pdf"),
+      },
+      {
+        in: path.join(projectRoot, "nda-ar.html"),
+        out: path.join(outDir, "nda-ar.pdf"),
+      },
     ];
 
     for (const t of targets) {
@@ -103,13 +83,9 @@ async function htmlToFullPagePdf(inputPath, outputPath) {
         console.warn("[skip] Not found:", path.basename(t.in));
         continue;
       }
-      console.log("Generating A4 PDF for", path.basename(t.in));
-      await htmlToPdf(t.in, t.out);
-      console.log(" -> Saved", path.relative(projectRoot, t.out));
-      const fullOut = t.out.replace(/\.pdf$/, "-full.pdf");
       console.log("Generating FULL-PAGE PDF for", path.basename(t.in));
-      await htmlToFullPagePdf(t.in, fullOut);
-      console.log(" -> Saved", path.relative(projectRoot, fullOut));
+      await htmlToFullPagePdf(t.in, t.out);
+      console.log(" -> Saved", path.relative(projectRoot, t.out));
     }
 
     console.log("\nAll done.");

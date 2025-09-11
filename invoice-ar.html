@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <title>فاتورة رقم INV-2025-001 - شركة نود لحلول البرمجيات</title>
+    <title>فاتورة رقم INV-2025-025 - شركة نود لحلول البرمجيات</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <style>
       :root {
@@ -20,17 +20,10 @@
       * {
         box-sizing: border-box;
       }
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: #111;
-        padding: 32px 20px;
-      }
+  body { margin:0; background:var(--bg); color:#111; padding:0; }
       .invoice-wrapper {
-        max-width: 960px;
-        margin: 0 auto;
+        min-height: 100vh;
         background: #fff;
-        border-radius: var(--radius);
         box-shadow: var(--shadow);
         overflow: hidden;
       }
@@ -48,6 +41,7 @@
         color: #fff;
         position: relative;
       }
+  .trade-watermark { position:absolute; top:6px; left:50%; transform:translateX(-50%); font-size:10px; letter-spacing:1.5px; font-weight:600; color:rgba(255,255,255,0.6); pointer-events:none; text-transform:uppercase; }
       header:after {
         content: "";
         position: absolute;
@@ -239,34 +233,27 @@
         padding: 0;
       }
       @media print {
-        body {
-          background: #fff;
-          padding: 0;
-        }
-        .invoice-wrapper {
-          box-shadow: none;
-        }
-        header {
-          border-radius: 0;
-        }
+        body { background:#fff; padding:0; }
+        .invoice-wrapper { box-shadow:none; border:0; }
+        header { border-radius:0; height:100vh; page-break-after:always; display:flex; align-items:center; }
       }
     </style>
   </head>
   <body>
     <div class="invoice-wrapper">
       <header>
-        <div class="brand">
-          <h1>شركة نود لحلول البرمجيات</h1>
+          <div class="brand">
+            <div class="trade-watermark">FARIS OSAMA TRADING AS</div>
+          <h1>شركة نود للحلول البرمجيه</h1>
           <div class="tagline">
             تطوير حلول برمجية مخصصة • منصات ويب • حلول مالية
-          </div>
         </div>
         <div class="invoice-meta">
           <h2>فاتورة</h2>
           <table>
             <tr>
               <td><strong>الرقم:</strong></td>
-              <td>INV-2025-001</td>
+            <td>INV-00025</td>
             </tr>
             <tr>
               <td><strong>التاريخ:</strong></td>
@@ -286,14 +273,14 @@
             </tr>
           </table>
         </div>
-        <div class="watermark">فاتورة</div>
+  <div class="watermark">فاتورة</div>
       </header>
 
       <section>
         <div class="parties">
           <div class="party">
             <span class="label">مصدر الفاتورة</span>
-            <h4>فارس أسامة</h4>
+            <h4>فارس أسامة عبد السميع</h4>
             <address>
               7 محمود غنيم، مدينة نصر<br />
               القاهرة - مصر<br />
@@ -305,12 +292,9 @@
             </address>
           </div>
           <div class="party">
-            <span class="label">موجهة إلى</span>
-            <h4>الجامعة الوطنية</h4>
-            <address>
-            مصر - القاهرة<br />
-              عناية: قسم المالية / الإدارة
-            </address>
+            <span class="label">موجهة إلى السيد</span>
+            <h4>احمد محمد عوض الكريم</h4>
+            <address>مصر - القاهرة<br /></address>
           </div>
         </div>
 
@@ -340,8 +324,8 @@
                 جميع الشاشات، لوحة التحكم، التقارير، النماذج، التحقق، التصدير
                 PDF.
               </td>
-              <td class="amount">$1,500.00</td>
-              <td class="amount">$1,500.00</td>
+              <td class="amount">$1,000.00</td>
+              <td class="amount">$1,000.00</td>
             </tr>
             <tr>
               <td class="desc">
@@ -360,30 +344,13 @@
               <td class="amount">$2,000.00</td>
               <td class="amount">$2,000.00</td>
             </tr>
-            <tr>
-              <td class="desc">
-                <strong>تحسينات ما بعد التسليم</strong><br />
-                إضافة التحكم في سعر الصرف التاريخي، حسابات الدولار، أعمدة PDF
-                إضافية، وتطوير ملخصات ثنائية العملة.
-              </td>
-              <td>
-                <span class="pill">تحسين</span>
-                <span class="pill">دعم</span>
-              </td>
-              <td>
-                إدارة سعر الدولار، تثبيت السعر لكل معاملة، تحديث التقارير ولوحة
-                التحكم.
-              </td>
-              <td class="amount">$300.00</td>
-              <td class="amount">$300.00</td>
-            </tr>
           </tbody>
         </table>
 
         <table class="totals">
           <tr>
             <td class="label">المجموع الفرعي</td>
-            <td class="amount" style="text-align: left">$3,800.00</td>
+            <td class="amount" style="text-align: left">$3,000.00</td>
           </tr>
           <tr>
             <td class="label">الخصم</td>
@@ -393,9 +360,17 @@
             <td class="label">الضريبة (0%)</td>
             <td class="amount" style="text-align: left">$0.00</td>
           </tr>
+          <tr class="subtotal">
+            <td class="label">إجمالي المبلغ</td>
+            <td class="amount" style="text-align: left">$3,000.00</td>
+          </tr>
+          <tr>
+            <td class="label">المبلغ المدفوع</td>
+            <td class="amount" style="text-align: left; color: #2e7d32">$1,500.00</td>
+          </tr>
           <tr class="grand-total">
-            <td class="label">الإجمالي المستحق</td>
-            <td class="amount" style="text-align: left">$3,800.00</td>
+            <td class="label">الرصيد المتبقى</td>
+            <td class="amount" style="text-align: left">$1,500.00</td>
           </tr>
         </table>
 
@@ -412,8 +387,62 @@
             </li>
             <li>تشمل الفاتورة العناصر المنفذة والتحسينات المذكورة فقط.</li>
             <li>أي طلبات إضافية مستقبلية تُقدر وتُفوتر منفصلة.</li>
-            <li> الشفرة المصدرية وقواعد البيانات والتعليمات النشر مضمنه في هذه الفاتوره</li>
+            <li>
+              الشفرة المصدرية وقواعد البيانات والتعليمات النشر مضمنه في هذه
+              الفاتوره
+            </li>
           </ul>
+        </div>
+      </section>
+      <section style="padding: 0 40px 10px 40px">
+        <h3 class="section-title" style="margin-top: 0">التوقيعات</h3>
+        <div
+          style="display: flex; flex-wrap: wrap; gap: 40px; margin-top: 20px"
+        >
+          <div style="flex: 1 1 300px; min-width: 260px">
+            <div
+              style="
+                height: 90px;
+                border: 1px dashed #94a3b8;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                color: #64748b;
+                background: #f8fafc;
+              "
+            >
+              توقيع ممثل الشركة
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; color: #334155">
+              الاسم: ____________________________<br />
+              الصفة: _____________________________<br />
+              التاريخ: ____________________________
+            </div>
+          </div>
+          <div style="flex: 1 1 300px; min-width: 260px">
+            <div
+              style="
+                height: 90px;
+                border: 1px dashed #94a3b8;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                color: #64748b;
+                background: #f8fafc;
+              "
+            >
+              توقيع ممثل العميل
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; color: #334155">
+              الاسم: ____________________________<br />
+              الصفة: _____________________________<br />
+              التاريخ: ____________________________
+            </div>
+          </div>
         </div>
       </section>
       <footer>

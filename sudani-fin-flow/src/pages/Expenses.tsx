@@ -150,7 +150,7 @@ export function Expenses() {
 
       const filters: ExpenseFilters = {
         page: currentPage,
-        limit: 10,
+        limit: 50,
       };
 
       if (debouncedSearchQuery.trim()) {
@@ -166,7 +166,7 @@ export function Expenses() {
         response = await expenseService.searchExpenses(
           debouncedSearchQuery.trim(),
           currentPage,
-          10
+          50
         );
       } else {
         response = await expenseService.getAllExpenses(filters);
