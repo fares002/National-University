@@ -454,6 +454,8 @@ export async function generatePDF(
     await page.setContent(html, { waitUntil: "networkidle0" });
     const pdf = await page.pdf({
       format: "A4",
+      timeout: 60000,
+      
       printBackground: true,
       preferCSSPageSize: true,
       scale: 0.98,
