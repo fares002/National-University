@@ -9,6 +9,9 @@ import {
   downloadMonthlyReportPDF,
   downloadYearlyReportPDF,
   downloadRangeReportPDF,
+  downloadMonthlyHorizontalPDF,
+  downloadMonthlyHorizontalPaymentsPDF,
+  downloadMonthlyHorizontalExpensesPDF,
 } from "../controllers/reportController";
 import {
   dateValidator,
@@ -110,6 +113,51 @@ router.get(
   monthlyReportValidator,
   validate,
   downloadMonthlyReportPDF
+);
+
+/**
+ * GET /api/v1/reports/monthly/:year/:month/horizontal-pdf
+ * Download monthly horizontal landscape matrix PDF (days x categories)
+ * Access: admin, auditor
+ */
+router.get(
+  "/monthly/:year/:month/horizontal-pdf",
+  // allowedTo("admin", "auditor"),
+  monthlyReportValidator,
+  validate,
+  downloadMonthlyHorizontalPDF
+);
+
+/**
+ * GET /api/v1/reports/monthly/:year/:month/horizontal-payment-pdf
+ * Download monthly horizontal landscape matrix PDF (days x fee types) - PAYMENTS ONLY
+ */
+router.get(
+  "/monthly/:year/:month/horizontal-payment-pdf",
+  // allowedTo("admin", "auditor"),
+  monthlyReportValidator,
+  validate,
+  downloadMonthlyHorizontalPaymentsPDF
+);
+
+/**
+ * GET /api/v1/reports/monthly/:year/:month/horizontal-expenses-pdf
+ * GET /api/v1/reports/monthly/:year/:month/horizontal-expanses-pdf (alias)
+ * Download monthly horizontal landscape matrix PDF (days x categories) - EXPENSES ONLY
+ */
+router.get(
+  "/monthly/:year/:month/horizontal-expenses-pdf",
+  // allowedTo("admin", "auditor"),
+  monthlyReportValidator,
+  validate,
+  downloadMonthlyHorizontalExpensesPDF
+);
+router.get(
+  "/monthly/:year/:month/horizontal-expanses-pdf",
+  // allowedTo("admin", "auditor"),
+  monthlyReportValidator,
+  validate,
+  downloadMonthlyHorizontalExpensesPDF
 );
 
 /**

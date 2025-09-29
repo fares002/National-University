@@ -237,6 +237,40 @@ class ReportsService {
     );
   }
 
+  // Monthly Horizontal PDFs (Combined, Payments-only, Expenses-only)
+  async downloadMonthlyHorizontalPdf(
+    year: number,
+    month: number
+  ): Promise<void> {
+    const mm = String(month).padStart(2, "0");
+    await this.downloadPdf(
+      `/reports/monthly/${year}/${month}/horizontal-pdf`,
+      `monthly-horizontal-${year}-${mm}.pdf`
+    );
+  }
+
+  async downloadMonthlyHorizontalPaymentsPdf(
+    year: number,
+    month: number
+  ): Promise<void> {
+    const mm = String(month).padStart(2, "0");
+    await this.downloadPdf(
+      `/reports/monthly/${year}/${month}/horizontal-payment-pdf`,
+      `monthly-horizontal-payments-${year}-${mm}.pdf`
+    );
+  }
+
+  async downloadMonthlyHorizontalExpensesPdf(
+    year: number,
+    month: number
+  ): Promise<void> {
+    const mm = String(month).padStart(2, "0");
+    await this.downloadPdf(
+      `/reports/monthly/${year}/${month}/horizontal-expenses-pdf`,
+      `monthly-horizontal-expenses-${year}-${mm}.pdf`
+    );
+  }
+
   async downloadYearlyPdf(year: number): Promise<void> {
     await this.downloadPdf(
       `/reports/yearly/${year}/pdf`,
@@ -260,6 +294,23 @@ class ReportsService {
 
   viewMonthlyPdf(year: number, month: number): void {
     this.openPdfInNewTab(`/reports/monthly/${year}/${month}/pdf`);
+  }
+
+  // View Monthly Horizontal PDFs
+  viewMonthlyHorizontalPdf(year: number, month: number): void {
+    this.openPdfInNewTab(`/reports/monthly/${year}/${month}/horizontal-pdf`);
+  }
+
+  viewMonthlyHorizontalPaymentsPdf(year: number, month: number): void {
+    this.openPdfInNewTab(
+      `/reports/monthly/${year}/${month}/horizontal-payment-pdf`
+    );
+  }
+
+  viewMonthlyHorizontalExpensesPdf(year: number, month: number): void {
+    this.openPdfInNewTab(
+      `/reports/monthly/${year}/${month}/horizontal-expenses-pdf`
+    );
   }
 
   viewYearlyPdf(year: number): void {

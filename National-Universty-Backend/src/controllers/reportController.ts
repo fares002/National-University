@@ -5,6 +5,10 @@ import redis from "../utils/redis";
 import AppError from "../utils/AppError";
 import { httpStatusText } from "../utils/httpStatusText";
 import { generatePDF, ReportData } from "../utils/pdfGenerator";
+import {
+  generateHorizontalMonthlyPDF,
+  HorizontalMonthlyData,
+} from "../utils/pdfHorizontalMonthly";
 
 // Types for report data
 interface DailyReportData {
@@ -65,6 +69,7 @@ interface MonthlyReportData {
     };
   };
 }
+
 
 /**
  * Get daily financial report
@@ -227,6 +232,7 @@ const getDailyReport = asyncWrapper(
     }
   }
 );
+
 
 /**
  * Get monthly financial report
@@ -747,6 +753,7 @@ const getYearlyReport = asyncWrapper(
   }
 );
 
+
 /**
  * Get dashboard report with comprehensive financial overview
  * Authorization: admin and auditor roles
@@ -1162,6 +1169,7 @@ const getDashboardReport = asyncWrapper(
   }
 );
 
+
 /**
  * Get financial summary (current month, quarter, year overview)
  * Authorization: admin and auditor roles
@@ -1316,6 +1324,7 @@ const getFinancialSummary = asyncWrapper(
   }
 );
 
+
 /**
  * Download daily report as PDF
  * Authorization: admin and auditor roles
@@ -1439,6 +1448,7 @@ const downloadDailyReportPDF = asyncWrapper(
     }
   }
 );
+
 
 /**
  * Download monthly report as PDF
@@ -1598,6 +1608,7 @@ const downloadMonthlyReportPDF = asyncWrapper(
     }
   }
 );
+
 
 /**
  * Download yearly report as PDF
@@ -1773,6 +1784,7 @@ const downloadYearlyReportPDF = asyncWrapper(
   }
 );
 
+
 /**
  * Download custom date range report as PDF
  * Query: from=YYYY-MM-DD, to=YYYY-MM-DD
@@ -1873,6 +1885,364 @@ const downloadRangeReportPDF = asyncWrapper(
   }
 );
 
+
+/**
+ * Download monthly HORIZONTAL (landscape) matrix PDF
+ * - Columns: categories (Payments: FeeType, Expenses: Category)
+ * - Rows: days of the target month
+ * - Cells: total amount per day/category
+ */
+const downloadMonthlyHorizontalPDF = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { year, month } = req.params;
+      const targetYear = parseInt(year);
+      const targetMonth = parseInt(month);
+
+      if (
+        isNaN(targetYear) ||
+        isNaN(targetMonth) ||
+        targetMonth < 1 ||
+        targetMonth > 12
+      ) {
+        return next(new AppError("Invalid year or month", 400));
+      }
+
+      const startOfMonth = new Date(targetYear, targetMonth - 1, 1);
+      const endOfMonth = new Date(targetYear, targetMonth, 0, 23, 59, 59, 999);
+      const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+
+      // Fetch minimal set needed
+      const [payments, expenses] = await Promise.all([
+        prisma.payment.findMany({
+          where: { paymentDate: { gte: startOfMonth, lte: endOfMonth } },
+          select: { amountUSD: true, feeType: true, paymentDate: true },
+        }),
+        prisma.expense.findMany({
+          where: { date: { gte: startOfMonth, lte: endOfMonth } },
+          select: { amountUSD: true, category: true, date: true },
+        }),
+      ]);
+
+      // Build unique columns
+      const paymentKeys = Array.from(
+        new Set(payments.map((p) => p.feeType))
+      ).sort();
+      const expenseKeys = Array.from(
+        new Set(expenses.map((e) => e.category))
+      ).sort();
+
+      // Initialize matrices (days x columns) with zeros
+      const paymentMatrix: number[][] = Array.from(
+        { length: daysInMonth },
+        () => Array(paymentKeys.length).fill(0)
+      );
+      const expenseMatrix: number[][] = Array.from(
+        { length: daysInMonth },
+        () => Array(expenseKeys.length).fill(0)
+      );
+
+      // Fill payments matrix
+      const paymentIndex = new Map(paymentKeys.map((k, i) => [k, i] as const));
+      for (const p of payments) {
+        const day = p.paymentDate.getDate();
+        const ci = paymentIndex.get(p.feeType);
+        if (ci !== undefined) {
+          // Use USD amounts; fallback to 0 when not available
+          paymentMatrix[day - 1][ci] += Number(p.amountUSD || 0);
+        }
+      }
+
+      // Fill expenses matrix
+      const expenseIndex = new Map(expenseKeys.map((k, i) => [k, i] as const));
+      for (const e of expenses) {
+        const day = e.date.getDate();
+        const ci = expenseIndex.get(e.category);
+        if (ci !== undefined) {
+          // Use USD amounts; fallback to 0 when not available
+          expenseMatrix[day - 1][ci] += Number(e.amountUSD || 0);
+        }
+      }
+
+      // Arabic label helpers (keep scoped to this endpoint)
+      const feeTypeAr = (key: string): string => {
+        const map: Record<string, string> = {
+          NEW_YEAR: "رسوم سنة جديدة",
+          SUPPLEMENTARY: "رسوم ملحق",
+          TRAINING: "رسوم تدريب",
+          STUDENT_SERVICES: "رسوم خدمات طلابية",
+          EXAM: "رسوم امتحان",
+          OTHER: "أخرى",
+        };
+        return map[key] ?? key;
+      };
+      const expenseCatAr = (category: string): string => {
+        const translations: Record<string, string> = {
+          "Fixed Assets": "أصول ثابتة",
+          "Part-time Professors": "الأساتذه المتعاونون",
+          "Rent of study and administrative premises":
+            "ايجار مقرات الدراسه والادارة",
+          Salaries: "رواتب",
+          "Student Fees Refund": "استرداد رسوم الطلاب",
+          Advances: "سلف",
+          Bonuses: "مكافآت",
+          "General & Administrative Expenses": "مصاريف عامة وإدارية",
+          "General and Administrative Expenses": "مصاريف عامة وإدارية",
+          "Library Supplies": "مستلزمات المكتبة",
+          "Lab Consumables": "مستهلكات المعامل",
+          "Student Training": "تدريب الطلاب",
+          "Saudi-Egyptian Company": "شركة سعودية-مصرية",
+          other: "آخرى",
+          Other: "آخرى",
+        };
+        return translations[category] || category;
+      };
+
+      // Column labels (Arabic)
+      const paymentLabels = Object.fromEntries(
+        paymentKeys.map((k) => [k, feeTypeAr(k)])
+      );
+      const expenseLabels = Object.fromEntries(
+        expenseKeys.map((k) => [k, expenseCatAr(k)])
+      );
+
+      const monthName = new Date(
+        targetYear,
+        targetMonth - 1,
+        1
+      ).toLocaleDateString("en-US", { month: "long" });
+
+      const data: HorizontalMonthlyData = {
+        title: "التقرير الشهري الأفقي (مصفوفة)",
+        subtitle: `${monthName} ${targetYear}`,
+        monthYear: `${targetYear}-${String(targetMonth).padStart(2, "0")}`,
+        // Display currency as USD for the horizontal matrix
+        currencyLabel: "USD",
+        payments: paymentKeys.length
+          ? {
+              columns: paymentKeys,
+              columnLabels: paymentLabels,
+              matrix: paymentMatrix,
+            }
+          : undefined,
+        expenses: expenseKeys.length
+          ? {
+              columns: expenseKeys,
+              columnLabels: expenseLabels,
+              matrix: expenseMatrix,
+            }
+          : undefined,
+      };
+
+      const filename = `monthly-horizontal-${targetYear}-${String(
+        targetMonth
+      ).padStart(2, "0")}.pdf`;
+      await generateHorizontalMonthlyPDF(data, filename, res);
+    } catch (error) {
+      return next(
+        new AppError("Failed to generate monthly horizontal PDF", 500)
+      );
+    }
+  }
+);
+
+
+/**
+ * Download monthly HORIZONTAL (landscape) matrix PDF - PAYMENTS ONLY
+ */
+const downloadMonthlyHorizontalPaymentsPDF = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { year, month } = req.params;
+      const targetYear = parseInt(year);
+      const targetMonth = parseInt(month);
+
+      if (
+        isNaN(targetYear) ||
+        isNaN(targetMonth) ||
+        targetMonth < 1 ||
+        targetMonth > 12
+      ) {
+        return next(new AppError("Invalid year or month", 400));
+      }
+
+      const startOfMonth = new Date(targetYear, targetMonth - 1, 1);
+      const endOfMonth = new Date(targetYear, targetMonth, 0, 23, 59, 59, 999);
+      const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+
+      const payments = await prisma.payment.findMany({
+        where: { paymentDate: { gte: startOfMonth, lte: endOfMonth } },
+        select: { amountUSD: true, feeType: true, paymentDate: true },
+      });
+
+      const paymentKeys = Array.from(
+        new Set(payments.map((p) => p.feeType))
+      ).sort();
+      const paymentMatrix: number[][] = Array.from(
+        { length: daysInMonth },
+        () => Array(paymentKeys.length).fill(0)
+      );
+      const paymentIndex = new Map(paymentKeys.map((k, i) => [k, i] as const));
+      for (const p of payments) {
+        const day = p.paymentDate.getDate();
+        const ci = paymentIndex.get(p.feeType);
+        if (ci !== undefined)
+          paymentMatrix[day - 1][ci] += Number(p.amountUSD || 0);
+      }
+
+      const feeTypeAr = (key: string): string => {
+        const map: Record<string, string> = {
+          NEW_YEAR: "رسوم سنة جديدة",
+          SUPPLEMENTARY: "رسوم ملحق",
+          TRAINING: "رسوم تدريب",
+          STUDENT_SERVICES: "رسوم خدمات طلابية",
+          EXAM: "رسوم امتحان",
+          OTHER: "أخرى",
+        };
+        return map[key] ?? key;
+      };
+
+      const paymentLabels = Object.fromEntries(
+        paymentKeys.map((k) => [k, feeTypeAr(k)])
+      );
+
+      const monthName = new Date(
+        targetYear,
+        targetMonth - 1,
+        1
+      ).toLocaleDateString("en-US", { month: "long" });
+
+      const data: HorizontalMonthlyData = {
+        title: "التقرير الشهري الأفقي - المدفوعات",
+        subtitle: `${monthName} ${targetYear}`,
+        monthYear: `${targetYear}-${String(targetMonth).padStart(2, "0")}`,
+        currencyLabel: "USD",
+        payments: paymentKeys.length
+          ? {
+              columns: paymentKeys,
+              columnLabels: paymentLabels,
+              matrix: paymentMatrix,
+            }
+          : undefined,
+        expenses: undefined,
+      };
+
+      const filename = `monthly-horizontal-payments-${targetYear}-${String(
+        targetMonth
+      ).padStart(2, "0")}.pdf`;
+      await generateHorizontalMonthlyPDF(data, filename, res);
+    } catch (error) {
+      return next(
+        new AppError("Failed to generate monthly horizontal PAYMENTS PDF", 500)
+      );
+    }
+  }
+);
+
+
+/**
+ * Download monthly HORIZONTAL (landscape) matrix PDF - EXPENSES ONLY
+ */
+const downloadMonthlyHorizontalExpensesPDF = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { year, month } = req.params;
+      const targetYear = parseInt(year);
+      const targetMonth = parseInt(month);
+
+      if (
+        isNaN(targetYear) ||
+        isNaN(targetMonth) ||
+        targetMonth < 1 ||
+        targetMonth > 12
+      ) {
+        return next(new AppError("Invalid year or month", 400));
+      }
+
+      const startOfMonth = new Date(targetYear, targetMonth - 1, 1);
+      const endOfMonth = new Date(targetYear, targetMonth, 0, 23, 59, 59, 999);
+      const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+
+      const expenses = await prisma.expense.findMany({
+        where: { date: { gte: startOfMonth, lte: endOfMonth } },
+        select: { amountUSD: true, category: true, date: true },
+      });
+
+      const expenseKeys = Array.from(
+        new Set(expenses.map((e) => e.category))
+      ).sort();
+      const expenseMatrix: number[][] = Array.from(
+        { length: daysInMonth },
+        () => Array(expenseKeys.length).fill(0)
+      );
+      const expenseIndex = new Map(expenseKeys.map((k, i) => [k, i] as const));
+      for (const e of expenses) {
+        const day = e.date.getDate();
+        const ci = expenseIndex.get(e.category);
+        if (ci !== undefined)
+          expenseMatrix[day - 1][ci] += Number(e.amountUSD || 0);
+      }
+
+      const expenseCatAr = (category: string): string => {
+        const translations: Record<string, string> = {
+          "Fixed Assets": "أصول ثابتة",
+          "Part-time Professors": "الأساتذه المتعاونون",
+          "Rent of study and administrative premises":
+            "ايجار مقرات الدراسه والادارة",
+          Salaries: "رواتب",
+          "Student Fees Refund": "استرداد رسوم الطلاب",
+          Advances: "سلف",
+          Bonuses: "مكافآت",
+          "General & Administrative Expenses": "مصاريف عامة وإدارية",
+          "General and Administrative Expenses": "مصاريف عامة وإدارية",
+          "Library Supplies": "مستلزمات المكتبة",
+          "Lab Consumables": "مستهلكات المعامل",
+          "Student Training": "تدريب الطلاب",
+          "Saudi-Egyptian Company": "شركة سعودية-مصرية",
+          other: "آخرى",
+          Other: "آخرى",
+        };
+        return translations[category] || category;
+      };
+
+      const expenseLabels = Object.fromEntries(
+        expenseKeys.map((k) => [k, expenseCatAr(k)])
+      );
+
+      const monthName = new Date(
+        targetYear,
+        targetMonth - 1,
+        1
+      ).toLocaleDateString("en-US", { month: "long" });
+
+      const data: HorizontalMonthlyData = {
+        title: "التقرير الشهري الأفقي - المصروفات",
+        subtitle: `${monthName} ${targetYear}`,
+        monthYear: `${targetYear}-${String(targetMonth).padStart(2, "0")}`,
+        currencyLabel: "USD",
+        payments: undefined,
+        expenses: expenseKeys.length
+          ? {
+              columns: expenseKeys,
+              columnLabels: expenseLabels,
+              matrix: expenseMatrix,
+            }
+          : undefined,
+      };
+
+      const filename = `monthly-horizontal-expenses-${targetYear}-${String(
+        targetMonth
+      ).padStart(2, "0")}.pdf`;
+      await generateHorizontalMonthlyPDF(data, filename, res);
+    } catch (error) {
+      return next(
+        new AppError("Failed to generate monthly horizontal EXPENSES PDF", 500)
+      );
+    }
+  }
+);
+
+
 export {
   getDailyReport,
   getMonthlyReport,
@@ -1883,4 +2253,7 @@ export {
   downloadMonthlyReportPDF,
   downloadYearlyReportPDF,
   downloadRangeReportPDF,
+  downloadMonthlyHorizontalPDF,
+  downloadMonthlyHorizontalPaymentsPDF,
+  downloadMonthlyHorizontalExpensesPDF,
 };

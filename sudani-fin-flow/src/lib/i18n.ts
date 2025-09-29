@@ -326,6 +326,11 @@ const resources = {
       weekly: "أسبوعي",
       monthly: "شهري",
       yearly: "سنوي",
+      // Horizontal monthly report cards
+      horizontalMonthlyCombined: "تقرير شهري أفقي (مجمع)",
+      horizontalMonthlyPayments: "تقرير شهري أفقي (الإيرادات فقط)",
+      horizontalMonthlyExpenses: "تقرير شهري أفقي (المصروفات فقط)",
+      note: "ملاحظة",
       // Report names and categories
       financialDaily: "التقرير المالي اليومي",
       financialWeekly: "التقرير المالي الأسبوعي",
@@ -860,6 +865,11 @@ const resources = {
       weekly: "Weekly",
       monthly: "Monthly",
       yearly: "Yearly",
+      // Horizontal monthly report cards
+      horizontalMonthlyCombined: "Monthly Horizontal (Combined)",
+      horizontalMonthlyPayments: "Monthly Horizontal (Payments)",
+      horizontalMonthlyExpenses: "Monthly Horizontal (Expenses)",
+      note: "Note",
       // Report names and categories
       financialDaily: "Daily Financial Report",
       financialWeekly: "Weekly Financial Report",

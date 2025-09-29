@@ -94,7 +94,6 @@ const categoryKeyMap: Record<string, string> = {
   Other: "categories.other",
 };
 
-
 const chartConfig = {
   income: {
     label: "income",
@@ -158,6 +157,10 @@ export function Reports() {
     daily: false,
     monthly: false,
     yearly: false,
+    // New: monthly horizontal variants
+    monthlyHorizontalCombined: false,
+    monthlyHorizontalPayments: false,
+    monthlyHorizontalExpenses: false,
   });
 
   // Analytics state
@@ -174,7 +177,7 @@ export function Reports() {
 
   // Use centralized helpers from utils
   const isRTL = i18n.language === "ar" || i18n.dir() === "rtl";
-  const dir = i18n.dir()
+  const dir = i18n.dir();
 
   const getReportIcon = (type: string) => {
     switch (type) {
@@ -350,7 +353,7 @@ export function Reports() {
               </CardContent>
             </Card>
 
-                        <Card>
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -402,12 +405,8 @@ export function Reports() {
 
           {/* Quick Reports - Live (Daily/Monthly/Yearly) */}
           <Card>
-            <CardHeader
-              className="flex items-center justify-between flex-row"
-            >
-              <CardTitle >
-                {t("quickReports")}
-              </CardTitle>
+            <CardHeader className="flex items-center justify-between flex-row">
+              <CardTitle>{t("quickReports")}</CardTitle>
               <Button
                 variant="outline"
                 className="m-5"
@@ -697,6 +696,276 @@ export function Reports() {
                     </Button>
                   </div>
                 </div>
+
+                {/* Monthly Horizontal (Combined) */}
+                <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {getReportIcon("monthly")}
+                      <h3 className="font-medium text-sm">
+                        {t("horizontalMonthlyCombined") ||
+                          "Monthly Horizontal (Combined)"}
+                      </h3>
+                    </div>
+                    <Badge className={getReportColor("monthly")}>
+                      {t("monthly")}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("period")}:
+                      </span>
+                      <span>{quickMonthly?.date ?? "-"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("note") || "Note"}:
+                      </span>
+                      <span className="text-muted-foreground">{t("usd")}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={!(quickMonthly?.year && quickMonthly?.month)}
+                      onClick={() => {
+                        if (!(quickMonthly?.year && quickMonthly?.month))
+                          return;
+                        reportsService.viewMonthlyHorizontalPdf(
+                          quickMonthly.year,
+                          quickMonthly.month
+                        );
+                      }}
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      {t("view")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={
+                        downloading.monthlyHorizontalCombined ||
+                        !(quickMonthly?.year && quickMonthly?.month)
+                      }
+                      onClick={async () => {
+                        if (!(quickMonthly?.year && quickMonthly?.month))
+                          return;
+                        try {
+                          setDownloading((s) => ({
+                            ...s,
+                            monthlyHorizontalCombined: true,
+                          }));
+                          await reportsService.downloadMonthlyHorizontalPdf(
+                            quickMonthly.year,
+                            quickMonthly.month
+                          );
+                        } catch (err: any) {
+                          toast({
+                            variant: "destructive",
+                            title: t("downloadFailed") || "Download failed",
+                            description: err?.message || "",
+                          });
+                        } finally {
+                          setDownloading((s) => ({
+                            ...s,
+                            monthlyHorizontalCombined: false,
+                          }));
+                        }
+                      }}
+                    >
+                      {downloading.monthlyHorizontalCombined ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Download className="h-3 w-3 mr-1" />
+                      )}
+                      {t("download")}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Monthly Horizontal (Payments Only) */}
+                <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {getReportIcon("monthly")}
+                      <h3 className="font-medium text-sm">
+                        {t("horizontalMonthlyPayments") ||
+                          "Monthly Horizontal (Payments)"}
+                      </h3>
+                    </div>
+                    <Badge className={getReportColor("monthly")}>
+                      {t("monthly")}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("period")}:
+                      </span>
+                      <span>{quickMonthly?.date ?? "-"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("note") || "Note"}:
+                      </span>
+                      <span className="text-muted-foreground">{t("usd")}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={!(quickMonthly?.year && quickMonthly?.month)}
+                      onClick={() => {
+                        if (!(quickMonthly?.year && quickMonthly?.month))
+                          return;
+                        reportsService.viewMonthlyHorizontalPaymentsPdf(
+                          quickMonthly.year,
+                          quickMonthly.month
+                        );
+                      }}
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      {t("view")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={
+                        downloading.monthlyHorizontalPayments ||
+                        !(quickMonthly?.year && quickMonthly?.month)
+                      }
+                      onClick={async () => {
+                        if (!(quickMonthly?.year && quickMonthly?.month))
+                          return;
+                        try {
+                          setDownloading((s) => ({
+                            ...s,
+                            monthlyHorizontalPayments: true,
+                          }));
+                          await reportsService.downloadMonthlyHorizontalPaymentsPdf(
+                            quickMonthly.year,
+                            quickMonthly.month
+                          );
+                        } catch (err: any) {
+                          toast({
+                            variant: "destructive",
+                            title: t("downloadFailed") || "Download failed",
+                            description: err?.message || "",
+                          });
+                        } finally {
+                          setDownloading((s) => ({
+                            ...s,
+                            monthlyHorizontalPayments: false,
+                          }));
+                        }
+                      }}
+                    >
+                      {downloading.monthlyHorizontalPayments ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Download className="h-3 w-3 mr-1" />
+                      )}
+                      {t("download")}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Monthly Horizontal (Expenses Only) */}
+                <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {getReportIcon("monthly")}
+                      <h3 className="font-medium text-sm">
+                        {t("horizontalMonthlyExpenses") ||
+                          "Monthly Horizontal (Expenses)"}
+                      </h3>
+                    </div>
+                    <Badge className={getReportColor("monthly")}>
+                      {t("monthly")}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("period")}:
+                      </span>
+                      <span>{quickMonthly?.date ?? "-"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">
+                        {t("note") || "Note"}:
+                      </span>
+                      <span className="text-muted-foreground">{t("usd")}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={!(quickMonthly?.year && quickMonthly?.month)}
+                      onClick={() => {
+                        if (!(quickMonthly?.year && quickMonthly?.month))
+                          return;
+                        reportsService.viewMonthlyHorizontalExpensesPdf(
+                          quickMonthly.year,
+                          quickMonthly.month
+                        );
+                      }}
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      {t("view")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      disabled={
+                        downloading.monthlyHorizontalExpenses ||
+                        !(quickMonthly?.year && quickMonthly?.month)
+                      }
+                      onClick={async () => {
+                        if (!(quickMonthly?.year && quickMonthly?.month))
+                          return;
+                        try {
+                          setDownloading((s) => ({
+                            ...s,
+                            monthlyHorizontalExpenses: true,
+                          }));
+                          await reportsService.downloadMonthlyHorizontalExpensesPdf(
+                            quickMonthly.year,
+                            quickMonthly.month
+                          );
+                        } catch (err: any) {
+                          toast({
+                            variant: "destructive",
+                            title: t("downloadFailed") || "Download failed",
+                            description: err?.message || "",
+                          });
+                        } finally {
+                          setDownloading((s) => ({
+                            ...s,
+                            monthlyHorizontalExpenses: false,
+                          }));
+                        }
+                      }}
+                    >
+                      {downloading.monthlyHorizontalExpenses ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Download className="h-3 w-3 mr-1" />
+                      )}
+                      {t("download")}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
 
@@ -887,7 +1156,9 @@ export function Reports() {
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({ name, value }) => `${t(categoryKeyMap[name] || name)}: ${value}%`}
+                        label={({ name, value }) =>
+                          `${t(categoryKeyMap[name] || name)}: ${value}%`
+                        }
                       >
                         {incomeByCategory.map((_, index) => (
                           <Cell
