@@ -1,0 +1,59 @@
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Test files and directories
+**/__tests__
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+jest.config.js
+coverage
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+*.log
+.vscode
+.idea
+
+# Build artifacts
+dist
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+docs
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Prisma
+prisma/migrations/*
+!prisma/migrations/migration_lock.toml
+
+# Temporary files
+tmp
+temp
+*.swp
+*.swo
+*~
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml

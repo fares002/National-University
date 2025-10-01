@@ -1,0 +1,50 @@
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+*.log
+.vscode
+.idea
+
+# Build artifacts
+dist
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp
+temp
+*.swp
+*.swo
+*~
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
