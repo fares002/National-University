@@ -14,7 +14,6 @@ jobs:
   deploy:
     # Run on the self-hosted runner we just installed (NU_RUNNER)
     runs-on: self-hosted
-    
     steps:
       # Step 1: Display deployment start message
       - name: 📢 Deployment Started
@@ -29,8 +28,15 @@ jobs:
       - name: 📁 Navigate to Project Directory
         run: cd C:\Users\freem\National-University
         shell: powershell
-
       # Step 3: Run the deployment script
+      - name: 🛡️ Set Execution Policy
+        run: Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+        shell: powershell
+
+      - name: 🛡️ Unblock Deployment Script
+        run: Unblock-File -Path C:\Users\freem\National-University\deploy.ps1
+        shell: powershell
+
       - name: 🚀 Execute Deployment Script
         run: |
           cd C:\Users\freem\National-University
