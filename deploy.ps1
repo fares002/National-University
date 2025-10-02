@@ -6,6 +6,11 @@ Write-Host "Starting Deployment Process" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Configure Git safe directory for NETWORK SERVICE
+Write-Host "Configuring Git safe directory..." -ForegroundColor Yellow
+git config --global --add safe.directory C:/Users/freem/National-University
+Write-Host ""
+
 # Step 1: Pull latest code from GitHub
 Write-Host "Step 1: Pulling latest code from GitHub..." -ForegroundColor Yellow
 Write-Host "Purpose: Get the latest changes you pushed" -ForegroundColor Gray
