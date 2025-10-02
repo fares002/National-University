@@ -14,12 +14,6 @@ jobs:
   deploy:
     # Run on the self-hosted runner we just installed (NU_RUNNER)
     runs-on: self-hosted
-
-    # Set default shell with bypass execution policy
-    defaults:
-      run:
-        shell: powershell -ExecutionPolicy Bypass -Command "& '{0}'"
-
     steps:
       # Step 1: Display deployment start message
       - name: 📢 Deployment Started
@@ -28,16 +22,26 @@ jobs:
           Write-Host "Deployment triggered by: ${{ github.actor }}" -ForegroundColor Yellow
           Write-Host "Commit: ${{ github.event.head_commit.message }}" -ForegroundColor Yellow
           Write-Host "========================================" -ForegroundColor Cyan
+        shell: powershell
 
       # Step 2: Navigate to the project directory
       - name: 📁 Navigate to Project Directory
         run: cd C:\Users\freem\National-University
-
+        shell: powershell
       # Step 3: Run the deployment script
+      - name: 🛡️ Set Execution Policy
+        run: Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+        shell: powershell
+
+      - name: 🛡️ Unblock Deployment Script
+        run: Unblock-File -Path C:\Users\freem\National-University\deploy.ps1
+        shell: powershell
+
       - name: 🚀 Execute Deployment Script
         run: |
           cd C:\Users\freem\National-University
-          & .\deploy.ps1
+          .\deploy.ps1
+        shell: powershell
 
       # Step 4: Display deployment completion
       - name: ✅ Deployment Complete
@@ -48,6 +52,7 @@ jobs:
           Write-Host "  Frontend: http://localhost" -ForegroundColor White
           Write-Host "  Backend:  http://localhost:3000" -ForegroundColor White
           Write-Host "========================================" -ForegroundColor Green
+        shell: powershell
 
       # Step 5: Send notification on failure
       - name: ❌ Deployment Failed
@@ -57,3 +62,4 @@ jobs:
           Write-Host "Deployment FAILED!" -ForegroundColor Red
           Write-Host "Check the logs above for details" -ForegroundColor Red
           Write-Host "========================================" -ForegroundColor Red
+        shell: powershell
