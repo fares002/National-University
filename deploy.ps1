@@ -16,8 +16,8 @@ docker-compose down
 Write-Host "✅ Containers stopped" -ForegroundColor Green
 
 Write-Host "`nStep 3: Building images..." -ForegroundColor Yellow
-# BuildKit should work with direct docker build commands
-$env:DOCKER_BUILDKIT=1
+# Use legacy builder (works with LocalSystem, BuildKit has DNS issues)
+$env:DOCKER_BUILDKIT=0
 
 # Build backend image directly with docker (using cache)
 Write-Host "  Building backend..." -ForegroundColor Gray
