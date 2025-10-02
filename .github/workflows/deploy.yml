@@ -18,7 +18,7 @@ jobs:
     # Set default shell with bypass execution policy
     defaults:
       run:
-        shell: pwsh -ExecutionPolicy Bypass -Command "& '{0}'"
+        shell: powershell -ExecutionPolicy Bypass -Command "& '{0}'"
 
     steps:
       # Step 1: Display deployment start message
