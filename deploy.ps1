@@ -1,4 +1,13 @@
-# Deployment Script for National University System
+# Deployment Script for National UniWrite-Host "`nStep 3: Building Docker images..." -ForegroundColor Cyan
+Write-Host "Purpose: Compile the latest code into Docker containers (uses cache for speed)" -ForegroundColor Gray
+$env:DOCKER_BUILDKIT=0
+$env:COMPOSE_DOCKER_CLI_BUILD=0
+docker-compose build
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ Failed to build Docker images" -ForegroundColor Red
+    exit 1
+}
+Write-Host "✅ Docker images built successfully" -ForegroundColor GreenSystem
 # This script pulls latest code from GitHub and redeploys the application
 
 Write-Host "========================================" -ForegroundColor Cyan
@@ -52,7 +61,8 @@ Set-Location "National-Universty-Backend"
 $migrationStatus = npx prisma migrate status
 if ($migrationStatus -match "Database schema is up to date") {
     Write-Host "✅ No migrations needed - database is up to date" -ForegroundColor Green
-} else {
+}
+else {
     npx prisma migrate deploy
     if ($LASTEXITCODE -ne 0) {
         Write-Host "❌ Failed to run migrations" -ForegroundColor Red
