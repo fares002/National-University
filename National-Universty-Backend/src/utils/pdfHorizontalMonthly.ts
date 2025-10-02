@@ -168,7 +168,7 @@ function buildHTML(data: HorizontalMonthlyData): string {
     <title>${data.title}</title>
     <style>
       * { box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Tahoma, Arial, 'Noto Kufi Arabic', 'Cairo', sans-serif; color: #111827; margin: 0; background: #f5f7fa; }
+  body { font-family: FreeMono, monospace; color: #111827; margin: 0; background: #f5f7fa; }
   .container { padding: 24px; background: #ffffff; margin: 0 auto; max-width: 100%; }
       .header { border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 12px; }
       .header h1 { margin: 0 0 6px; font-size: 20px; }
@@ -186,7 +186,7 @@ function buildHTML(data: HorizontalMonthlyData): string {
       tbody td { border: 1px solid #e5e7eb; padding: 8px; text-align: center; word-break: break-word; background: #fff; }
       tbody tr:nth-child(even) { background: #fafafa; }
       tfoot th { background: #f1f5f9; font-weight: 800; }
-      .num { font-family: 'Segoe UI', Tahoma, Arial; direction: ltr; unicode-bidi: bidi-override; text-align: right; padding-inline-end: 10px; font-variant-numeric: tabular-nums; }
+      .num { font-family: FreeSerif, serif; direction: ltr; unicode-bidi: bidi-override; text-align: right; padding-inline-end: 10px; font-variant-numeric: tabular-nums; }
       .strong { font-weight: 700; }
       th.sticky-left, td.sticky-left { position: sticky; right: 0; background: #fff; z-index: 1; box-shadow: -1px 0 0 #e5e7eb inset; min-width: 80px; border-left: 1px solid #e5e7eb; }
       thead th.sticky-left, tfoot th.sticky-left { z-index: 2; }
@@ -266,7 +266,7 @@ export async function generateHorizontalMonthlyPDF(
     });
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
     res.setHeader("Content-Length", pdf.length);
     res.send(pdf);
   } catch (error) {

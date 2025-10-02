@@ -15,7 +15,7 @@ export interface PaymentForReceipt {
 }
 
 function formatCurrency(amount: number) {
-  return `${amount.toLocaleString("ar-EG", { minimumFractionDigits: 0 })} ج.م`;
+  return `${amount.toLocaleString("en-US", { minimumFractionDigits: 0 })} ج.م`;
 }
 
 function formatDate(date: string | Date) {
@@ -61,7 +61,7 @@ function receiptHTML(payment: PaymentForReceipt, qrDataUrl: string) {
       <style>
         @page { size: A6; margin: 6mm; }
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Arial, 'Noto Kufi Arabic', 'Cairo', sans-serif; color: #111827; }
+        body { font-family: FreeSerif, serif; color: #111827; }
         .wrap { border: 1px dashed #d1d5db; padding: 10px; }
         .header { text-align: center; margin-bottom: 8px; }
         .title { font-size: 14px; font-weight: 800; }

@@ -86,7 +86,7 @@ function generateHTML(data: ReportData): string {
                 @page { size: A4; margin: 12mm; }
 
                 body {
-                    font-family: 'Segoe UI', Tahoma, Arial, 'Noto Kufi Arabic', 'Cairo', sans-serif;
+                    font-family: FreeSerif, serif;
                     line-height: 1.6;
                     color: #111827; /* slate-900 */
                     background: #ffffff;
@@ -467,7 +467,7 @@ export async function generatePDF(
       },
     });
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
     res.setHeader("Content-Length", pdf.length);
     res.send(pdf);
   } catch (error) {

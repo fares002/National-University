@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { format } from "date-fns";
 import {
   FileText,
   Download,
@@ -987,7 +988,7 @@ export function Reports() {
                             className="w-full justify-between"
                           >
                             {fromDate
-                              ? fromDate.toISOString().slice(0, 10)
+                              ? format(fromDate, "yyyy-MM-dd")
                               : t("pickADate") || "Pick a date"}
                             <Calendar className="h-4 w-4 opacity-60" />
                           </Button>
@@ -1019,7 +1020,7 @@ export function Reports() {
                             className="w-full justify-between"
                           >
                             {toDate
-                              ? toDate.toISOString().slice(0, 10)
+                              ? format(toDate, "yyyy-MM-dd")
                               : t("pickADate") || "Pick a date"}
                             <Calendar className="h-4 w-4 opacity-60" />
                           </Button>
@@ -1056,8 +1057,8 @@ export function Reports() {
                       disabled={!fromDate || !toDate || downloadingCustom}
                       onClick={async () => {
                         if (!fromDate || !toDate) return;
-                        const from = fromDate.toISOString().slice(0, 10);
-                        const to = toDate.toISOString().slice(0, 10);
+                        const from = format(fromDate, "yyyy-MM-dd");
+                        const to = format(toDate, "yyyy-MM-dd");
                         if (from > to) {
                           toast({
                             variant: "destructive",
