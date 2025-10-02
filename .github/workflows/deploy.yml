@@ -24,23 +24,11 @@ jobs:
           Write-Host "========================================" -ForegroundColor Cyan
         shell: powershell
 
-      # Step 2: Navigate to the project directory
-      - name: 📁 Navigate to Project Directory
-        run: cd C:\Users\freem\National-University
-        shell: powershell
-      # Step 3: Run the deployment script
-      - name: 🛡️ Set Execution Policy
-        run: Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-        shell: powershell
-
-      - name: 🛡️ Unblock Deployment Script
-        run: Unblock-File -Path C:\Users\freem\National-University\deploy.ps1
-        shell: powershell
-
-      - name: 🚀 Execute Deployment Script
+      # Step 2: Run the deployment script directly
+      - name: � Execute Deployment Script
         run: |
-          cd C:\Users\freem\National-University
-          .\deploy.ps1
+          Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+          & C:\Users\freem\National-University\deploy.ps1
         shell: powershell
 
       # Step 4: Display deployment completion
