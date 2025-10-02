@@ -210,6 +210,7 @@ const resources = {
       categorySaudiEgyptianCompany: "الشركة السعودية المصرية",
       categoryother: "آخرى",
       other: "أخرى",
+      category: "التصنيف",
 
       // Reports
       financialReports: "التقارير المالية",
@@ -753,6 +754,7 @@ const resources = {
       categoryStudentTraining: "Student Training",
       categorySaudiEgyptianCompany: "Saudi-Egyptian Company",
       categoryother: "Other",
+      category: "Category",
 
       // Reports
       financialReports: "Financial Reports",
