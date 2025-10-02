@@ -24,8 +24,14 @@ jobs:
           Write-Host "========================================" -ForegroundColor Cyan
         shell: powershell
 
-      # Step 2: Run the deployment script directly
-      - name: � Execute Deployment Script
+      # Step 2: Configure Git safe directory
+      - name: 🔒 Configure Git Safe Directory
+        run: |
+          git config --global --add safe.directory C:/Users/freem/National-University
+        shell: powershell
+
+      # Step 3: Run the deployment script
+      - name: 🚀 Execute Deployment Script
         run: |
           Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
           & C:\Users\freem\National-University\deploy.ps1
