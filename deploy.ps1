@@ -16,21 +16,26 @@ docker-compose down
 Write-Host "✅ Containers stopped" -ForegroundColor Green
 
 Write-Host "`nStep 3: Building images..." -ForegroundColor Yellow
-# Use legacy builder (works with LocalSystem, BuildKit has DNS issues)
 $env:DOCKER_BUILDKIT=0
 
-# Build backend image directly with docker (using cache)
+# Build backend image from within its directory
 Write-Host "  Building backend..." -ForegroundColor Gray
-docker build --pull=false -t national-university-backend:latest "C:\Users\freem\National-University\National-Universty-Backend"
-if ($LASTEXITCODE -ne 0) {
+Push-Location "National-Universty-Backend"
+docker build --pull=false -t national-university-backend:latest .
+$backendResult = $LASTEXITCODE
+Pop-Location
+if ($backendResult -ne 0) {
     Write-Host "❌ Backend build failed!" -ForegroundColor Red
     exit 1
 }
 
-# Build frontend image directly with docker (using cache)
+# Build frontend image from within its directory
 Write-Host "  Building frontend..." -ForegroundColor Gray
-docker build --pull=false -t national-university-frontend:latest "C:\Users\freem\National-University\sudani-fin-flow"
-if ($LASTEXITCODE -ne 0) {
+Push-Location "sudani-fin-flow"
+docker build --pull=false -t national-university-frontend:latest .
+$frontendResult = $LASTEXITCODE
+Pop-Location
+if ($frontendResult -ne 0) {
     Write-Host "❌ Frontend build failed!" -ForegroundColor Red
     exit 1
 }
