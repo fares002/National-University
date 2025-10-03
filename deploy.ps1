@@ -40,6 +40,10 @@ function Invoke-Compose {
 
 Write-Section "Starting Deployment Process"
 
+# Ensure we run from the repo root (script directory)
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+Set-Location $scriptDir
+
 Check-Docker
 
 # Step 1: Pull latest code from GitHub
