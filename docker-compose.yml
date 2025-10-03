@@ -37,7 +37,7 @@ services:
       # Database Configuration (local database on host)
       # Use host.docker.internal to connect to host machine database on Windows/Mac
       # For Linux, use: extra_hosts: - "host.docker.internal:host-gateway"
-      DATABASE_URL: "${DATABASE_URL}"
+      DATABASE_URL: "${DATABASE_URL:-mysql://National_university_admin:National_university_password@host.docker.internal:3306/National_university}"
       
       # JWT Configuration
       JWT_SECRET_KEY: "${JWT_SECRET_KEY:-05b7847d5caa00b0f4a05fc8e4e773583211628f5e838b267efc35dee5a069dd}"
