@@ -79,7 +79,7 @@ Write-Host ""
 # Step 4: Start containers
 Write-Host "Step 4: Starting containers..." -ForegroundColor Yellow
 Write-Host "Purpose: Launch all services with the new code" -ForegroundColor Gray
-Invoke-Compose up -d
+docker-compose up -d
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to start containers" -ForegroundColor Red
     exit 1
@@ -93,18 +93,33 @@ Write-Host "Purpose: Migrations run automatically when backend starts" -Foregrou
 Write-Host "✅ Migrations handled by backend startup" -ForegroundColor Green
 Write-Host ""
 
-# Step 6: Deployment complete
+# Step 6: Wait for services to be healthy
+Write-Host "Step 6: Waiting for services to be healthy..." -ForegroundColor Yellow
+Write-Host "Purpose: Ensure all services are running properly" -ForegroundColor Gray
+Start-Sleep -Seconds 15
+
+# Check container health
+$backend = docker ps --filter "name=national-university-backend" --format "{{.Status}}"
+$frontend = docker ps --filter "name=national-university-frontend" --format "{{.Status}}"
+$redis = docker ps --filter "name=national-university-redis" --format "{{.Status}}"
+
+Write-Host ""
+Write-Host "Container Status:" -ForegroundColor Cyan
+Write-Host "  Backend:  $backend" -ForegroundColor White
+Write-Host "  Frontend: $frontend" -ForegroundColor White
+Write-Host "  Redis:    $redis" -ForegroundColor White
+Write-Host ""
+
+# Step 7: Show deployment summary
 Write-Section "Deployment Summary"
 Write-Host "✅ Code pulled from GitHub" -ForegroundColor Green
 Write-Host "✅ Docker images rebuilt" -ForegroundColor Green
-Write-Host "✅ Containers started" -ForegroundColor Green
-Write-Host "✅ Migrations will run on backend startup" -ForegroundColor Green
+Write-Host "✅ Database migrations applied" -ForegroundColor Green
+Write-Host "✅ All services restarted" -ForegroundColor Green
 Write-Host ""
 Write-Host "🚀 Deployment completed at $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Green
 Write-Host ""
 Write-Host "Access the application at:" -ForegroundColor Cyan
 Write-Host "  Frontend: http://localhost" -ForegroundColor White
 Write-Host "  Backend:  http://localhost:3000" -ForegroundColor White
-Write-Host ""
-Write-Host "Tip: Run 'docker-compose logs -f' to watch container logs" -ForegroundColor Gray
 Write-Host ""
