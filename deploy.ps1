@@ -1,10 +1,46 @@
 ﻿# Deployment Script for National University System
 # This script pulls latest code from GitHub and redeploys the application
 
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Starting Deployment Process" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host ""
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
+
+function Write-Section($text) {
+    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host $text -ForegroundColor Cyan
+    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host ""
+}
+
+function Check-Docker {
+    Write-Host "Checking Docker daemon..." -ForegroundColor Gray
+    $maxRetries = 10
+    for ($i = 1; $i -le $maxRetries; $i++) {
+        try {
+            docker info *> $null
+            Write-Host "✅ Docker is available" -ForegroundColor Green
+            return
+        } catch {
+            Write-Host "Attempt $i/$maxRetries: Docker not ready. Trying to start service 'com.docker.service'..." -ForegroundColor Yellow
+            try { Start-Service -Name com.docker.service -ErrorAction SilentlyContinue } catch {}
+            Start-Sleep -Seconds 3
+        }
+    }
+    throw "Docker is not available. Ensure Docker Desktop is running and the runner user is in the 'docker-users' group."
+}
+
+function Invoke-Compose {
+    param([Parameter(Mandatory)][string[]]$Args)
+    if (Get-Command docker-compose -ErrorAction SilentlyContinue) {
+        docker-compose @Args
+    } else {
+        docker compose @Args
+    }
+}
+
+Write-Section "Starting Deployment Process"
+
+Check-Docker
 
 # Step 1: Pull latest code from GitHub
 Write-Host "Step 1: Pulling latest code from GitHub..." -ForegroundColor Yellow
@@ -21,7 +57,7 @@ Write-Host ""
 # Step 2: Stop running containers
 Write-Host "Step 2: Stopping running containers..." -ForegroundColor Yellow
 Write-Host "Purpose: Gracefully stop all services before rebuilding" -ForegroundColor Gray
-docker-compose down
+Invoke-Compose down
 if ($LASTEXITCODE -ne 0) {
     Write-Host "⚠️ Warning: Failed to stop containers (they may not be running)" -ForegroundColor Yellow
 }
@@ -31,43 +67,36 @@ Write-Host ""
 # Step 3: Build Docker images
 Write-Host "Step 3: Building Docker images..." -ForegroundColor Yellow
 Write-Host "Purpose: Compile the latest code into Docker containers (uses cache for speed)" -ForegroundColor Gray
-docker-compose build
+Invoke-Compose build
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to build Docker images" -ForegroundColor Red
+    Write-Host "Tip: Ensure the GitHub runner user has access to Docker (docker-users group) and Docker Desktop is running." -ForegroundColor Yellow
     exit 1
 }
 Write-Host "✅ Docker images built successfully" -ForegroundColor Green
 Write-Host ""
 
-# Step 4: Run database migrations
-Write-Host "Step 4: Running database migrations..." -ForegroundColor Yellow
-Write-Host "Purpose: Update database schema if there are any changes" -ForegroundColor Gray
-Set-Location "National-Universty-Backend"
-# Check if there are pending migrations
-$migrationStatus = npx prisma migrate status
-if ($migrationStatus -match "Database schema is up to date") {
-    Write-Host "✅ No migrations needed - database is up to date" -ForegroundColor Green
-} else {
-    npx prisma migrate deploy
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "❌ Failed to run migrations" -ForegroundColor Red
-        Set-Location ".."
-        exit 1
-    }
-    Write-Host "✅ Database migrations completed" -ForegroundColor Green
-}
-Set-Location ".."
-Write-Host ""
-
-# Step 5: Start containers
-Write-Host "Step 5: Starting containers..." -ForegroundColor Yellow
+# Step 4: Start containers
+Write-Host "Step 4: Starting containers..." -ForegroundColor Yellow
 Write-Host "Purpose: Launch all services with the new code" -ForegroundColor Gray
-docker-compose up -d
+Invoke-Compose up -d
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to start containers" -ForegroundColor Red
     exit 1
 }
 Write-Host "✅ Containers started successfully" -ForegroundColor Green
+Write-Host ""
+
+# Step 5: Run database migrations inside backend container
+Write-Host "Step 5: Running database migrations (inside container)..." -ForegroundColor Yellow
+Write-Host "Purpose: Update database schema if there are any changes" -ForegroundColor Gray
+Invoke-Compose exec -T backend npx prisma migrate deploy
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ Failed to run migrations inside container" -ForegroundColor Red
+    Write-Host "Hint: Verify DATABASE_URL in docker-compose.yml points to a reachable DB (host.docker.internal on Windows)." -ForegroundColor Yellow
+    exit 1
+}
+Write-Host "✅ Database migrations completed" -ForegroundColor Green
 Write-Host ""
 
 # Step 6: Wait for services to be healthy
@@ -88,21 +117,12 @@ Write-Host "  Redis:    $redis" -ForegroundColor White
 Write-Host ""
 
 # Step 7: Show deployment summary
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Deployment Summary" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
+Write-Section "Deployment Summary"
 Write-Host "✅ Code pulled from GitHub" -ForegroundColor Green
 Write-Host "✅ Docker images rebuilt" -ForegroundColor Green
 Write-Host "✅ Database migrations applied" -ForegroundColor Green
 Write-Host "✅ All services restarted" -ForegroundColor Green
 Write-Host ""
-Write-Host "🚀 Deployment completed at $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Green
-Write-Host ""
-Write-Host "Access the application at:" -ForegroundColor Cyan
-Write-Host "  Frontend: http://localhost" -ForegroundColor White
-Write-Host "  Backend:  http://localhost:3000" -ForegroundColor White
-Write-Host ""
-ite-Host ""
 Write-Host "🚀 Deployment completed at $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Green
 Write-Host ""
 Write-Host "Access the application at:" -ForegroundColor Cyan
