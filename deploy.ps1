@@ -79,7 +79,7 @@ Write-Host ""
 # Step 4: Start containers
 Write-Host "Step 4: Starting containers..." -ForegroundColor Yellow
 Write-Host "Purpose: Launch all services with the new code" -ForegroundColor Gray
-Invoke-Compose up -d
+Invoke-Compose up -d --wait
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to start containers" -ForegroundColor Red
     exit 1
@@ -87,16 +87,10 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "✅ Containers started successfully" -ForegroundColor Green
 Write-Host ""
 
-# Step 5: Run database migrations inside backend container
-Write-Host "Step 5: Running database migrations (inside container)..." -ForegroundColor Yellow
-Write-Host "Purpose: Update database schema if there are any changes" -ForegroundColor Gray
-Invoke-Compose exec -T backend npx prisma migrate deploy
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to run migrations inside container" -ForegroundColor Red
-    Write-Host "Hint: Verify DATABASE_URL in docker-compose.yml points to a reachable DB (host.docker.internal on Windows)." -ForegroundColor Yellow
-    exit 1
-}
-Write-Host "✅ Database migrations completed" -ForegroundColor Green
+# Step 5: Database migrations will run automatically on backend container startup
+Write-Host "Step 5: Database migrations..." -ForegroundColor Yellow
+Write-Host "Purpose: Migrations run automatically when backend starts" -ForegroundColor Gray
+Write-Host "✅ Migrations handled by backend startup" -ForegroundColor Green
 Write-Host ""
 
 # Step 6: Wait for services to be healthy
