@@ -21,7 +21,7 @@ function Check-Docker {
             Write-Host "✅ Docker is available" -ForegroundColor Green
             return
         } catch {
-            Write-Host "Attempt $i/$maxRetries: Docker not ready. Trying to start service 'com.docker.service'..." -ForegroundColor Yellow
+            Write-Host "Attempt $i/$($maxRetries): Docker not ready. Trying to start service 'com.docker.service'..." -ForegroundColor Yellow
             try { Start-Service -Name com.docker.service -ErrorAction SilentlyContinue } catch {}
             Start-Sleep -Seconds 3
         }
