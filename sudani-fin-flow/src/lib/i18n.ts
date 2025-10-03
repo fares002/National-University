@@ -189,6 +189,7 @@ const resources = {
       feeTypeStudentServices: "رسوم خدمات طلابية",
       feeTypeOther: "أخرى",
       feeTypeExam: "رسوم امتحان",
+      exam: "رسوم امتحان",
 
       // Payment Methods
       paymentMethodCash: "نقداً",
@@ -646,7 +647,7 @@ const resources = {
       // Password Reset Errors
       invalidResetLink: "Invalid password reset link",
       expiredResetLink: "Password reset link expired or invalid",
-      linkVerificationError: "Link verification error",
+      linkVerificationError: "Link verificatiozn error",
       resetPasswordError: "An error occurred while resetting the password",
       connectionError: "Connection error",
 
@@ -734,6 +735,7 @@ const resources = {
       feeTypeStudentServices: "Student Services Fee",
       feeTypeOther: "Other",
       feeTypeExam: "Exam Fee",
+      exam: "Exam fee",
 
       // Payment Methods
       paymentMethodCash: "Cash",
