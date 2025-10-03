@@ -79,7 +79,7 @@ Write-Host ""
 # Step 4: Start containers
 Write-Host "Step 4: Starting containers..." -ForegroundColor Yellow
 Write-Host "Purpose: Launch all services with the new code" -ForegroundColor Gray
-Invoke-Compose up -d --wait
+Invoke-Compose up -d
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to start containers" -ForegroundColor Red
     exit 1
