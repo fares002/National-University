@@ -212,7 +212,7 @@ export function Payments() {
           editingPayment.id,
           updatePayload
         );
-        toast({ title: "تم تحديث الدفعة", description: resp.status });
+        toast({ title: t("paymentupdatesuccessfully"), description: t("success") });
         setEditingPayment(null);
         setIsPaymentDialogOpen(false);
         fetchPayments();

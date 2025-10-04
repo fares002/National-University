@@ -157,6 +157,7 @@ const resources = {
       receipt: "إيصال",
       printReceipt: "طباعة الإيصال",
       employee: "الموظف",
+      paymentupdatesuccessfully: "تم تحديث الدفعة بنجاح",
 
       // Expenses
       expenseManagement: "إدارة المصروفات",
@@ -703,6 +704,7 @@ const resources = {
       receipt: "Receipt",
       printReceipt: "Print Receipt",
       employee: "Employee",
+      paymentupdatesuccessfully: "Payment updated successfully",
 
       // Expenses
       expenseManagement: "Expense Management",
