@@ -8,6 +8,8 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
+    environment:
+      TZ: "Africa/Cairo"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
@@ -29,10 +31,13 @@ services:
     ports:
       - "3000:3000"
     environment:
+      # Timezone Configuration
+      TZ: "Africa/Cairo"
+      
       # Database Configuration (local database on host)
       # Use host.docker.internal to connect to host machine database on Windows/Mac
       # For Linux, use: extra_hosts: - "host.docker.internal:host-gateway"
-      DATABASE_URL: "mysql://National_university_admin:National_university_password@host.docker.internal:3306/National_university"
+      DATABASE_URL: "${DATABASE_URL}"
       
       # JWT Configuration
       JWT_SECRET_KEY: "${JWT_SECRET_KEY:-05b7847d5caa00b0f4a05fc8e4e773583211628f5e838b267efc35dee5a069dd}"
@@ -88,6 +93,8 @@ services:
     ports:
       - "80:80"
     environment:
+      # Timezone Configuration
+      TZ: "Africa/Cairo"
       # API URL will be baked into the build
       VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:3000/api/v1}"
     depends_on:

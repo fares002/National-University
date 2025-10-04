@@ -20,7 +20,8 @@ function Check-Docker {
             docker info *> $null
             Write-Host "✅ Docker is available" -ForegroundColor Green
             return
-        } catch {
+        }
+        catch {
             Write-Host "Attempt $i/$($maxRetries): Docker not ready. Trying to start service 'com.docker.service'..." -ForegroundColor Yellow
             try { Start-Service -Name com.docker.service -ErrorAction SilentlyContinue } catch {}
             Start-Sleep -Seconds 3
@@ -33,7 +34,8 @@ function Invoke-Compose {
     param([Parameter(Mandatory)][string[]]$Args)
     if (Get-Command docker-compose -ErrorAction SilentlyContinue) {
         docker-compose @Args
-    } else {
+    }
+    else {
         docker compose @Args
     }
 }
@@ -41,6 +43,22 @@ function Invoke-Compose {
 Write-Section "Starting Deployment Process"
 
 Check-Docker
+
+# Ensure .env file exists (copy from main location if needed)
+if (-not (Test-Path ".env")) {
+    Write-Host "⚠️ .env file not found in workspace, checking main location..." -ForegroundColor Yellow
+    if (Test-Path "C:\Users\freem\National-University\.env") {
+        Copy-Item "C:\Users\freem\National-University\.env" -Destination ".env" -Force
+        Write-Host "✅ Copied .env from main location" -ForegroundColor Green
+    }
+    else {
+        Write-Host "⚠️ Warning: .env file not found. Using docker-compose defaults." -ForegroundColor Yellow
+    }
+}
+else {
+    Write-Host "✅ .env file found" -ForegroundColor Green
+}
+Write-Host ""
 
 # Step 1: Pull latest code from GitHub
 Write-Host "Step 1: Pulling latest code from GitHub..." -ForegroundColor Yellow
