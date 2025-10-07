@@ -60,22 +60,6 @@ async function htmlToFullPagePdf(inputPath, outputPath) {
         in: path.join(projectRoot, "invoice-ar.html"),
         out: path.join(outDir, "invoice-ar.pdf"),
       },
-      {
-        in: path.join(projectRoot, "contract.html"),
-        out: path.join(outDir, "contract.pdf"),
-      },
-      {
-        in: path.join(projectRoot, "contract-ar.html"),
-        out: path.join(outDir, "contract-ar.pdf"),
-      },
-      {
-        in: path.join(projectRoot, "nda.html"),
-        out: path.join(outDir, "nda.pdf"),
-      },
-      {
-        in: path.join(projectRoot, "nda-ar.html"),
-        out: path.join(outDir, "nda-ar.pdf"),
-      },
     ];
 
     for (const t of targets) {

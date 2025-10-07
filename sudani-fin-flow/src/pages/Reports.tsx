@@ -343,7 +343,7 @@ export function Reports() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      {t("totalIncome")}
+                      {`${t("totalIncome")} (${t("yearly")})`}
                     </p>
                     <p className="text-2xl font-bold text-success">
                       {formatCurrency(yearSummary?.payments ?? 0)} {t("sdg")}
@@ -359,7 +359,7 @@ export function Reports() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      {t("reportsExpenses")}
+                      {t("reportsExpenses")} ({t("yearly")})
                     </p>
                     <p className="text-2xl font-bold text-destructive">
                       {formatCurrency(yearSummary?.expenses ?? 0)} {t("sdg")}
@@ -375,7 +375,7 @@ export function Reports() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      {t("profit")}
+                      {t("profit")} ({t("yearly")})
                     </p>
                     <p className="text-2xl font-bold text-primary">
                       {formatCurrency(yearSummary?.netIncome ?? 0)} {t("sdg")}

@@ -187,7 +187,7 @@ export function Dashboard() {
       {/* Stats Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          title={t("totalRevenue")}
+          title={`${t("totalRevenue")} (${t("monthly")})`}
           value={dashboardData.overview.currentMonth.payments.total}
           valueUSD={dashboardData.overview.currentMonth.payments.totalUSD}
           icon={TrendingUp}
@@ -202,7 +202,7 @@ export function Dashboard() {
           color="bg-gradient-success"
         />
         <StatsCard
-          title={t("totalExpenses")}
+          title={`${t("totalExpenses")} (${t("monthly")})`}
           value={dashboardData.overview.currentMonth.expenses.total}
           valueUSD={dashboardData.overview.currentMonth.expenses.totalUSD}
           icon={TrendingDown}
@@ -217,7 +217,7 @@ export function Dashboard() {
           color="bg-gradient-secondary"
         />
         <StatsCard
-          title={t("netProfit")}
+          title={`${t("netProfit")} (${t("monthly")})`}
           value={dashboardData.overview.currentMonth.netProfit}
           valueUSD={dashboardData.overview.currentMonth.netProfitUSD}
           icon={DollarSign}
